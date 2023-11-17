@@ -1,5 +1,5 @@
 import {Logger} from "@nestjs/common";
-import ScopedLogger from "./logger";
+import {ScopedLogger} from "./logger";
 import {LoggedParamReflectData} from "./reflected";
 import {loggedParam, scopedLogger} from "./reflected";
 import objectContainedLogged from "./functions";

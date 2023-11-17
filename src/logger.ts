@@ -2,7 +2,7 @@ import {Logger} from "@nestjs/common";
 
 type LogLevel = 'debug' | 'log' | 'warn' | 'verbose' | 'error' | 'fatal';
 
-export default class ScopedLogger extends Logger {
+export class ScopedLogger extends Logger {
     constructor(
         private logger: Logger,
         private scope: string,
