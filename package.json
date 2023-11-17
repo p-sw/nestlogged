@@ -18,6 +18,6 @@
   },
   "scripts": {
     "build": "tsc",
-    "publish":  "tsc && yarn publish dist"
+    "up":  "tsc && yarn publish dist"
   }
 }
