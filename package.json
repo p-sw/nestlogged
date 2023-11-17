@@ -14,10 +14,11 @@
   },
   "devDependencies": {
     "@types/node": "^20.9.1",
+    "rimraf": "^5.0.5",
     "typescript": "^5.2.2"
   },
   "scripts": {
-    "build": "rm -rf ./dist && tsc",
-    "up":  "yarn build && yarn publish dist"
+    "build": "rimraf ./dist/lib && tsc",
+    "up": "yarn build && yarn publish dist"
   }
 }
