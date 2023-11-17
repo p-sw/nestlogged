@@ -17,7 +17,7 @@
     "typescript": "^5.2.2"
   },
   "scripts": {
-    "build": "tsc",
-    "up":  "tsc && yarn publish dist"
+    "build": "rm -rf ./dist && tsc",
+    "up":  "yarn build && yarn publish dist"
   }
 }
