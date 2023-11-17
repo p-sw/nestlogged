@@ -7,7 +7,7 @@ It only uses Logger provided by @nestjs/common package and some dependencies req
 ### Route Logging
 ```ts
 import {Controller, Get} from "@nestjs/common";
-import {LoggedRoute} from "./logged";
+import {LoggedRoute} from "nlogdec";
 
 @Controller('whatever')
 export class WhateverController {
@@ -32,7 +32,7 @@ If function throws any exception, it will also catch exception, log that, and th
 
 ```ts
 import {BadRequestException, Controller, Get} from "@nestjs/common";
-import {LoggedRoute} from "./logged";
+import {LoggedRoute} from "nlogdec";
 
 @Controller('whatever')
 export class WhateverController {
@@ -55,7 +55,7 @@ Not only HTTP exception, it will also catch all exceptions and log it.
 
 ### Function Logging
 ```ts
-import {LoggedFunction} from "./logged";
+import {LoggedFunction} from "nlogdec";
 
 @LoggedFunction // This decorator will do the magic for you
 export async function doILikeThis(stuff: "apple" | "banana"): "yes" | "no" {
@@ -72,8 +72,7 @@ Like `LoggedRoute` decorator, it will automatically catch all exceptions, log it
 ### Parameter Logging
 
 ```ts
-import {LoggedFunction} from "./logged";
-import {LoggedParam} from "./reflected";
+import {LoggedParam, LoggedFunction} from "nlogdec";
 
 @LoggedFunction
 export async function doILikeThis(
@@ -101,9 +100,12 @@ You can do scoped logging with `InjectLogger` decorator.
 Like tracebacks, it will add a scope and call stacks in log, so you can easily follow logs.
 
 ```ts
-import {LoggedFunction} from "./logged";
-import {InjectLogger, LoggedParam} from "./reflected";
-import {ScopedLogger} from "./logger";
+import {
+    LoggedFunction, 
+    LoggedParam, 
+    InjectLogger, 
+    ScopedLogger
+} from "nlogdec";
 
 @LoggedFunction
 export async function doILikeThis(
@@ -121,9 +123,12 @@ Then, in controller:
 
 ```ts
 import {BadRequestException, Controller, Get, Param} from "@nestjs/common";
-import {LoggedRoute} from "./logged";
-import {InjectLogger, LoggedParam} from "./reflected";
-import {ScopedLogger} from "./logger";
+import {
+    LoggedRoute,
+    InjectLogger, 
+    LoggedParam, 
+    ScopedLogger
+} from "./logged";
 
 @Controller('you')
 export class WhateverController {
