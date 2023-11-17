@@ -1,20 +1,12 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-__exportStar(require("./logged"), exports);
-__exportStar(require("./logger"), exports);
-__exportStar(require("./reflected"), exports);
+exports.LoggedParam = exports.InjectLogger = exports.ScopedLogger = exports.LoggedFunction = exports.LoggedRoute = void 0;
+var logged_1 = require("./logged");
+Object.defineProperty(exports, "LoggedRoute", { enumerable: true, get: function () { return logged_1.LoggedRoute; } });
+Object.defineProperty(exports, "LoggedFunction", { enumerable: true, get: function () { return logged_1.LoggedFunction; } });
+var logger_1 = require("./logger");
+Object.defineProperty(exports, "ScopedLogger", { enumerable: true, get: function () { return logger_1.ScopedLogger; } });
+var reflected_1 = require("./reflected");
+Object.defineProperty(exports, "InjectLogger", { enumerable: true, get: function () { return reflected_1.InjectLogger; } });
+Object.defineProperty(exports, "LoggedParam", { enumerable: true, get: function () { return reflected_1.LoggedParam; } });
 //# sourceMappingURL=index.js.map

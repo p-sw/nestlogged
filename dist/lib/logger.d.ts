@@ -1,5 +1,5 @@
 import { Logger } from "@nestjs/common";
-export default class ScopedLogger extends Logger {
+export declare class ScopedLogger extends Logger {
     private logger;
     private scope;
     private scopeId?;

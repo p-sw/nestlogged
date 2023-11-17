@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ScopedLogger = void 0;
 const common_1 = require("@nestjs/common");
 class ScopedLogger extends common_1.Logger {
     constructor(logger, scope, scopeId) {
@@ -20,5 +21,5 @@ class ScopedLogger extends common_1.Logger {
         };
     }
 }
-exports.default = ScopedLogger;
+exports.ScopedLogger = ScopedLogger;
 //# sourceMappingURL=logger.js.map

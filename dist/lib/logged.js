@@ -27,11 +27,11 @@ function LoggedFunction(_target, key, descriptor) {
         const scopedLoggerInjectableParam = Reflect.getOwnMetadata(reflected_1.scopedLogger, _target, key);
         if (typeof scopedLoggerInjectableParam !== 'undefined' &&
             (args.length <= scopedLoggerInjectableParam ||
-                !(args[scopedLoggerInjectableParam] instanceof logger_1.default))) {
-            args[scopedLoggerInjectableParam] = new logger_1.default(logger, key);
+                !(args[scopedLoggerInjectableParam] instanceof logger_1.ScopedLogger))) {
+            args[scopedLoggerInjectableParam] = new logger_1.ScopedLogger(logger, key);
         }
         else if (typeof scopedLoggerInjectableParam !== 'undefined') {
-            args[scopedLoggerInjectableParam] = new logger_1.default(args[scopedLoggerInjectableParam], key);
+            args[scopedLoggerInjectableParam] = new logger_1.ScopedLogger(args[scopedLoggerInjectableParam], key);
         }
         const injectedLogger = typeof scopedLoggerInjectableParam !== 'undefined'
             ? args[scopedLoggerInjectableParam]
@@ -68,8 +68,8 @@ function LoggedRoute(route) {
             const scopedLoggerInjectableParam = Reflect.getOwnMetadata(reflected_1.scopedLogger, _target, key);
             if (typeof scopedLoggerInjectableParam !== 'undefined' &&
                 (args.length <= scopedLoggerInjectableParam ||
-                    !(args[scopedLoggerInjectableParam] instanceof logger_1.default))) {
-                args[scopedLoggerInjectableParam] = new logger_1.default(logger, fullRoute);
+                    !(args[scopedLoggerInjectableParam] instanceof logger_1.ScopedLogger))) {
+                args[scopedLoggerInjectableParam] = new logger_1.ScopedLogger(logger, fullRoute);
             }
             const injectedLogger = typeof scopedLoggerInjectableParam !== 'undefined'
                 ? args[scopedLoggerInjectableParam]
