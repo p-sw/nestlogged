@@ -18,7 +18,8 @@
     "typescript": "^5.2.2"
   },
   "scripts": {
+    "docs": "cp ./README.md ./dist/README.md",
     "build": "rimraf ./dist/lib && tsc",
-    "up": "yarn build && yarn publish dist"
+    "up": "yarn docs && yarn build && yarn publish dist"
   }
 }
