@@ -1,6 +1,6 @@
 {
   "name": "nlogdec",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "A NestJS Logger Decorator Library",
   "main": "lib/index.js",
   "repository": "https://github.com/worplo/nestlogged",
