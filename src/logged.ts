@@ -9,6 +9,19 @@ import { ScopedLogger } from "./logger";
 import { LoggedParamReflectData } from "./reflected";
 import { loggedParam, scopedLogger } from "./reflected";
 import objectContainedLogged from "./functions";
+import { RequestMethod } from "@nestjs/common";
+
+const RevRequestMethod = [
+  "GET",
+  "POST",
+  "PUT",
+  "DELETE",
+  "PATCH",
+  "ALL",
+  "OPTIONS",
+  "HEAD",
+  "SEARCH",
+];
 
 function loggerInit(_target: any) {
   if (!Object.getOwnPropertyNames(_target).includes("logger")) {
@@ -63,18 +76,24 @@ export function LoggedController(param?: any): (target: any) => void {
 
     const methods = Object.getOwnPropertyNames(target.prototype);
 
-    logger.log(JSON.stringify(methods))
-
     methods.forEach((method) => {
-      logger.log(method)
       if (
         method !== "constructor" &&
         typeof target.prototype[method] === "function"
       ) {
-        logger.log(`LoggedRoute applied to ${method}`);
+        const path = Reflect.getMetadata("path", target.prototype[method]);
+        const httpMethod = Reflect.getMetadata(
+          "method",
+          target.prototype[method]
+        );
+        logger.log(
+          `LoggedRoute applied to ${method} (${RevRequestMethod[httpMethod]} ${path})`
+        );
         LoggedRoute()(target.prototype, method, {
           value: target.prototype[method],
         });
+        Reflect.defineMetadata("path", path, target.prototype[method]);
+        Reflect.defineMetadata("method", httpMethod, target.prototype[method]);
       }
     });
 
@@ -100,7 +119,7 @@ export function LoggedFunction<F extends Array<any>, R>(
     return;
   }
 
-  _target[key] = async function(...args: F) {
+  _target[key] = async function (...args: F) {
     const scopedLoggerInjectableParam: number = Reflect.getOwnMetadata(
       scopedLogger,
       _target,
@@ -132,22 +151,23 @@ export function LoggedFunction<F extends Array<any>, R>(
     );
 
     injectedLogger.log(
-      `CALL ${key} ${loggedParams && loggedParams.length > 0
-        ? "WITH " +
-        (
-          await Promise.all(
-            loggedParams.map(
-              async ({ name, index, include, exclude }) =>
-                name +
-                "=" +
-                (await objectContainedLogged(args[index], {
-                  include,
-                  exclude,
-                }))
-            )
-          )
-        ).join(", ")
-        : ""
+      `CALL ${key} ${
+        loggedParams && loggedParams.length > 0
+          ? "WITH " +
+            (
+              await Promise.all(
+                loggedParams.map(
+                  async ({ name, index, include, exclude }) =>
+                    name +
+                    "=" +
+                    (await objectContainedLogged(args[index], {
+                      include,
+                      exclude,
+                    }))
+                )
+              )
+            ).join(", ")
+          : ""
       }`
     );
 
@@ -167,13 +187,19 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string) {
     _target: any,
     key: string,
     descriptor: TypedPropertyDescriptor<(...args: F) => Promise<R>>
-  ) => {
+  ): [string, RequestMethod] => {
     loggerInit(_target);
 
     const logger = _target.logger;
 
-    let fullRoute = `${_target.constructor.name}/`;
     const fn = descriptor.value;
+
+    const httpPath: string = Reflect.getMetadata("path", fn);
+    const httpMethod: RequestMethod = Reflect.getMetadata("method", fn);
+
+    const fullRoute = `${_target.constructor.name}::${route ?? httpPath}[${
+      RevRequestMethod[httpMethod]
+    }]`;
 
     if (!fn || typeof fn !== "function") {
       logger.warn(
@@ -182,14 +208,12 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string) {
       return;
     }
 
-    _target[key] = async function(...args: F) {
+    _target[key] = async function (...args: F) {
       const scopedLoggerInjectableParam: number = Reflect.getOwnMetadata(
         scopedLogger,
         _target,
         key
       );
-
-      fullRoute += route || Reflect.getMetadata("path", fn);
 
       if (
         typeof scopedLoggerInjectableParam !== "undefined" &&
@@ -211,22 +235,23 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string) {
       );
 
       injectedLogger.log(
-        `HIT HTTP ${fullRoute} (${key}) ${loggedParams && loggedParams.length > 0
-          ? "WITH " +
-          (
-            await Promise.all(
-              loggedParams.map(
-                async ({ name, index, include, exclude }) =>
-                  name +
-                  "=" +
-                  (await objectContainedLogged(args[index], {
-                    include,
-                    exclude,
-                  }))
-              )
-            )
-          ).join(", ")
-          : ""
+        `HIT HTTP ${fullRoute} (${key}) ${
+          loggedParams && loggedParams.length > 0
+            ? "WITH " +
+              (
+                await Promise.all(
+                  loggedParams.map(
+                    async ({ name, index, include, exclude }) =>
+                      name +
+                      "=" +
+                      (await objectContainedLogged(args[index], {
+                        include,
+                        exclude,
+                      }))
+                  )
+                )
+              ).join(", ")
+            : ""
         }`
       );
 
@@ -239,5 +264,7 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string) {
         throw e;
       }
     };
+
+    return [httpPath, httpMethod];
   };
 }

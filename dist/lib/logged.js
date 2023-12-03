@@ -5,6 +5,17 @@ const common_1 = require("@nestjs/common");
 const logger_1 = require("./logger");
 const reflected_1 = require("./reflected");
 const functions_1 = require("./functions");
+const RevRequestMethod = [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "PATCH",
+    "ALL",
+    "OPTIONS",
+    "HEAD",
+    "SEARCH",
+];
 function loggerInit(_target) {
     if (!Object.getOwnPropertyNames(_target).includes("logger")) {
         const newTargetLogger = new common_1.Logger(_target.constructor.name);
@@ -40,15 +51,17 @@ function LoggedController(param) {
         loggerInit(target.prototype);
         const logger = target.prototype.logger;
         const methods = Object.getOwnPropertyNames(target.prototype);
-        logger.log(JSON.stringify(methods));
         methods.forEach((method) => {
-            logger.log(method);
             if (method !== "constructor" &&
                 typeof target.prototype[method] === "function") {
-                logger.log(`LoggedRoute applied to ${method}`);
+                const path = Reflect.getMetadata("path", target.prototype[method]);
+                const httpMethod = Reflect.getMetadata("method", target.prototype[method]);
+                logger.log(`LoggedRoute applied to ${method} (${RevRequestMethod[httpMethod]} ${path})`);
                 LoggedRoute()(target.prototype, method, {
                     value: target.prototype[method],
                 });
+                Reflect.defineMetadata("path", path, target.prototype[method]);
+                Reflect.defineMetadata("method", httpMethod, target.prototype[method]);
             }
         });
         (0, common_1.Controller)(param)(target);
@@ -102,15 +115,16 @@ function LoggedRoute(route) {
     return (_target, key, descriptor) => {
         loggerInit(_target);
         const logger = _target.logger;
-        let fullRoute = `${_target.constructor.name}/`;
         const fn = descriptor.value;
+        const httpPath = Reflect.getMetadata("path", fn);
+        const httpMethod = Reflect.getMetadata("method", fn);
+        const fullRoute = `${_target.constructor.name}::${route ?? httpPath}[${RevRequestMethod[httpMethod]}]`;
         if (!fn || typeof fn !== "function") {
             logger.warn(`LoggedRoute decorator applied to non-function property: ${key}`);
             return;
         }
         _target[key] = async function (...args) {
             const scopedLoggerInjectableParam = Reflect.getOwnMetadata(reflected_1.scopedLogger, _target, key);
-            fullRoute += route || Reflect.getMetadata("path", fn);
             if (typeof scopedLoggerInjectableParam !== "undefined" &&
                 (args.length <= scopedLoggerInjectableParam ||
                     !(args[scopedLoggerInjectableParam] instanceof logger_1.ScopedLogger))) {
@@ -139,6 +153,7 @@ function LoggedRoute(route) {
                 throw e;
             }
         };
+        return [httpPath, httpMethod];
     };
 }
 exports.LoggedRoute = LoggedRoute;
