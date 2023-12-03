@@ -6,8 +6,8 @@ It only uses Logger provided by @nestjs/common package and some dependencies req
 
 ### Route Logging
 ```ts
-import {Controller, Get} from "@nestjs/common";
-import {LoggedRoute} from "nlogdec";
+import { Controller, Get } from "@nestjs/common";
+import { LoggedRoute } from "nlogdec";
 
 @Controller('whatever')
 export class WhateverController {
@@ -31,15 +31,15 @@ It will automatically log the call and response.
 If function throws any exception, it will also catch exception, log that, and throw it again.
 
 ```ts
-import {BadRequestException, Controller, Get} from "@nestjs/common";
-import {LoggedRoute} from "nlogdec";
+import { BadRequestException, Controller, Get } from "@nestjs/common";
+import { LoggedRoute } from "nlogdec";
 
 @Controller('whatever')
 export class WhateverController {
     constructor() {}
 
     @Get('/you/like')
-    @LoggedRoute('/you/like')
+    @LoggedRoute()
     public async whateverYouLikeImpl() {
         throw new BadRequestException("I don't like this") // Throwing HTTP exception here
     }
@@ -53,9 +53,36 @@ export class WhateverController {
 
 Not only HTTP exception, it will also catch all exceptions and log it.
 
+If you want to provide another route instead of path you provided to method decorators like Get, Post, you can give a string to LoggedRoute decorator to replace it.
+
+```ts
+import { BadRequestException, Controller, Get } from "@nestjs/common";
+import { LoggedRoute } from "nlogdec";
+
+@Controller('whatever')
+export class WhateverController {
+    constructor() {}
+
+    @Get('/you/like')
+    @LoggedRoute('you/like')
+    public async whateverYouLikeImpl() {
+        throw new BadRequestException("I don't like this") // Throwing HTTP exception here
+    }
+}
+```
+
+```
+[Nest] 000000  - 00/00/0000, 00:00:00 AM     LOG [WhateverController] HIT HTTP WhateverController/you/like (whateverYouLikeImpl)
+[Nest] 000000  - 00/00/0000, 00:00:00 AM     LOG [WhateverController] WHILE HTTP WhateverController/you/like (whateverYouLikeImpl) ERROR BadRequestException: I don't like this
+```
+
+You feel the change?
+
+Logged path is slightly changed from `WhateverController//you/like` to `WhateverController/you/like`.
+
 ### Function Logging
 ```ts
-import {LoggedFunction} from "nlogdec";
+import { LoggedFunction } from "nlogdec";
 
 @LoggedFunction // This decorator will do the magic for you
 export async function doILikeThis(stuff: "apple" | "banana"): "yes" | "no" {
@@ -65,14 +92,14 @@ export async function doILikeThis(stuff: "apple" | "banana"): "yes" | "no" {
 
 LoggedFunction decorator will log function calls and returns for you.
 
-**Note: This decorator is expected to be used with a class method like Service. (we will upgrade that later, so you can use it without class)**
+**Note: This decorator is expected to be used with a class method. You can't use this outside of class**
 
 Like `LoggedRoute` decorator, it will automatically catch all exceptions, log it, and throw it again.
 
 ### Parameter Logging
 
 ```ts
-import {LoggedParam, LoggedFunction} from "nlogdec";
+import { LoggedParam, LoggedFunction } from "nlogdec";
 
 @LoggedFunction
 export async function doILikeThis(
@@ -92,6 +119,45 @@ It will add `WITH {param}={value}, {param2}={value2}` in log.
 The name of parameter is decided by the first parameter of LoggedParam decorator.
 
 This decorator also can be used with `LoggedRoute`.
+
+### Class Logging
+You can make all method in injectable classes to logged function.
+
+```ts
+import { LoggedInjectable } from "nlogdec";
+
+@LoggedInjectable()
+export class InjectableService {
+  constructor() {}
+
+  public async getHello(@LoggedParam('name') name: string = 'world'): Promise<string> {
+    return `Hello, ${name}!`;
+  }
+}
+```
+
+It will make all methods to logged function, so it internally uses LoggedFunction decorator.
+
+You can do same thing with controller.
+
+```ts
+import { Get, Query } from "@nestjs/common";
+import { LoggedController } from "nlogdec";
+
+@LoggedController('path')
+export class Controller {
+  constructor(private injectableService: InjectableService) {}
+  
+  @Get('/hello')
+  public async getHello(@LoggedParam('name') @Query() query: { name: string }): Promise<string> {
+    return await this.injectableService.getHello(query.name);
+  }
+}
+```
+
+It is exactly same using LoggedFunction and LoggedRoute, but it is much simpler because you don't have to write decorator to every method.
+
+But still, if you don't want to log every method, you can use LoggedFunction and LoggedRoute decorator.
 
 ### Scoped Logging
 
@@ -122,7 +188,7 @@ export async function doILikeThis(
 Then, in controller:
 
 ```ts
-import {BadRequestException, Controller, Get, Param} from "@nestjs/common";
+import { BadRequestException, Controller, Get, Param } from "@nestjs/common";
 import {
     LoggedRoute,
     InjectLogger, 
