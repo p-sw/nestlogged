@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LoggedParam = exports.InjectLogger = exports.loggedParam = exports.scopedLogger = void 0;
-exports.scopedLogger = Symbol('scopedLogger');
-exports.loggedParam = Symbol('loggedParam');
+exports.scopedLogger = Symbol("scopedLogger");
+exports.loggedParam = Symbol("loggedParam");
 function InjectLogger(target, propertyKey, parameterIndex) {
     Reflect.defineMetadata(exports.scopedLogger, parameterIndex, target, propertyKey);
 }
@@ -15,10 +15,10 @@ function LoggedParam(name, options) {
             index: parameterIndex,
             include: options &&
                 options.includePath &&
-                options.includePath.map((v) => (Array.isArray(v) ? v.join('.') : v)),
+                options.includePath.map((v) => (Array.isArray(v) ? v.join(".") : v)),
             exclude: options &&
                 options.excludePath &&
-                options.excludePath.map((v) => (Array.isArray(v) ? v.join('.') : v)),
+                options.excludePath.map((v) => (Array.isArray(v) ? v.join(".") : v)),
         });
         Reflect.defineMetadata(exports.loggedParam, existingLoggedParams, target, propertyKey);
     };

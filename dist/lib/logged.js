@@ -1,15 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LoggedRoute = exports.LoggedFunction = void 0;
+exports.LoggedRoute = exports.LoggedFunction = exports.LoggedController = exports.LoggedInjectable = void 0;
 const common_1 = require("@nestjs/common");
 const logger_1 = require("./logger");
 const reflected_1 = require("./reflected");
 const functions_1 = require("./functions");
 function loggerInit(_target) {
-    if (!Object.getOwnPropertyNames(_target).includes('logger')) {
+    if (!Object.getOwnPropertyNames(_target).includes("logger")) {
         const newTargetLogger = new common_1.Logger(_target.constructor.name);
-        newTargetLogger.log('Logger Initialized.');
-        Object.defineProperty(_target, 'logger', {
+        newTargetLogger.log("Logger Initialized.");
+        Object.defineProperty(_target, "logger", {
             writable: false,
             enumerable: false,
             configurable: false,
@@ -17,33 +17,73 @@ function loggerInit(_target) {
         });
     }
 }
+function LoggedInjectable(options) {
+    return (target) => {
+        target = (0, common_1.Injectable)(options)(target);
+        loggerInit(target.prototype);
+        const logger = target.prototype.logger;
+        const methods = Object.getOwnPropertyNames(target.prototype);
+        methods.forEach((method) => {
+            if (method !== "constructor" &&
+                typeof target.prototype[method] === "function") {
+                logger.log(`LoggedFunction applied to ${method}`);
+                LoggedFunction(target.prototype, method, {
+                    value: target.prototype[method],
+                });
+            }
+        });
+    };
+}
+exports.LoggedInjectable = LoggedInjectable;
+function LoggedController(param) {
+    return (target) => {
+        target = (0, common_1.Controller)(param)(target);
+        loggerInit(target.prototype);
+        const logger = target.prototype.logger;
+        const methods = Object.getOwnPropertyNames(target.prototype);
+        methods.forEach((method) => {
+            if (method !== "constructor" &&
+                typeof target.prototype[method] === "function") {
+                logger.log(`LoggedRoute applied to ${method}`);
+                LoggedRoute()(target.prototype, method, {
+                    value: target.prototype[method],
+                });
+            }
+        });
+    };
+}
+exports.LoggedController = LoggedController;
 function LoggedFunction(_target, key, descriptor) {
     loggerInit(_target);
     const logger = _target.logger;
     const fn = descriptor.value;
-    if (!fn)
+    if (!fn || typeof fn !== "function") {
+        logger.warn(`LoggedFunction decorator applied to non-function property: ${key}`);
         return;
-    descriptor.value = async function (...args) {
+    }
+    _target[key] = async function (...args) {
         const scopedLoggerInjectableParam = Reflect.getOwnMetadata(reflected_1.scopedLogger, _target, key);
-        if (typeof scopedLoggerInjectableParam !== 'undefined' &&
+        if (typeof scopedLoggerInjectableParam !== "undefined" &&
             (args.length <= scopedLoggerInjectableParam ||
                 !(args[scopedLoggerInjectableParam] instanceof logger_1.ScopedLogger))) {
             args[scopedLoggerInjectableParam] = new logger_1.ScopedLogger(logger, key);
         }
-        else if (typeof scopedLoggerInjectableParam !== 'undefined') {
+        else if (typeof scopedLoggerInjectableParam !== "undefined") {
             args[scopedLoggerInjectableParam] = new logger_1.ScopedLogger(args[scopedLoggerInjectableParam], key);
         }
-        const injectedLogger = typeof scopedLoggerInjectableParam !== 'undefined'
+        const injectedLogger = typeof scopedLoggerInjectableParam !== "undefined"
             ? args[scopedLoggerInjectableParam]
             : logger;
         const loggedParams = Reflect.getOwnMetadata(reflected_1.loggedParam, _target, key);
         injectedLogger.log(`CALL ${key} ${loggedParams && loggedParams.length > 0
-            ? 'WITH ' +
-                (await Promise.all(loggedParams.map(async ({ name, index, include, exclude }) => name + '=' + (await (0, functions_1.default)(args[index], {
-                    include,
-                    exclude,
-                }))))).join(', ')
-            : ''}`);
+            ? "WITH " +
+                (await Promise.all(loggedParams.map(async ({ name, index, include, exclude }) => name +
+                    "=" +
+                    (await (0, functions_1.default)(args[index], {
+                        include,
+                        exclude,
+                    }))))).join(", ")
+            : ""}`);
         try {
             const r = await fn.call(this, ...args);
             injectedLogger.log(`RETURNED ${key}`);
@@ -60,28 +100,31 @@ function LoggedRoute(route) {
     return (_target, key, descriptor) => {
         loggerInit(_target);
         const logger = _target.logger;
-        const fullRoute = `${_target.constructor.name}/${route}`;
+        let fullRoute = `${_target.constructor.name}/`;
         const fn = descriptor.value;
         if (!fn)
             return;
         descriptor.value = async function (...args) {
             const scopedLoggerInjectableParam = Reflect.getOwnMetadata(reflected_1.scopedLogger, _target, key);
-            if (typeof scopedLoggerInjectableParam !== 'undefined' &&
+            fullRoute += route || Reflect.getMetadata("path", fn);
+            if (typeof scopedLoggerInjectableParam !== "undefined" &&
                 (args.length <= scopedLoggerInjectableParam ||
                     !(args[scopedLoggerInjectableParam] instanceof logger_1.ScopedLogger))) {
                 args[scopedLoggerInjectableParam] = new logger_1.ScopedLogger(logger, fullRoute);
             }
-            const injectedLogger = typeof scopedLoggerInjectableParam !== 'undefined'
+            const injectedLogger = typeof scopedLoggerInjectableParam !== "undefined"
                 ? args[scopedLoggerInjectableParam]
                 : logger;
             const loggedParams = Reflect.getOwnMetadata(reflected_1.loggedParam, _target, key);
             injectedLogger.log(`HIT HTTP ${fullRoute} (${key}) ${loggedParams && loggedParams.length > 0
-                ? 'WITH ' +
-                    (await Promise.all(loggedParams.map(async ({ name, index, include, exclude }) => name + '=' + (await (0, functions_1.default)(args[index], {
-                        include,
-                        exclude,
-                    }))))).join(', ')
-                : ''}`);
+                ? "WITH " +
+                    (await Promise.all(loggedParams.map(async ({ name, index, include, exclude }) => name +
+                        "=" +
+                        (await (0, functions_1.default)(args[index], {
+                            include,
+                            exclude,
+                        }))))).join(", ")
+                : ""}`);
             try {
                 const r = await fn.call(this, ...args);
                 injectedLogger.log(`RETURNED RESPONSE ${fullRoute} (${key})`);
