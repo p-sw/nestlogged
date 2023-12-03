@@ -20,7 +20,7 @@
   },
   "scripts": {
     "docs": "cp ./README.md ./dist/README.md",
-    "build": "rimraf ./dist/lib && tsc",
+    "build": "rimraf ./dist/lib && tsc --project tsconfig.build.json",
     "up": "yarn docs && yarn build && yarn publish dist"
   }
 }
