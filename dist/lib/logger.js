@@ -22,4 +22,3 @@ class ScopedLogger extends common_1.Logger {
     }
 }
 exports.ScopedLogger = ScopedLogger;
-//# sourceMappingURL=logger.js.map

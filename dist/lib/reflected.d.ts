@@ -11,4 +11,3 @@ export declare function LoggedParam(name: string, options?: {
     includePath?: (string | string[])[];
     excludePath?: (string | string[])[];
 }): (target: any, propertyKey: string | symbol, parameterIndex: number) => void;
-//# sourceMappingURL=reflected.d.ts.map

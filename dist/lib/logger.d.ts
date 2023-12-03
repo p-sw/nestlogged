@@ -12,4 +12,3 @@ export declare class ScopedLogger extends Logger {
     error: (message: string) => void;
     fatal: (message: string) => void;
 }
-//# sourceMappingURL=logger.d.ts.map

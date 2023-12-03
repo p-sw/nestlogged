@@ -142,4 +142,3 @@ function LoggedRoute(route) {
     };
 }
 exports.LoggedRoute = LoggedRoute;
-//# sourceMappingURL=logged.js.map
