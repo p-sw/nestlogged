@@ -19,7 +19,6 @@ function loggerInit(_target) {
 }
 function LoggedInjectable(options) {
     return (target) => {
-        target = (0, common_1.Injectable)(options)(target);
         loggerInit(target.prototype);
         const logger = target.prototype.logger;
         const methods = Object.getOwnPropertyNames(target.prototype);
@@ -32,16 +31,18 @@ function LoggedInjectable(options) {
                 });
             }
         });
+        (0, common_1.Injectable)(options)(target);
     };
 }
 exports.LoggedInjectable = LoggedInjectable;
 function LoggedController(param) {
     return (target) => {
-        target = (0, common_1.Controller)(param)(target);
         loggerInit(target.prototype);
         const logger = target.prototype.logger;
         const methods = Object.getOwnPropertyNames(target.prototype);
+        logger.log(JSON.stringify(methods));
         methods.forEach((method) => {
+            logger.log(method);
             if (method !== "constructor" &&
                 typeof target.prototype[method] === "function") {
                 logger.log(`LoggedRoute applied to ${method}`);
@@ -50,6 +51,7 @@ function LoggedController(param) {
                 });
             }
         });
+        (0, common_1.Controller)(param)(target);
     };
 }
 exports.LoggedController = LoggedController;
@@ -102,9 +104,11 @@ function LoggedRoute(route) {
         const logger = _target.logger;
         let fullRoute = `${_target.constructor.name}/`;
         const fn = descriptor.value;
-        if (!fn)
+        if (!fn || typeof fn !== "function") {
+            logger.warn(`LoggedRoute decorator applied to non-function property: ${key}`);
             return;
-        descriptor.value = async function (...args) {
+        }
+        _target[key] = async function (...args) {
             const scopedLoggerInjectableParam = Reflect.getOwnMetadata(reflected_1.scopedLogger, _target, key);
             fullRoute += route || Reflect.getMetadata("path", fn);
             if (typeof scopedLoggerInjectableParam !== "undefined" &&
