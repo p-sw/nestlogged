@@ -1,4 +1,10 @@
-import { Logger } from "@nestjs/common";
+import {
+  Logger,
+  Injectable,
+  Controller,
+  ControllerOptions,
+  ScopeOptions,
+} from "@nestjs/common";
 import { ScopedLogger } from "./logger";
 import { LoggedParamReflectData } from "./reflected";
 import { loggedParam, scopedLogger } from "./reflected";
@@ -17,6 +23,62 @@ function loggerInit(_target: any) {
   }
 }
 
+export function LoggedInjectable(options?: ScopeOptions) {
+  return (target: any) => {
+    target = Injectable(options)(target);
+
+    loggerInit(target.prototype);
+
+    const logger = target.prototype.logger;
+
+    const methods = Object.getOwnPropertyNames(target.prototype);
+
+    methods.forEach((method) => {
+      if (
+        method !== "constructor" &&
+        typeof target.prototype[method] === "function"
+      ) {
+        logger.log(`LoggedFunction applied to ${method}`);
+        LoggedFunction(target.prototype, method, {
+          value: target.prototype[method],
+        });
+      }
+    });
+  };
+}
+
+export function LoggedController(): (target: any) => void;
+export function LoggedController(
+  prefix: string | string[]
+): (target: any) => void;
+export function LoggedController(
+  options: ControllerOptions
+): (target: any) => void;
+
+export function LoggedController(param?: any): (target: any) => void {
+  return (target: any) => {
+    target = Controller(param)(target);
+
+    loggerInit(target.prototype);
+
+    const logger = target.prototype.logger;
+
+    const methods = Object.getOwnPropertyNames(target.prototype);
+
+    methods.forEach((method) => {
+      if (
+        method !== "constructor" &&
+        typeof target.prototype[method] === "function"
+      ) {
+        logger.log(`LoggedRoute applied to ${method}`);
+        LoggedRoute()(target.prototype, method, {
+          value: target.prototype[method],
+        });
+      }
+    });
+  };
+}
+
 export function LoggedFunction<F extends Array<any>, R>(
   _target: any,
   key: string,
@@ -24,13 +86,18 @@ export function LoggedFunction<F extends Array<any>, R>(
 ) {
   loggerInit(_target);
 
-  const logger = _target.logger;
+  const logger: Logger = _target.logger;
 
   const fn = descriptor.value;
 
-  if (!fn) return;
+  if (!fn || typeof fn !== "function") {
+    logger.warn(
+      `LoggedFunction decorator applied to non-function property: ${key}`
+    );
+    return;
+  }
 
-  descriptor.value = async function (...args: F) {
+  _target[key] = async function (...args: F) {
     const scopedLoggerInjectableParam: number = Reflect.getOwnMetadata(
       scopedLogger,
       _target,
@@ -93,7 +160,7 @@ export function LoggedFunction<F extends Array<any>, R>(
   };
 }
 
-export function LoggedRoute<F extends Array<any>, R>(route: string) {
+export function LoggedRoute<F extends Array<any>, R>(route?: string) {
   return (
     _target: any,
     key: string,
@@ -103,7 +170,7 @@ export function LoggedRoute<F extends Array<any>, R>(route: string) {
 
     const logger = _target.logger;
 
-    const fullRoute = `${_target.constructor.name}/${route}`;
+    let fullRoute = `${_target.constructor.name}/`;
     const fn = descriptor.value;
 
     if (!fn) return;
@@ -114,6 +181,8 @@ export function LoggedRoute<F extends Array<any>, R>(route: string) {
         _target,
         key
       );
+
+      fullRoute += route || Reflect.getMetadata("path", fn);
 
       if (
         typeof scopedLoggerInjectableParam !== "undefined" &&
