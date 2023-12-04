@@ -49,10 +49,16 @@ export function LoggedInjectable(options?: ScopeOptions) {
         method !== "constructor" &&
         typeof target.prototype[method] === "function"
       ) {
+        const all = Reflect.getMetadataKeys(target.prototype[method]).map(
+          (k) => [k, Reflect.getMetadata(k, target.prototype[method])]
+        );
         logger.log(`LoggedFunction applied to ${method}`);
         LoggedFunction(target.prototype, method, {
           value: target.prototype[method],
         });
+        all.forEach(([k, v]) =>
+          Reflect.defineMetadata(k, v, target.prototype[method])
+        );
       }
     });
 
@@ -86,14 +92,18 @@ export function LoggedController(param?: any): (target: any) => void {
           "method",
           target.prototype[method]
         );
+        const all = Reflect.getMetadataKeys(target.prototype[method]).map(
+          (k) => [k, Reflect.getMetadata(k, target.prototype[method])]
+        );
         logger.log(
           `LoggedRoute applied to ${method} (${RevRequestMethod[httpMethod]} ${path})`
         );
         LoggedRoute()(target.prototype, method, {
           value: target.prototype[method],
         });
-        Reflect.defineMetadata("path", path, target.prototype[method]);
-        Reflect.defineMetadata("method", httpMethod, target.prototype[method]);
+        all.forEach(([k, v]) =>
+          Reflect.defineMetadata(k, v, target.prototype[method])
+        );
       }
     });
 
