@@ -56,17 +56,11 @@ export function LoggedInjectable(
         method !== "constructor" &&
         typeof target.prototype[method] === "function"
       ) {
-        const all = Reflect.getMetadataKeys(target.prototype[method]).map(
-          (k) => [k, Reflect.getMetadata(k, target.prototype[method])]
-        );
         if (options && options.verbose)
           logger.log(`LoggedFunction applied to ${method}`);
         LoggedFunction(target.prototype, method, {
           value: target.prototype[method],
         });
-        all.forEach(([k, v]) =>
-          Reflect.defineMetadata(k, v, target.prototype[method])
-        );
       }
     });
 
@@ -100,24 +94,19 @@ export function LoggedController(param?: any): (target: any) => void {
         method !== "constructor" &&
         typeof target.prototype[method] === "function"
       ) {
-        const path = Reflect.getMetadata("path", target.prototype[method]);
-        const httpMethod = Reflect.getMetadata(
-          "method",
-          target.prototype[method]
-        );
-        const all = Reflect.getMetadataKeys(target.prototype[method]).map(
-          (k) => [k, Reflect.getMetadata(k, target.prototype[method])]
-        );
-        if (verbose)
+        if (verbose) {
+          const path = Reflect.getMetadata("path", target.prototype[method]);
+          const httpMethod = Reflect.getMetadata(
+            "method",
+            target.prototype[method]
+          );
           logger.log(
             `LoggedRoute applied to ${method} (${RevRequestMethod[httpMethod]} ${path})`
           );
+        }
         LoggedRoute()(target.prototype, method, {
           value: target.prototype[method],
         });
-        all.forEach(([k, v]) =>
-          Reflect.defineMetadata(k, v, target.prototype[method])
-        );
       }
     });
 
@@ -263,6 +252,11 @@ export function LoggedFunction<F extends Array<any>, R>(
     return;
   }
 
+  const all = Reflect.getMetadataKeys(fn).map((k) => [
+    k,
+    Reflect.getMetadata(k, fn),
+  ]);
+
   const scopedLoggerInjectableParam: number = Reflect.getOwnMetadata(
     scopedLogger,
     _target,
@@ -297,6 +291,11 @@ export function LoggedFunction<F extends Array<any>, R>(
 
   _target[key] = overrideFunction;
   descriptor.value = overrideFunction;
+
+  all.forEach(([k, v]) => {
+    Reflect.defineMetadata(k, v, _target[key]);
+    Reflect.defineMetadata(k, v, descriptor.value);
+  });
 }
 
 export function LoggedRoute<F extends Array<any>, R>(route?: string) {
@@ -317,6 +316,11 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string) {
       );
       return;
     }
+
+    const all = Reflect.getMetadataKeys(fn).map((k) => [
+      k,
+      Reflect.getMetadata(k, fn),
+    ]);
 
     const httpPath: string = Reflect.getMetadata("path", fn);
     const httpMethod: RequestMethod = Reflect.getMetadata("method", fn);
@@ -362,5 +366,10 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string) {
 
     _target[key] = overrideFunction;
     descriptor.value = overrideFunction;
+
+    all.forEach(([k, v]) => {
+      Reflect.defineMetadata(k, v, _target[key]);
+      Reflect.defineMetadata(k, v, descriptor.value);
+    });
   };
 }
