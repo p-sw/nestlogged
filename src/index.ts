@@ -5,4 +5,4 @@ export {
   LoggedInjectable,
 } from "./logged";
 export { ScopedLogger } from "./logger";
-export { LoggedParamReflectData, InjectLogger, LoggedParam } from "./reflected";
+export { InjectLogger, LoggedParam, ScopeKey, ShouldScoped } from "./reflected";
