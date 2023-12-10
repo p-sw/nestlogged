@@ -304,7 +304,7 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string) {
     _target: any,
     key: string,
     descriptor: TypedPropertyDescriptor<(...args: F) => Promise<R>>
-  ): [string, RequestMethod] => {
+  ) => {
     loggerInit(_target);
 
     const logger = _target.logger;
