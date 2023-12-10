@@ -285,7 +285,7 @@ class LoggedMethodsClass {
  * Choose Class to Test
  */
 // const tester = new LoggedClass();
-const tester = new LoggedMethodsClass();
+// const tester = new LoggedMethodsClass();
 
 /**
  * Choose Method to Test
@@ -309,5 +309,9 @@ const tester = new LoggedMethodsClass();
 // tester.testPriorityScopedLogging({});
 // tester.testOptionalScopedLogging("asdf");
 // tester.testOptionalScopedLogging();
-// tester.testShouldScopedLogging("asdf");
-tester.testShouldScopedLogging();
+// tester.testShouldScopedLogging("asdf")
+// tester.testShouldScopedLogging();
+
+/**
+ * Then run `yarn test`
+ */
