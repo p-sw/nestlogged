@@ -194,6 +194,8 @@ function LoggedRoute(route) {
         }, key, {
             fullRoute,
         });
+        _target[key] = overrideFunction;
+        descriptor.value = overrideFunction;
     };
 }
 exports.LoggedRoute = LoggedRoute;

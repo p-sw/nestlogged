@@ -359,5 +359,8 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string) {
         fullRoute,
       }
     );
+
+    _target[key] = overrideFunction;
+    descriptor.value = overrideFunction;
   };
 }
