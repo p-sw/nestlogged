@@ -11,6 +11,10 @@ export class ScopedLogger extends Logger {
     super();
   }
 
+  public addScope(scopeId: string) {
+    this.scopeId = scopeId;
+  }
+
   private scopedLog(method: LogLevel) {
     return (message: string) => {
       this.logger[method](

@@ -1,10 +1,28 @@
 # NestLoggedDecorators
+
 This package provides some decorations to make NestJS logging simpler.  
 It only uses Logger provided by @nestjs/common package and some dependencies required for nestjs.
 
+> TODO: Improve README, providing Quickstart section, add wiki to github
+
 ## How to use
 
+### Installation
+
+npm:
+
+```sh
+npm i nestlogged
+```
+
+yarn:
+
+```sh
+yarn add nestlogged
+```
+
 ### Route Logging
+
 ```ts
 import { Controller, Get } from "@nestjs/common";
 import { LoggedRoute } from "nlogdec";
@@ -21,7 +39,7 @@ export class WhateverController {
 }
 ```
 
-```
+```md
 [Nest] 000000  - 00/00/0000, 00:00:00 AM     LOG [WhateverController] HIT HTTP WhateverController//you/like (whateverYouLikeImpl)
 [Nest] 000000  - 00/00/0000, 00:00:00 AM     LOG [WhateverController] RETURNED RESPONSE WhateverController//you/like (whateverYouLikeImpl)
 ```
@@ -46,7 +64,7 @@ export class WhateverController {
 }
 ```
 
-```
+```md
 [Nest] 000000  - 00/00/0000, 00:00:00 AM     LOG [WhateverController] HIT HTTP WhateverController//you/like (whateverYouLikeImpl)
 [Nest] 000000  - 00/00/0000, 00:00:00 AM     LOG [WhateverController] WHILE HTTP WhateverController//you/like (whateverYouLikeImpl) ERROR BadRequestException: I don't like this
 ```
@@ -71,7 +89,7 @@ export class WhateverController {
 }
 ```
 
-```
+```md
 [Nest] 000000  - 00/00/0000, 00:00:00 AM     LOG [WhateverController] HIT HTTP WhateverController/you/like (whateverYouLikeImpl)
 [Nest] 000000  - 00/00/0000, 00:00:00 AM     LOG [WhateverController] WHILE HTTP WhateverController/you/like (whateverYouLikeImpl) ERROR BadRequestException: I don't like this
 ```
@@ -81,6 +99,7 @@ You feel the change?
 Logged path is slightly changed from `WhateverController//you/like` to `WhateverController/you/like`.
 
 ### Function Logging
+
 ```ts
 import { LoggedFunction } from "nlogdec";
 
@@ -92,7 +111,7 @@ export async function doILikeThis(stuff: "apple" | "banana"): "yes" | "no" {
 
 LoggedFunction decorator will log function calls and returns for you.
 
-**Note: This decorator is expected to be used with a class method. You can't use this outside of class**
+> Note: This decorator is expected to be used with a class method. You can't use this outside of class
 
 Like `LoggedRoute` decorator, it will automatically catch all exceptions, log it, and throw it again.
 
@@ -111,7 +130,8 @@ export async function doILikeThis(
 
 doILikeThis("apple")
 ```
-```
+
+```md
 HIT HTTP WhateverController//you/like (whateverYouLikeImpl) WITH stuff="apple"
 ```
 
@@ -121,6 +141,7 @@ The name of parameter is decided by the first parameter of LoggedParam decorator
 This decorator also can be used with `LoggedRoute`.
 
 ### Class Logging
+
 You can make all method in injectable classes to logged function.
 
 ```ts
