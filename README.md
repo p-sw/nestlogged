@@ -3,7 +3,7 @@
 This package provides some decorations to make NestJS logging simpler.  
 It only uses Logger provided by @nestjs/common package and some dependencies required for nestjs.
 
-> **TODO: Add Quickstart to README, Add Wiki & Website**
+> NOTE: I wrote new wiki in github: [Github Wiki](https://github.com/Worplo/nestlogged/wiki)
 
 ## How to use
 
