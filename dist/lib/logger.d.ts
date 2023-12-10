@@ -4,6 +4,7 @@ export declare class ScopedLogger extends Logger {
     private scope;
     private scopeId?;
     constructor(logger: Logger, scope: string, scopeId?: string);
+    addScope(scopeId: string): void;
     private scopedLog;
     debug: (message: string) => void;
     log: (message: string) => void;

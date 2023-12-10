@@ -15,6 +15,9 @@ class ScopedLogger extends common_1.Logger {
         this.error = this.scopedLog("error");
         this.fatal = this.scopedLog("fatal");
     }
+    addScope(scopeId) {
+        this.scopeId = scopeId;
+    }
     scopedLog(method) {
         return (message) => {
             this.logger[method](`-> ${this.scope}${this.scopeId ? `(${this.scopeId})` : ""}: ${message}`);

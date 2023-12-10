@@ -3,23 +3,7 @@
 This package provides some decorations to make NestJS logging simpler.  
 It only uses Logger provided by @nestjs/common package and some dependencies required for nestjs.
 
-> TODO: Improve README, providing Quickstart section, add wiki to github
-
 ## How to use
-
-### Installation
-
-npm:
-
-```sh
-npm i nestlogged
-```
-
-yarn:
-
-```sh
-yarn add nestlogged
-```
 
 ### Route Logging
 
