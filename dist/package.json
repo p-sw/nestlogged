@@ -15,5 +15,11 @@
   "devDependencies": {
     "@types/node": "^20.9.1",
     "typescript": "^5.2.2"
-  }
+  },
+   "keywords": [
+    "nest",
+    "nestjs",
+    "log",
+    "logging"
+   ]
 }
