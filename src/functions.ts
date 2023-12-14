@@ -74,3 +74,13 @@ export default async function objectContainedLogged(
     return `${ocv}`;
   }
 }
+
+export async function getItemByPath(obj: object, path: string | string[]) {
+  const paths = Array.isArray(path) ? path : path.split(".");
+
+  return Object.keys(obj).includes(paths[0])
+    ? typeof obj[paths[0]] === "object"
+      ? getItemByPath(obj[paths[0]], paths.slice(1))
+      : obj[paths[0]]
+    : undefined;
+}

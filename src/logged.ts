@@ -8,12 +8,14 @@ import {
 import { ScopedLogger } from "./logger";
 import {
   LoggedParamReflectData,
+  ReturnsReflectData,
   ScopeKeyReflectData,
   forceScopeKey,
+  returns,
   scopeKey,
 } from "./reflected";
 import { loggedParam, scopedLogger } from "./reflected";
-import objectContainedLogged from "./functions";
+import objectContainedLogged, { getItemByPath } from "./functions";
 import { RequestMethod } from "@nestjs/common";
 
 const RevRequestMethod = [
@@ -126,6 +128,7 @@ function overrideBuild<F extends Array<any>, R>(
   baseLogger: Logger,
   metadatas: FunctionMetadata,
   key: string,
+  returnsData: ReturnsReflectData[] | true,
   route?: {
     fullRoute: string;
   }
@@ -219,10 +222,32 @@ function overrideBuild<F extends Array<any>, R>(
 
     try {
       const r: R = await originalFunction.call(this, ...args);
+
+      const resultLogged = Array.isArray(returnsData)
+        ? typeof r === "object"
+          ? "WITH " +
+            (
+              await Promise.all(
+                returnsData.map(async ({ name, path }) => {
+                  const value = await getItemByPath(r, path);
+
+                  return value !== undefined ? `${name}=${value}` : "";
+                })
+              )
+            )
+              .filter((v) => v.length > 0)
+              .join(", ")
+          : ""
+        : returnsData
+        ? typeof r === "object"
+          ? "WITH " + JSON.stringify(r)
+          : "WITH " + r
+        : "";
+
       injectedLogger.log(
         route
-          ? `RETURNED RESPONSE ${route.fullRoute} (${key})`
-          : `RETURNED ${key}`
+          ? `RETURNED HTTP ${route.fullRoute} (${key}) ${resultLogged}`
+          : `RETURNED ${key} ${resultLogged}`
       );
       return r;
     } catch (e) {
@@ -277,6 +302,11 @@ export function LoggedFunction<F extends Array<any>, R>(
 
   const shouldScoped: boolean = Reflect.getOwnMetadata(forceScopeKey, fn);
 
+  const returnsData: ReturnsReflectData[] | true = Reflect.getOwnMetadata(
+    returns,
+    fn
+  );
+
   const overrideFunction = overrideBuild(
     fn,
     logger,
@@ -286,7 +316,8 @@ export function LoggedFunction<F extends Array<any>, R>(
       scopeKeys,
       shouldScoped,
     },
-    key
+    key,
+    returnsData
   );
 
   _target[key] = overrideFunction;
@@ -349,6 +380,11 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string) {
 
     const shouldScoped: boolean = Reflect.getOwnMetadata(forceScopeKey, fn);
 
+    const returnsData: ReturnsReflectData[] | true = Reflect.getOwnMetadata(
+      returns,
+      fn
+    );
+
     const overrideFunction = overrideBuild(
       fn,
       logger,
@@ -359,6 +395,7 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string) {
         shouldScoped,
       },
       key,
+      returnsData,
       {
         fullRoute,
       }
