@@ -3,6 +3,7 @@ import { ScopedLogger } from "../logger";
 import {
   InjectLogger,
   LoggedParam,
+  Returns,
   ScopeKey,
   ShouldScoped,
 } from "../reflected";
@@ -142,6 +143,74 @@ class LoggedClass {
   ) {
     logger.log(key);
   }
+
+  @Returns({ result: "http.result", userId: "body.user.id" })
+  async testReturnLogging(
+    @LoggedParam("userId")
+    userId: string,
+    @InjectLogger logger?: ScopedLogger
+  ) {
+    logger.log(userId);
+    return {
+      http: {
+        result: "success",
+        code: 200,
+      },
+      body: {
+        user: {
+          id: userId,
+          name: "tester",
+        },
+        secret: "supersecret",
+      },
+    };
+  }
+
+  @Returns({ result: "http.result", userId: "body.user.id" })
+  async testMissingReturnLogging(
+    @LoggedParam("userId")
+    userId: string,
+    @InjectLogger logger?: ScopedLogger
+  ) {
+    logger.log(userId);
+    return {
+      body: {
+        user: {
+          id: userId,
+          name: "tester",
+        },
+        secret: "supersecret",
+      },
+    };
+  }
+
+  @Returns()
+  async testRawObjectReturnLogging(
+    @LoggedParam("userId")
+    userId: string,
+    @InjectLogger logger?: ScopedLogger
+  ) {
+    logger.log(userId);
+    return {
+      body: {
+        user: {
+          id: userId,
+          name: "tester",
+        },
+        secret: "supersecret",
+      },
+    };
+  }
+
+  @Returns()
+  async testRawValueReturnLogging(
+    @LoggedParam("userId")
+    userId: string,
+    @InjectLogger logger?: ScopedLogger
+  ) {
+    logger.log(userId);
+    return true;
+  }
 }
 
 class LoggedMethodsClass {
@@ -279,6 +348,78 @@ class LoggedMethodsClass {
   ) {
     logger.log(key);
   }
+
+  @LoggedFunction
+  @Returns({ result: "http.result", userId: "body.user.id" })
+  async testReturnLogging(
+    @LoggedParam("userId")
+    userId: string,
+    @InjectLogger logger?: ScopedLogger
+  ) {
+    logger.log(userId);
+    return {
+      http: {
+        result: "success",
+        code: 200,
+      },
+      body: {
+        user: {
+          id: userId,
+          name: "tester",
+        },
+        secret: "supersecret",
+      },
+    };
+  }
+
+  @LoggedFunction
+  @Returns({ result: "http.result", userId: "body.user.id" })
+  async testMissingReturnLogging(
+    @LoggedParam("userId")
+    userId: string,
+    @InjectLogger logger?: ScopedLogger
+  ) {
+    logger.log(userId);
+    return {
+      body: {
+        user: {
+          id: userId,
+          name: "tester",
+        },
+        secret: "supersecret",
+      },
+    };
+  }
+
+  @LoggedFunction
+  @Returns()
+  async testRawObjectReturnLogging(
+    @LoggedParam("userId")
+    userId: string,
+    @InjectLogger logger?: ScopedLogger
+  ) {
+    logger.log(userId);
+    return {
+      body: {
+        user: {
+          id: userId,
+          name: "tester",
+        },
+        secret: "supersecret",
+      },
+    };
+  }
+
+  @LoggedFunction
+  @Returns()
+  async testRawValueReturnLogging(
+    @LoggedParam("userId")
+    userId: string,
+    @InjectLogger logger?: ScopedLogger
+  ) {
+    logger.log(userId);
+    return true;
+  }
 }
 
 /**
@@ -311,6 +452,10 @@ class LoggedMethodsClass {
 // tester.testOptionalScopedLogging();
 // tester.testShouldScopedLogging("asdf")
 // tester.testShouldScopedLogging();
+// tester.testReturnLogging("asdf");
+// tester.testMissingReturnLogging("asdf");
+// tester.testRawObjectReturnLogging("asdf");
+// tester.testRawValueReturnLogging("asdf");
 
 /**
  * Then run `yarn test`
