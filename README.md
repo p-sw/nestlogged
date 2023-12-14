@@ -18,10 +18,3 @@ yarn add nestlogged
 ## More Info
 
 [Github Wiki](https://github.com/Worplo/nestlogged/wiki)
-
-## Milestones
-
-[ ] Real type-safe decorators
-[v] Return value logging
-[ ] Explicit Success/Fail logging with simple result wrapper
-[ ] Log all parameters without adding anything
