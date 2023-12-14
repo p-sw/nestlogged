@@ -124,7 +124,7 @@ interface FunctionMetadata {
 }
 
 function overrideBuild<F extends Array<any>, R>(
-  originalFunction: (...args: F) => Promise<R>,
+  originalFunction: (...args: F) => Promise<R> | R,
   baseLogger: Logger,
   metadatas: FunctionMetadata,
   key: string,
@@ -264,7 +264,7 @@ function overrideBuild<F extends Array<any>, R>(
 export function LoggedFunction<F extends Array<any>, R>(
   _target: any,
   key: string,
-  descriptor: TypedPropertyDescriptor<(...args: F) => Promise<R>>
+  descriptor: TypedPropertyDescriptor<(...args: F) => Promise<R> | R>
 ) {
   loggerInit(_target);
 
@@ -335,7 +335,7 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string) {
   return (
     _target: any,
     key: string,
-    descriptor: TypedPropertyDescriptor<(...args: F) => Promise<R>>
+    descriptor: TypedPropertyDescriptor<(...args: F) => Promise<R> | R>
   ) => {
     loggerInit(_target);
 
