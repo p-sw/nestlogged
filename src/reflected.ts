@@ -1,3 +1,11 @@
+export type Path = string | string[];
+export type Paths = Path[];
+
+export interface IncludeExcludePath {
+  includePath?: Paths;
+  excludePath?: Paths;
+}
+
 export interface LoggedParamReflectData {
   name: string;
   index: number;
@@ -12,10 +20,16 @@ export interface ScopeKeyReflectData {
   priority?: number;
 }
 
+export interface ReturnsReflectData {
+  name: string;
+  path: string;
+}
+
 export const scopedLogger = Symbol("nlogdec-scopedLogger");
 export const loggedParam = Symbol("nlogdec-loggedParam");
 export const scopeKey = Symbol("nlogdec-scopeKey");
 export const forceScopeKey = Symbol("nlogdec-forceScopeKey");
+export const returns = Symbol("nlogdec-returns");
 
 export function InjectLogger(
   target: any,
@@ -25,13 +39,7 @@ export function InjectLogger(
   Reflect.defineMetadata(scopedLogger, parameterIndex, target, propertyKey);
 }
 
-export function LoggedParam(
-  name: string,
-  options?: {
-    includePath?: (string | string[])[];
-    excludePath?: (string | string[])[];
-  }
-) {
+export function LoggedParam(name: string, options?: IncludeExcludePath) {
   return (
     target: any,
     propertyKey: string | symbol,
@@ -65,7 +73,7 @@ export function LoggedParam(
 
 export function ScopeKey(
   name: string,
-  options?: { path?: string | string[]; priority?: number }
+  options?: { path?: Path; priority?: number }
 ) {
   return (
     target: any,
@@ -87,6 +95,27 @@ export function ScopeKey(
     existingScopeKeys.sort((a, b) => (b.priority ?? 1) - (a.priority ?? 1));
 
     Reflect.defineMetadata(scopeKey, existingScopeKeys, target, propertyKey);
+  };
+}
+
+export function Returns<F extends Array<any>, R>(namePaths?: {
+  [name: string]: string;
+}) {
+  return (
+    _target: any,
+    _key: string | symbol,
+    descriptor: TypedPropertyDescriptor<(...args: F) => Promise<R>>
+  ) => {
+    Reflect.defineMetadata(
+      returns,
+      namePaths
+        ? Object.entries(namePaths).reduce<ReturnsReflectData[]>(
+            (prev, curr) => [...prev, { name: curr[0], path: curr[1] }],
+            []
+          )
+        : true,
+      descriptor.value
+    );
   };
 }
 
