@@ -211,6 +211,14 @@ class LoggedClass {
     logger.log(userId);
     return true;
   }
+
+  async testLoggerRootLogging2(@InjectLogger logger?: ScopedLogger) {
+    logger.log("2");
+  }
+
+  async testLoggerRootLogging(@InjectLogger logger?: ScopedLogger) {
+    this.testLoggerRootLogging2(logger);
+  }
 }
 
 class LoggedMethodsClass {
@@ -420,6 +428,16 @@ class LoggedMethodsClass {
     logger.log(userId);
     return true;
   }
+
+  @LoggedFunction
+  async testLoggerRootLogging2(@InjectLogger logger?: ScopedLogger) {
+    logger.log("2");
+  }
+
+  @LoggedFunction
+  async testLoggerRootLogging(@InjectLogger logger?: ScopedLogger) {
+    this.testLoggerRootLogging2(logger);
+  }
 }
 
 /**
@@ -456,6 +474,7 @@ class LoggedMethodsClass {
 // tester.testMissingReturnLogging("asdf");
 // tester.testRawObjectReturnLogging("asdf");
 // tester.testRawValueReturnLogging("asdf");
+// tester.testLoggerRootLogging();
 
 /**
  * Then run `yarn test`
