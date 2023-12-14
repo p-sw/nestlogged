@@ -142,12 +142,14 @@ function overrideBuild<F extends Array<any>, R>(
       ) {
         args[metadatas.scopedLoggerInjectableParam] = new ScopedLogger(
           baseLogger,
-          key
+          key,
+          true
         );
       } else {
         args[metadatas.scopedLoggerInjectableParam] = new ScopedLogger(
           args[metadatas.scopedLoggerInjectableParam],
-          key
+          key,
+          false
         );
       }
 

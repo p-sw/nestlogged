@@ -3,10 +3,12 @@ import { Logger } from "@nestjs/common";
 type LogLevel = "debug" | "log" | "warn" | "verbose" | "error" | "fatal";
 
 export class ScopedLogger extends Logger {
+  scopeId?: string;
+
   constructor(
     private logger: Logger,
     private scope: string,
-    private scopeId?: string
+    private root: boolean = false
   ) {
     super();
   }
@@ -18,7 +20,9 @@ export class ScopedLogger extends Logger {
   private scopedLog(method: LogLevel) {
     return (message: string) => {
       this.logger[method](
-        `-> ${this.scope}${this.scopeId ? `(${this.scopeId})` : ""}: ${message}`
+        `${this.root ? "" : "-> "}${this.scope}${
+          this.scopeId ? `(${this.scopeId})` : ""
+        }: ${message}`
       );
     };
   }
