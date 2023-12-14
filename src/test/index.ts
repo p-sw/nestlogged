@@ -219,6 +219,10 @@ class LoggedClass {
   async testLoggerRootLogging(@InjectLogger logger?: ScopedLogger) {
     this.testLoggerRootLogging2(logger);
   }
+
+  testSyncLogging(@InjectLogger logger?: ScopedLogger) {
+    logger.log("synced yay");
+  }
 }
 
 class LoggedMethodsClass {
@@ -438,6 +442,11 @@ class LoggedMethodsClass {
   async testLoggerRootLogging(@InjectLogger logger?: ScopedLogger) {
     this.testLoggerRootLogging2(logger);
   }
+
+  @LoggedFunction
+  testSyncLogging(@InjectLogger logger?: ScopedLogger) {
+    logger.log("synced yay");
+  }
 }
 
 /**
@@ -475,6 +484,7 @@ class LoggedMethodsClass {
 // tester.testRawObjectReturnLogging("asdf");
 // tester.testRawValueReturnLogging("asdf");
 // tester.testLoggerRootLogging();
+// tester.testSyncLogging();
 
 /**
  * Then run `yarn test`
