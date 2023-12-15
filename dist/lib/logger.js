@@ -3,11 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ScopedLogger = void 0;
 const common_1 = require("@nestjs/common");
 class ScopedLogger extends common_1.Logger {
-    constructor(logger, scope, scopeId) {
+    constructor(logger, scope, root = false) {
         super();
         this.logger = logger;
         this.scope = scope;
-        this.scopeId = scopeId;
+        this.root = root;
         this.debug = this.scopedLog("debug");
         this.log = this.scopedLog("log");
         this.warn = this.scopedLog("warn");
@@ -20,7 +20,7 @@ class ScopedLogger extends common_1.Logger {
     }
     scopedLog(method) {
         return (message) => {
-            this.logger[method](`-> ${this.scope}${this.scopeId ? `(${this.scopeId})` : ""}: ${message}`);
+            this.logger[method](`${this.root ? "" : "-> "}${this.scope}${this.scopeId ? `(${this.scopeId})` : ""}: ${message}`);
         };
     }
 }

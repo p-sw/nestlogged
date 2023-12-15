@@ -2,8 +2,9 @@ import { Logger } from "@nestjs/common";
 export declare class ScopedLogger extends Logger {
     private logger;
     private scope;
-    private scopeId?;
-    constructor(logger: Logger, scope: string, scopeId?: string);
+    private root;
+    scopeId?: string;
+    constructor(logger: Logger, scope: string, root?: boolean);
     addScope(scopeId: string): void;
     private scopedLog;
     debug: (message: string) => void;

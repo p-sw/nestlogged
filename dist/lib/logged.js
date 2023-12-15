@@ -73,16 +73,16 @@ function LoggedController(param) {
     };
 }
 exports.LoggedController = LoggedController;
-function overrideBuild(originalFunction, baseLogger, metadatas, key, route) {
+function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData, route) {
     return async function (...args) {
         let injectedLogger = baseLogger;
         if (typeof metadatas.scopedLoggerInjectableParam !== "undefined") {
             if (args.length <= metadatas.scopedLoggerInjectableParam ||
                 !(args[metadatas.scopedLoggerInjectableParam] instanceof logger_1.ScopedLogger)) {
-                args[metadatas.scopedLoggerInjectableParam] = new logger_1.ScopedLogger(baseLogger, key);
+                args[metadatas.scopedLoggerInjectableParam] = new logger_1.ScopedLogger(baseLogger, key, true);
             }
             else {
-                args[metadatas.scopedLoggerInjectableParam] = new logger_1.ScopedLogger(args[metadatas.scopedLoggerInjectableParam], key);
+                args[metadatas.scopedLoggerInjectableParam] = new logger_1.ScopedLogger(args[metadatas.scopedLoggerInjectableParam], key, false);
             }
             injectedLogger = args[metadatas.scopedLoggerInjectableParam];
             if (Array.isArray(metadatas.scopeKeys)) {
@@ -134,9 +134,24 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, route) {
             : ""}`);
         try {
             const r = await originalFunction.call(this, ...args);
+            const resultLogged = Array.isArray(returnsData)
+                ? typeof r === "object"
+                    ? "WITH " +
+                        (await Promise.all(returnsData.map(async ({ name, path }) => {
+                            const value = await (0, functions_1.getItemByPath)(r, path);
+                            return value !== undefined ? `${name}=${value}` : "";
+                        })))
+                            .filter((v) => v.length > 0)
+                            .join(", ")
+                    : ""
+                : returnsData
+                    ? typeof r === "object"
+                        ? "WITH " + JSON.stringify(r)
+                        : "WITH " + r
+                    : "";
             injectedLogger.log(route
-                ? `RETURNED RESPONSE ${route.fullRoute} (${key})`
-                : `RETURNED ${key}`);
+                ? `RETURNED HTTP ${route.fullRoute} (${key}) ${resultLogged}`
+                : `RETURNED ${key} ${resultLogged}`);
             return r;
         }
         catch (e) {
@@ -161,12 +176,13 @@ function LoggedFunction(_target, key, descriptor) {
     const loggedParams = Reflect.getOwnMetadata(reflected_2.loggedParam, _target, key);
     const scopeKeys = Reflect.getOwnMetadata(reflected_1.scopeKey, _target, key);
     const shouldScoped = Reflect.getOwnMetadata(reflected_1.forceScopeKey, fn);
+    const returnsData = Reflect.getOwnMetadata(reflected_1.returns, fn);
     const overrideFunction = overrideBuild(fn, logger, {
         scopedLoggerInjectableParam,
         loggedParams,
         scopeKeys,
         shouldScoped,
-    }, key);
+    }, key, returnsData);
     _target[key] = overrideFunction;
     descriptor.value = overrideFunction;
     all.forEach(([k, v]) => {
@@ -195,12 +211,13 @@ function LoggedRoute(route) {
         const loggedParams = Reflect.getOwnMetadata(reflected_2.loggedParam, _target, key);
         const scopeKeys = Reflect.getOwnMetadata(reflected_1.scopeKey, _target, key);
         const shouldScoped = Reflect.getOwnMetadata(reflected_1.forceScopeKey, fn);
+        const returnsData = Reflect.getOwnMetadata(reflected_1.returns, fn);
         const overrideFunction = overrideBuild(fn, logger, {
             scopedLoggerInjectableParam,
             loggedParams,
             scopeKeys,
             shouldScoped,
-        }, key, {
+        }, key, returnsData, {
             fullRoute,
         });
         _target[key] = overrideFunction;

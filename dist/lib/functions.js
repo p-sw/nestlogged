@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.includeOrExcludeObject = exports.notIncludedSymbol = void 0;
+exports.getItemByPath = exports.includeOrExcludeObject = exports.notIncludedSymbol = void 0;
 exports.notIncludedSymbol = Symbol("notIncluded");
 async function includeOrExcludeObject(ocv, paths, currentPath = [], include // or exclude
 ) {
@@ -40,3 +40,12 @@ async function objectContainedLogged(ocv, options) {
     }
 }
 exports.default = objectContainedLogged;
+async function getItemByPath(obj, path) {
+    const paths = Array.isArray(path) ? path : path.split(".");
+    return Object.keys(obj).includes(paths[0])
+        ? typeof obj[paths[0]] === "object"
+            ? getItemByPath(obj[paths[0]], paths.slice(1))
+            : obj[paths[0]]
+        : undefined;
+}
+exports.getItemByPath = getItemByPath;

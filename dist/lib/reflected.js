@@ -1,10 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ShouldScoped = exports.ScopeKey = exports.LoggedParam = exports.InjectLogger = exports.forceScopeKey = exports.scopeKey = exports.loggedParam = exports.scopedLogger = void 0;
+exports.ShouldScoped = exports.Returns = exports.ScopeKey = exports.LoggedParam = exports.InjectLogger = exports.returns = exports.forceScopeKey = exports.scopeKey = exports.loggedParam = exports.scopedLogger = void 0;
 exports.scopedLogger = Symbol("nlogdec-scopedLogger");
 exports.loggedParam = Symbol("nlogdec-loggedParam");
 exports.scopeKey = Symbol("nlogdec-scopeKey");
 exports.forceScopeKey = Symbol("nlogdec-forceScopeKey");
+exports.returns = Symbol("nlogdec-returns");
 function InjectLogger(target, propertyKey, parameterIndex) {
     Reflect.defineMetadata(exports.scopedLogger, parameterIndex, target, propertyKey);
 }
@@ -43,6 +44,14 @@ function ScopeKey(name, options) {
     };
 }
 exports.ScopeKey = ScopeKey;
+function Returns(namePaths) {
+    return (_target, _key, descriptor) => {
+        Reflect.defineMetadata(exports.returns, namePaths
+            ? Object.entries(namePaths).reduce((prev, curr) => [...prev, { name: curr[0], path: curr[1] }], [])
+            : true, descriptor.value);
+    };
+}
+exports.Returns = Returns;
 function ShouldScoped(_target, _key, descriptor) {
     Reflect.defineMetadata(exports.forceScopeKey, true, descriptor.value);
 }
