@@ -79,49 +79,12 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData
         if (typeof metadatas.scopedLoggerInjectableParam !== "undefined") {
             if (args.length <= metadatas.scopedLoggerInjectableParam ||
                 !(args[metadatas.scopedLoggerInjectableParam] instanceof logger_1.ScopedLogger)) {
-                args[metadatas.scopedLoggerInjectableParam] = new logger_1.ScopedLogger(baseLogger, key, true);
+                args[metadatas.scopedLoggerInjectableParam] = new logger_1.ScopedLogger(baseLogger, key, true, true);
             }
             else {
                 args[metadatas.scopedLoggerInjectableParam] = new logger_1.ScopedLogger(args[metadatas.scopedLoggerInjectableParam], key, false);
             }
             injectedLogger = args[metadatas.scopedLoggerInjectableParam];
-            if (Array.isArray(metadatas.scopeKeys)) {
-                const scopeKeyResults = metadatas.scopeKeys.map((key) => {
-                    const argsValue = args[key.index];
-                    if (!key.path) {
-                        if (!metadatas.shouldScoped || argsValue) {
-                            return { error: false, value: `${key.name}=${argsValue}` };
-                        }
-                        else {
-                            return {
-                                error: true,
-                                value: `ScopeKey in ShouldScope cannot be falsy value (${argsValue})`,
-                            };
-                        }
-                    }
-                    try {
-                        const reduceResult = key.path.reduce((base, keyPath) => {
-                            if (typeof base !== "object" ||
-                                !Object.keys(base).includes(keyPath))
-                                throw new Error(`Cannot find key ${keyPath} in ${typeof base === "object" ? JSON.stringify(base) : base}`);
-                            return base[keyPath];
-                        }, argsValue);
-                        return { error: false, value: `${key.name}=${reduceResult}` };
-                    }
-                    catch (e) {
-                        return { error: true, value: e.message };
-                    }
-                });
-                const successResults = scopeKeyResults.filter((v) => v.error === false);
-                if (successResults.length === 0) {
-                    if (metadatas.shouldScoped) {
-                        scopeKeyResults.forEach((v) => injectedLogger.warn(v.value));
-                    }
-                }
-                else {
-                    injectedLogger.addScope(successResults[0].value);
-                }
-            }
         }
         injectedLogger.log(`${route ? "HIT HTTP" : "CALL"} ${route ? `${route.fullRoute} (${key})` : key} ${metadatas.loggedParams && metadatas.loggedParams.length > 0
             ? "WITH " +
@@ -175,13 +138,11 @@ function LoggedFunction(_target, key, descriptor) {
     const scopedLoggerInjectableParam = Reflect.getOwnMetadata(reflected_2.scopedLogger, _target, key);
     const loggedParams = Reflect.getOwnMetadata(reflected_2.loggedParam, _target, key);
     const scopeKeys = Reflect.getOwnMetadata(reflected_1.scopeKey, _target, key);
-    const shouldScoped = Reflect.getOwnMetadata(reflected_1.forceScopeKey, fn);
     const returnsData = Reflect.getOwnMetadata(reflected_1.returns, fn);
     const overrideFunction = overrideBuild(fn, logger, {
         scopedLoggerInjectableParam,
         loggedParams,
         scopeKeys,
-        shouldScoped,
     }, key, returnsData);
     _target[key] = overrideFunction;
     descriptor.value = overrideFunction;
@@ -210,13 +171,11 @@ function LoggedRoute(route) {
         const scopedLoggerInjectableParam = Reflect.getOwnMetadata(reflected_2.scopedLogger, _target, key);
         const loggedParams = Reflect.getOwnMetadata(reflected_2.loggedParam, _target, key);
         const scopeKeys = Reflect.getOwnMetadata(reflected_1.scopeKey, _target, key);
-        const shouldScoped = Reflect.getOwnMetadata(reflected_1.forceScopeKey, fn);
         const returnsData = Reflect.getOwnMetadata(reflected_1.returns, fn);
         const overrideFunction = overrideBuild(fn, logger, {
             scopedLoggerInjectableParam,
             loggedParams,
             scopeKeys,
-            shouldScoped,
         }, key, returnsData, {
             fullRoute,
         });

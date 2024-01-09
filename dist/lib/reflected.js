@@ -1,16 +1,32 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ShouldScoped = exports.Returns = exports.ScopeKey = exports.LoggedParam = exports.InjectLogger = exports.returns = exports.forceScopeKey = exports.scopeKey = exports.loggedParam = exports.scopedLogger = void 0;
+exports.Returns = exports.LoggedHeaders = exports.LoggedBody = exports.LoggedQuery = exports.LoggedParam = exports.Logged = exports.InjectLogger = exports.returns = exports.scopeKey = exports.loggedParam = exports.scopedLogger = void 0;
+const route_paramtypes_enum_1 = require("@nestjs/common/enums/route-paramtypes.enum");
+const common_1 = require("@nestjs/common");
+const shared_utils_1 = require("@nestjs/common/utils/shared.utils");
+const ROUTE_ARGS_METADATA = '__routeArguments__';
+function createRouteParamDecorator(paramtype) {
+    return (data) => (target, key, index) => {
+        const args = Reflect.getMetadata(ROUTE_ARGS_METADATA, target.constructor, key) || {};
+        Reflect.defineMetadata(ROUTE_ARGS_METADATA, (0, common_1.assignMetadata)(args, paramtype, index, data), target.constructor, key);
+    };
+}
+const createPipesRouteParamDecorator = (paramtype) => (data, ...pipes) => (target, key, index) => {
+    const args = Reflect.getMetadata(ROUTE_ARGS_METADATA, target.constructor, key) || {};
+    const hasParamData = (0, shared_utils_1.isNil)(data) || (0, shared_utils_1.isString)(data);
+    const paramData = hasParamData ? data : undefined;
+    const paramPipes = hasParamData ? pipes : [data, ...pipes];
+    Reflect.defineMetadata(ROUTE_ARGS_METADATA, (0, common_1.assignMetadata)(args, paramtype, index, paramData, ...paramPipes), target.constructor, key);
+};
 exports.scopedLogger = Symbol("nlogdec-scopedLogger");
 exports.loggedParam = Symbol("nlogdec-loggedParam");
 exports.scopeKey = Symbol("nlogdec-scopeKey");
-exports.forceScopeKey = Symbol("nlogdec-forceScopeKey");
 exports.returns = Symbol("nlogdec-returns");
 function InjectLogger(target, propertyKey, parameterIndex) {
     Reflect.defineMetadata(exports.scopedLogger, parameterIndex, target, propertyKey);
 }
 exports.InjectLogger = InjectLogger;
-function LoggedParam(name, options) {
+function createLoggedFunctionParam(name, options) {
     return (target, propertyKey, parameterIndex) => {
         const existingLoggedParams = Reflect.getOwnMetadata(exports.loggedParam, target, propertyKey) || [];
         existingLoggedParams.push({
@@ -27,23 +43,44 @@ function LoggedParam(name, options) {
         Reflect.defineMetadata(exports.loggedParam, existingLoggedParams, target, propertyKey);
     };
 }
-exports.LoggedParam = LoggedParam;
-function ScopeKey(name, options) {
-    return (target, propertyKey, parameterIndex) => {
-        const existingScopeKeys = Reflect.getOwnMetadata(exports.scopeKey, target, propertyKey) || [];
-        existingScopeKeys.push({
-            name,
-            index: parameterIndex,
-            path: Array.isArray(options?.path)
-                ? options.path
-                : options?.path?.split("."),
-            priority: options?.priority,
-        });
-        existingScopeKeys.sort((a, b) => (b.priority ?? 1) - (a.priority ?? 1));
-        Reflect.defineMetadata(exports.scopeKey, existingScopeKeys, target, propertyKey);
+const Logged = (name, options) => createLoggedFunctionParam(name, options);
+exports.Logged = Logged;
+function LoggedParam(property, ...pipes) {
+    return (name, options) => {
+        return (target, propertyKey, parameterIndex) => {
+            createPipesRouteParamDecorator(route_paramtypes_enum_1.RouteParamtypes.PARAM)(property, ...pipes)(target, propertyKey, parameterIndex);
+            createLoggedFunctionParam(name, options)(target, propertyKey, parameterIndex);
+        };
     };
 }
-exports.ScopeKey = ScopeKey;
+exports.LoggedParam = LoggedParam;
+function LoggedQuery(property, ...pipes) {
+    return (name, options) => {
+        return (target, propertyKey, parameterIndex) => {
+            createPipesRouteParamDecorator(route_paramtypes_enum_1.RouteParamtypes.QUERY)(property, ...pipes)(target, propertyKey, parameterIndex);
+            createLoggedFunctionParam(name, options)(target, propertyKey, parameterIndex);
+        };
+    };
+}
+exports.LoggedQuery = LoggedQuery;
+function LoggedBody(property, ...pipes) {
+    return (name, options) => {
+        return (target, propertyKey, parameterIndex) => {
+            createPipesRouteParamDecorator(route_paramtypes_enum_1.RouteParamtypes.BODY)(property, ...pipes)(target, propertyKey, parameterIndex);
+            createLoggedFunctionParam(name, options)(target, propertyKey, parameterIndex);
+        };
+    };
+}
+exports.LoggedBody = LoggedBody;
+function LoggedHeaders(property) {
+    return (name, options) => {
+        return (target, propertyKey, parameterIndex) => {
+            createRouteParamDecorator(route_paramtypes_enum_1.RouteParamtypes.HEADERS)(property)(target, propertyKey, parameterIndex);
+            createLoggedFunctionParam(name, options)(target, propertyKey, parameterIndex);
+        };
+    };
+}
+exports.LoggedHeaders = LoggedHeaders;
 function Returns(namePaths) {
     return (_target, _key, descriptor) => {
         Reflect.defineMetadata(exports.returns, namePaths
@@ -52,7 +89,3 @@ function Returns(namePaths) {
     };
 }
 exports.Returns = Returns;
-function ShouldScoped(_target, _key, descriptor) {
-    Reflect.defineMetadata(exports.forceScopeKey, true, descriptor.value);
-}
-exports.ShouldScoped = ShouldScoped;

@@ -3,9 +3,9 @@ export declare class ScopedLogger extends Logger {
     private logger;
     private scope;
     private root;
-    scopeId?: string;
-    constructor(logger: Logger, scope: string, root?: boolean);
-    addScope(scopeId: string): void;
+    private createScopeId;
+    private readonly scopeId?;
+    constructor(logger: Logger, scope: string, root?: boolean, createScopeId?: boolean);
     private scopedLog;
     debug: (message: string) => void;
     log: (message: string) => void;
