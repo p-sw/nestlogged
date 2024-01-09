@@ -163,6 +163,15 @@ class LoggedClass {
     await this.testLoggerRootLogging2(logger);
   }
 
+  testSyncLoggerRootLogging2(@InjectLogger logger?: ScopedLogger) {
+    logger.log('2')
+    return 2
+  }
+
+  testSyncLoggerRootLogging(@InjectLogger logger?: ScopedLogger) {
+    logger.log(this.testSyncLoggerRootLogging2(logger).toString())
+  }
+
   testSyncLogging(@InjectLogger logger?: ScopedLogger) {
     logger.log("synced yay");
   }
@@ -326,6 +335,17 @@ class LoggedMethodsClass {
   }
 
   @LoggedFunction
+  testSyncLoggerRootLogging2(@InjectLogger logger?: ScopedLogger) {
+    logger.log('2')
+    return 2
+  }
+
+  @LoggedFunction
+  testSyncLoggerRootLogging(@InjectLogger logger?: ScopedLogger) {
+    logger.log(this.testSyncLoggerRootLogging2(logger).toString())
+  }
+
+  @LoggedFunction
   testSyncLogging(@InjectLogger logger?: ScopedLogger) {
     logger.log("synced yay");
   }
@@ -353,7 +373,8 @@ const tester = new LoggedClass();
 // void tester.testMissingReturnLogging("asdf");
 // void tester.testRawObjectReturnLogging("asdf");
 // void tester.testRawValueReturnLogging("asdf");
-// void tester.testLoggerRootLogging();
+void tester.testLoggerRootLogging();
+// tester.testSyncLoggerRootLogging();
 // tester.testSyncLogging();
 
 /**
