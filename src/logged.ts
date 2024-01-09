@@ -10,7 +10,6 @@ import {
   LoggedParamReflectData,
   ReturnsReflectData,
   ScopeKeyReflectData,
-  forceScopeKey,
   returns,
   scopeKey,
 } from "./reflected";
@@ -119,7 +118,6 @@ export function LoggedController(param?: any): (target: any) => void {
 interface FunctionMetadata {
   scopedLoggerInjectableParam?: number;
   scopeKeys?: ScopeKeyReflectData[];
-  shouldScoped?: boolean;
   loggedParams?: LoggedParamReflectData[];
 }
 
@@ -143,7 +141,8 @@ function overrideBuild<F extends Array<any>, R>(
         args[metadatas.scopedLoggerInjectableParam] = new ScopedLogger(
           baseLogger,
           key,
-          true
+          true,
+          true,
         );
       } else {
         args[metadatas.scopedLoggerInjectableParam] = new ScopedLogger(
@@ -154,49 +153,6 @@ function overrideBuild<F extends Array<any>, R>(
       }
 
       injectedLogger = args[metadatas.scopedLoggerInjectableParam];
-
-      if (Array.isArray(metadatas.scopeKeys)) {
-        const scopeKeyResults: { error: boolean; value: string }[] =
-          metadatas.scopeKeys.map((key) => {
-            const argsValue = args[key.index];
-            if (!key.path) {
-              if (!metadatas.shouldScoped || argsValue) {
-                return { error: false, value: `${key.name}=${argsValue}` };
-              } else {
-                return {
-                  error: true,
-                  value: `ScopeKey in ShouldScope cannot be falsy value (${argsValue})`,
-                };
-              }
-            }
-            try {
-              const reduceResult = key.path.reduce((base, keyPath) => {
-                if (
-                  typeof base !== "object" ||
-                  !Object.keys(base).includes(keyPath)
-                )
-                  throw new Error(
-                    `Cannot find key ${keyPath} in ${
-                      typeof base === "object" ? JSON.stringify(base) : base
-                    }`
-                  );
-                return base[keyPath];
-              }, argsValue);
-              return { error: false, value: `${key.name}=${reduceResult}` };
-            } catch (e) {
-              return { error: true, value: e.message };
-            }
-          });
-
-        const successResults = scopeKeyResults.filter((v) => v.error === false);
-        if (successResults.length === 0) {
-          if (metadatas.shouldScoped) {
-            scopeKeyResults.forEach((v) => injectedLogger.warn(v.value));
-          }
-        } else {
-          (injectedLogger as ScopedLogger).addScope(successResults[0].value);
-        }
-      }
     }
 
     injectedLogger.log(
@@ -302,8 +258,6 @@ export function LoggedFunction<F extends Array<any>, R>(
     key
   );
 
-  const shouldScoped: boolean = Reflect.getOwnMetadata(forceScopeKey, fn);
-
   const returnsData: ReturnsReflectData[] | true = Reflect.getOwnMetadata(
     returns,
     fn
@@ -316,7 +270,6 @@ export function LoggedFunction<F extends Array<any>, R>(
       scopedLoggerInjectableParam,
       loggedParams,
       scopeKeys,
-      shouldScoped,
     },
     key,
     returnsData
@@ -380,8 +333,6 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string) {
       key
     );
 
-    const shouldScoped: boolean = Reflect.getOwnMetadata(forceScopeKey, fn);
-
     const returnsData: ReturnsReflectData[] | true = Reflect.getOwnMetadata(
       returns,
       fn
@@ -394,7 +345,6 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string) {
         scopedLoggerInjectableParam,
         loggedParams,
         scopeKeys,
-        shouldScoped,
       },
       key,
       returnsData,

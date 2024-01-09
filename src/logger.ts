@@ -1,20 +1,21 @@
 import { Logger } from "@nestjs/common";
+import * as hyperid from 'hyperid';
+
+const createId = hyperid({ fixedLength: true })
 
 type LogLevel = "debug" | "log" | "warn" | "verbose" | "error" | "fatal";
 
 export class ScopedLogger extends Logger {
-  scopeId?: string;
+  private readonly scopeId?: string;
 
   constructor(
     private logger: Logger,
     private scope: string,
-    private root: boolean = false
+    private root: boolean = false,
+    private createScopeId: boolean = false,
   ) {
     super();
-  }
-
-  public addScope(scopeId: string) {
-    this.scopeId = scopeId;
+    if (this.createScopeId) this.scopeId = createId();
   }
 
   private scopedLog(method: LogLevel) {

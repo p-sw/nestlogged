@@ -4,8 +4,6 @@ import {
   InjectLogger,
   Logged,
   Returns,
-  ScopeKey,
-  ShouldScoped,
 } from "../reflected";
 
 type TestObject = {
@@ -87,61 +85,6 @@ class LoggedClass {
     @InjectLogger logger?: ScopedLogger
   ) {
     logger.log(JSON.stringify(key));
-  }
-
-  async testScopedLogging(
-    @Logged("key") @ScopeKey("scopekey") key: string,
-    @Logged("key2") key2: number,
-    @InjectLogger logger?: ScopedLogger
-  ) {
-    logger.log(key + key2.toString());
-  }
-
-  async testPathScopedLogging(
-    @Logged("key") @ScopeKey("scopekey", { path: "b.c" }) key: TestObject,
-    @InjectLogger logger?: ScopedLogger
-  ) {
-    logger.log(JSON.stringify(key));
-  }
-
-  async testOrScopedLogging(
-    @Logged("key")
-    @ScopeKey("scopekey-a", { path: "a" })
-    @ScopeKey("scopekey-b", { path: "b" })
-    key: { a: string } | { b: string },
-    @InjectLogger logger?: ScopedLogger
-  ) {
-    logger.log(JSON.stringify(key));
-  }
-
-  async testPriorityScopedLogging(
-    @Logged("key")
-    @ScopeKey("scopekey-a", { path: "a", priority: 0.5 })
-    @ScopeKey("scopekey-b", { path: "b" }) // default 1
-    key: { a?: string; b?: string },
-    // if both a and b are undefined, set scope to nothing
-    @InjectLogger logger?: ScopedLogger
-  ) {
-    logger.log(JSON.stringify(key));
-  }
-
-  async testOptionalScopedLogging(
-    @Logged("key")
-    @ScopeKey("scopekey")
-    key?: string,
-    @InjectLogger logger?: ScopedLogger
-  ) {
-    logger.log(key);
-  }
-
-  @ShouldScoped // Warn if there is no valid scopekey
-  async testShouldScopedLogging(
-    @Logged("key")
-    @ScopeKey("scopekey")
-    key?: string,
-    @InjectLogger logger?: ScopedLogger
-  ) {
-    logger.log(key);
   }
 
   @Returns({ result: "http.result", userId: "body.user.id" })
@@ -301,67 +244,6 @@ class LoggedMethodsClass {
   }
 
   @LoggedFunction
-  async testScopedLogging(
-    @Logged("key") @ScopeKey("scopekey") key: string,
-    @Logged("key2") key2: number,
-    @InjectLogger logger?: ScopedLogger
-  ) {
-    logger.log(key + key2.toString());
-  }
-
-  @LoggedFunction
-  async testPathScopedLogging(
-    @Logged("key") @ScopeKey("scopekey", { path: "b.c" }) key: TestObject,
-    @InjectLogger logger?: ScopedLogger
-  ) {
-    logger.log(JSON.stringify(key));
-  }
-
-  @LoggedFunction
-  async testOrScopedLogging(
-    @Logged("key")
-    @ScopeKey("scopekey-a", { path: "a" })
-    @ScopeKey("scopekey-b", { path: "b" })
-    key: { a: string } | { b: string },
-    @InjectLogger logger?: ScopedLogger
-  ) {
-    logger.log(JSON.stringify(key));
-  }
-
-  @LoggedFunction
-  async testPriorityScopedLogging(
-    @Logged("key")
-    @ScopeKey("scopekey-a", { path: "a", priority: 0.5 })
-    @ScopeKey("scopekey-b", { path: "b" }) // default 1
-    key: { a?: string; b?: string },
-    // if both a and b are undefined, set scope to nothing
-    @InjectLogger logger?: ScopedLogger
-  ) {
-    logger.log(JSON.stringify(key));
-  }
-
-  @LoggedFunction
-  async testOptionalScopedLogging(
-    @Logged("key")
-    @ScopeKey("scopekey")
-    key?: string,
-    @InjectLogger logger?: ScopedLogger
-  ) {
-    logger.log(key);
-  }
-
-  @LoggedFunction
-  @ShouldScoped // Warn if there is no valid scopekey
-  async testShouldScopedLogging(
-    @Logged("key")
-    @ScopeKey("scopekey")
-    key?: string,
-    @InjectLogger logger?: ScopedLogger
-  ) {
-    logger.log(key);
-  }
-
-  @LoggedFunction
   @Returns({ result: "http.result", userId: "body.user.id" })
   async testReturnLogging(
     @Logged("userId")
@@ -452,38 +334,26 @@ class LoggedMethodsClass {
 /**
  * Choose Class to Test
  */
-// const tester = new LoggedClass();
+const tester = new LoggedClass();
 // const tester = new LoggedMethodsClass();
 
 /**
  * Choose Method to Test
  */
-// tester.testParameterLoggingWithoutInjection(1);
-// tester.testMultiParameterLoggingWithoutInjection(1, "asdf");
-// tester.testParameterLoggingWithInjection(1);
-// tester.testMultiParameterLoggingWithInjection(1, "asdf");
-// tester.testObjectParameterLogging(testObject);
-// tester.testObjectParameterDotIncludeLogging(testObject);
-// tester.testObjectParameterArrayIncludeLogging(testObject);
-// tester.testObjectParameterDotExcludeLogging(testObject);
-// tester.testObjectParameterArrayExcludeLogging(testObject);
-// tester.testScopedLogging("asdf", 2);
-// tester.testPathScopedLogging(testObject);
-// tester.testOrScopedLogging({ a: "asdf" });
-// tester.testOrScopedLogging({ b: "qwer" });
-// tester.testPriorityScopedLogging({ a: "asdf", b: "qwer" });
-// tester.testPriorityScopedLogging({ a: "asdf" });
-// tester.testPriorityScopedLogging({ b: "qwer" });
-// tester.testPriorityScopedLogging({});
-// tester.testOptionalScopedLogging("asdf");
-// tester.testOptionalScopedLogging();
-// tester.testShouldScopedLogging("asdf")
-// tester.testShouldScopedLogging();
-// tester.testReturnLogging("asdf");
-// tester.testMissingReturnLogging("asdf");
-// tester.testRawObjectReturnLogging("asdf");
-// tester.testRawValueReturnLogging("asdf");
-// tester.testLoggerRootLogging();
+// void tester.testParameterLoggingWithoutInjection(1);
+// void tester.testMultiParameterLoggingWithoutInjection(1, "asdf");
+// void tester.testParameterLoggingWithInjection(1);
+// void tester.testMultiParameterLoggingWithInjection(1, "asdf");
+// void tester.testObjectParameterLogging(testObject);
+// void tester.testObjectParameterDotIncludeLogging(testObject);
+// void tester.testObjectParameterArrayIncludeLogging(testObject);
+// void tester.testObjectParameterDotExcludeLogging(testObject);
+// void tester.testObjectParameterArrayExcludeLogging(testObject);
+// void tester.testReturnLogging("asdf");
+// void tester.testMissingReturnLogging("asdf");
+// void tester.testRawObjectReturnLogging("asdf");
+// void tester.testRawValueReturnLogging("asdf");
+// void tester.testLoggerRootLogging();
 // tester.testSyncLogging();
 
 /**

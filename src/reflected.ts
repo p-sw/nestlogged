@@ -74,7 +74,6 @@ export interface ReturnsReflectData {
 export const scopedLogger = Symbol("nlogdec-scopedLogger");
 export const loggedParam = Symbol("nlogdec-loggedParam");
 export const scopeKey = Symbol("nlogdec-scopeKey");
-export const forceScopeKey = Symbol("nlogdec-forceScopeKey");
 export const returns = Symbol("nlogdec-returns");
 
 export function InjectLogger(
@@ -229,34 +228,6 @@ export function LoggedHeaders(property?: string): LoggedParamReturns {
   }
 }
 
-
-export function ScopeKey(
-  name: string,
-  options?: { path?: Path; priority?: number }
-) {
-  return (
-    target: any,
-    propertyKey: string | symbol,
-    parameterIndex: number
-  ) => {
-    const existingScopeKeys: ScopeKeyReflectData[] =
-      Reflect.getOwnMetadata(scopeKey, target, propertyKey) || [];
-
-    existingScopeKeys.push({
-      name,
-      index: parameterIndex,
-      path: Array.isArray(options?.path)
-        ? options.path
-        : options?.path?.split("."),
-      priority: options?.priority,
-    });
-
-    existingScopeKeys.sort((a, b) => (b.priority ?? 1) - (a.priority ?? 1));
-
-    Reflect.defineMetadata(scopeKey, existingScopeKeys, target, propertyKey);
-  };
-}
-
 export function Returns<F extends Array<any>, R>(namePaths?: {
   [name: string]: string;
 }) {
@@ -276,12 +247,4 @@ export function Returns<F extends Array<any>, R>(namePaths?: {
       descriptor.value
     );
   };
-}
-
-export function ShouldScoped(
-  _target: any,
-  _key: string,
-  descriptor: TypedPropertyDescriptor<(...args: any[]) => Promise<any>>
-) {
-  Reflect.defineMetadata(forceScopeKey, true, descriptor.value);
 }

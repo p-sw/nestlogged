@@ -11,7 +11,5 @@ export {
   LoggedHeaders,
   LoggedBody,
   LoggedQuery,
-  ScopeKey,
-  ShouldScoped,
   Returns
 } from "./reflected";
