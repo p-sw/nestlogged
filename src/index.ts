@@ -11,5 +11,6 @@ export {
   LoggedHeaders,
   LoggedBody,
   LoggedQuery,
+  Logged,
   Returns
 } from "./reflected";
