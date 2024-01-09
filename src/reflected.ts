@@ -3,7 +3,6 @@ import {assignMetadata, ParamData, PipeTransform, RouteParamMetadata, Type} from
 import {isNil, isString} from "@nestjs/common/utils/shared.utils";
 
 const ROUTE_ARGS_METADATA = '__routeArguments__';
-export const HEADERS_METADATA = '__headers__';
 
 function createRouteParamDecorator(paramtype: RouteParamtypes) {
   return (data?: ParamData): ParameterDecorator =>
@@ -228,7 +227,7 @@ export function LoggedHeaders(property?: string): LoggedParamReturns {
       )
     }
   }
-};
+}
 
 
 export function ScopeKey(
