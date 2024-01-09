@@ -98,7 +98,7 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData
         try {
             const r = originalFunction.call(this, ...args);
             if (originalFunction.constructor.name === 'AsyncFunction' ||
-                (typeof r === 'object' && typeof r['then'] === 'function')) {
+                (r && typeof r === 'object' && typeof r['then'] === 'function')) {
                 return r['then']((r) => {
                     const resultLogged = Array.isArray(returnsData)
                         ? typeof r === "object"
