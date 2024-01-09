@@ -107,11 +107,13 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData
                             .filter((v) => v.length > 0)
                             .join(", ")
                     : ""
-                : returnsData
-                    ? typeof r === "object"
-                        ? "WITH " + JSON.stringify(r)
-                        : "WITH " + r
-                    : "";
+                : typeof returnsData === 'string'
+                    ? "WITH " + returnsData + "=" + typeof r === "object" ? JSON.stringify(r) : r
+                    : returnsData
+                        ? typeof r === "object"
+                            ? "WITH " + JSON.stringify(r)
+                            : "WITH " + r
+                        : "";
             injectedLogger.log(route
                 ? `RETURNED HTTP ${route.fullRoute} (${key}) ${resultLogged}`
                 : `RETURNED ${key} ${resultLogged}`);

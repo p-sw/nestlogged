@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Returns = exports.LoggedQuery = exports.LoggedBody = exports.LoggedHeaders = exports.LoggedParam = exports.InjectLogger = exports.ScopedLogger = exports.LoggedInjectable = exports.LoggedController = exports.LoggedFunction = exports.LoggedRoute = void 0;
+exports.Returns = exports.Logged = exports.LoggedQuery = exports.LoggedBody = exports.LoggedHeaders = exports.LoggedParam = exports.InjectLogger = exports.ScopedLogger = exports.LoggedInjectable = exports.LoggedController = exports.LoggedFunction = exports.LoggedRoute = void 0;
 var logged_1 = require("./logged");
 Object.defineProperty(exports, "LoggedRoute", { enumerable: true, get: function () { return logged_1.LoggedRoute; } });
 Object.defineProperty(exports, "LoggedFunction", { enumerable: true, get: function () { return logged_1.LoggedFunction; } });
@@ -14,4 +14,5 @@ Object.defineProperty(exports, "LoggedParam", { enumerable: true, get: function 
 Object.defineProperty(exports, "LoggedHeaders", { enumerable: true, get: function () { return reflected_1.LoggedHeaders; } });
 Object.defineProperty(exports, "LoggedBody", { enumerable: true, get: function () { return reflected_1.LoggedBody; } });
 Object.defineProperty(exports, "LoggedQuery", { enumerable: true, get: function () { return reflected_1.LoggedQuery; } });
+Object.defineProperty(exports, "Logged", { enumerable: true, get: function () { return reflected_1.Logged; } });
 Object.defineProperty(exports, "Returns", { enumerable: true, get: function () { return reflected_1.Returns; } });

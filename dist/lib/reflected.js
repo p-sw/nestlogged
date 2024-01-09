@@ -84,7 +84,9 @@ exports.LoggedHeaders = LoggedHeaders;
 function Returns(namePaths) {
     return (_target, _key, descriptor) => {
         Reflect.defineMetadata(exports.returns, namePaths
-            ? Object.entries(namePaths).reduce((prev, curr) => [...prev, { name: curr[0], path: curr[1] }], [])
+            ? typeof namePaths === 'string'
+                ? namePaths
+                : Object.entries(namePaths).reduce((prev, curr) => [...prev, { name: curr[0], path: curr[1] }], [])
             : true, descriptor.value);
     };
 }

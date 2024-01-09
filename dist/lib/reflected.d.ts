@@ -42,5 +42,5 @@ export declare function LoggedBody(property: string, ...pipes: Pipe[]): LoggedPa
 export declare function LoggedHeaders(property?: string): LoggedParamReturns;
 export declare function Returns<F extends Array<any>, R>(namePaths?: {
     [name: string]: string;
-}): (_target: any, _key: string | symbol, descriptor: TypedPropertyDescriptor<(...args: F) => Promise<R>>) => void;
+} | string): (_target: any, _key: string | symbol, descriptor: TypedPropertyDescriptor<(...args: F) => Promise<R> | R>) => void;
 export {};
