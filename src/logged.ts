@@ -178,7 +178,7 @@ function overrideBuild<F extends Array<any>, R>(
       const r: R = originalFunction.call(this, ...args);
       if (
         originalFunction.constructor.name === 'AsyncFunction' ||
-        (typeof r === 'object' && typeof r['then'] === 'function')
+        (r && typeof r === 'object' && typeof r['then'] === 'function')
       ) {
         return r['then']((r: any) => {
           const resultLogged = Array.isArray(returnsData)
