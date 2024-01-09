@@ -74,7 +74,7 @@ function LoggedController(param) {
 }
 exports.LoggedController = LoggedController;
 function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData, route) {
-    return async function (...args) {
+    return function (...args) {
         let injectedLogger = baseLogger;
         if (typeof metadatas.scopedLoggerInjectableParam !== "undefined") {
             if (args.length <= metadatas.scopedLoggerInjectableParam ||
@@ -88,36 +88,64 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData
         }
         injectedLogger.log(`${route ? "HIT HTTP" : "CALL"} ${route ? `${route.fullRoute} (${key})` : key} ${metadatas.loggedParams && metadatas.loggedParams.length > 0
             ? "WITH " +
-                (await Promise.all(metadatas.loggedParams.map(async ({ name, index, include, exclude }) => name +
+                metadatas.loggedParams.map(({ name, index, include, exclude }) => name +
                     "=" +
-                    (await (0, functions_1.default)(args[index], {
+                    (0, functions_1.objectContainedLoggedSync)(args[index], {
                         include,
                         exclude,
-                    }))))).join(", ")
+                    })).join(", ")
             : ""}`);
         try {
-            const r = await originalFunction.call(this, ...args);
-            const resultLogged = Array.isArray(returnsData)
-                ? typeof r === "object"
-                    ? "WITH " +
-                        (await Promise.all(returnsData.map(async ({ name, path }) => {
-                            const value = await (0, functions_1.getItemByPath)(r, path);
-                            return value !== undefined ? `${name}=${value}` : "";
-                        })))
-                            .filter((v) => v.length > 0)
-                            .join(", ")
-                    : ""
-                : typeof returnsData === 'string'
-                    ? "WITH " + returnsData + "=" + typeof r === "object" ? JSON.stringify(r) : r
-                    : returnsData
+            const r = originalFunction.call(this, ...args);
+            if (originalFunction.constructor.name === 'AsyncFunction' ||
+                (typeof r === 'object' && typeof r['then'] === 'function')) {
+                return r['then']((r) => {
+                    const resultLogged = Array.isArray(returnsData)
                         ? typeof r === "object"
-                            ? "WITH " + JSON.stringify(r)
-                            : "WITH " + r
-                        : "";
-            injectedLogger.log(route
-                ? `RETURNED HTTP ${route.fullRoute} (${key}) ${resultLogged}`
-                : `RETURNED ${key} ${resultLogged}`);
-            return r;
+                            ? "WITH " +
+                                returnsData.map(({ name, path }) => {
+                                    const value = (0, functions_1.getItemByPathSync)(r, path);
+                                    return value !== undefined ? `${name}=${value}` : "";
+                                })
+                                    .filter((v) => v.length > 0)
+                                    .join(", ")
+                            : ""
+                        : typeof returnsData === 'string'
+                            ? "WITH " + returnsData + "=" + typeof r === "object" ? JSON.stringify(r) : r
+                            : returnsData
+                                ? typeof r === "object"
+                                    ? "WITH " + JSON.stringify(r)
+                                    : "WITH " + r
+                                : "";
+                    injectedLogger.log(route
+                        ? `RETURNED HTTP ${route.fullRoute} (${key}) ${resultLogged}`
+                        : `RETURNED ${key} ${resultLogged}`);
+                    return r;
+                });
+            }
+            else {
+                const resultLogged = Array.isArray(returnsData)
+                    ? typeof r === "object"
+                        ? "WITH " +
+                            returnsData.map(({ name, path }) => {
+                                const value = (0, functions_1.getItemByPathSync)(r, path);
+                                return value !== undefined ? `${name}=${value}` : "";
+                            })
+                                .filter((v) => v.length > 0)
+                                .join(", ")
+                        : ""
+                    : typeof returnsData === 'string'
+                        ? "WITH " + returnsData + "=" + typeof r === "object" ? JSON.stringify(r) : r
+                        : returnsData
+                            ? typeof r === "object"
+                                ? "WITH " + JSON.stringify(r)
+                                : "WITH " + r
+                            : "";
+                injectedLogger.log(route
+                    ? `RETURNED HTTP ${route.fullRoute} (${key}) ${resultLogged}`
+                    : `RETURNED ${key} ${resultLogged}`);
+                return r;
+            }
         }
         catch (e) {
             injectedLogger.error(`WHILE ${route ? `HTTP ${route.fullRoute} (${key})` : key} ERROR ${e}`);
