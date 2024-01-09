@@ -2,7 +2,7 @@ import { LoggedFunction, LoggedInjectable } from "../logged";
 import { ScopedLogger } from "../logger";
 import {
   InjectLogger,
-  LoggedParam,
+  Logged,
   Returns,
   ScopeKey,
   ShouldScoped,
@@ -24,41 +24,41 @@ const testObject: TestObject = {
 
 @LoggedInjectable()
 class LoggedClass {
-  async testParameterLoggingWithoutInjection(@LoggedParam("key") key: number) {
+  async testParameterLoggingWithoutInjection(@Logged("key") key: number) {
     console.log(key);
   }
 
   async testMultiParameterLoggingWithoutInjection(
-    @LoggedParam("key") key: number,
-    @LoggedParam("key2") key2: string
+    @Logged("key") key: number,
+    @Logged("key2") key2: string
   ) {
     console.log(key, key2);
   }
 
   async testParameterLoggingWithInjection(
-    @LoggedParam("key") key: number,
+    @Logged("key") key: number,
     @InjectLogger logger?: ScopedLogger
   ) {
     logger.log(key.toString());
   }
 
   async testMultiParameterLoggingWithInjection(
-    @LoggedParam("key") key: number,
-    @LoggedParam("key2") key2: string,
+    @Logged("key") key: number,
+    @Logged("key2") key2: string,
     @InjectLogger logger?: ScopedLogger
   ) {
     logger.log(key.toString() + key2);
   }
 
   async testObjectParameterLogging(
-    @LoggedParam("key") key: TestObject,
+    @Logged("key") key: TestObject,
     @InjectLogger logger?: ScopedLogger
   ) {
     logger.log(JSON.stringify(key));
   }
 
   async testObjectParameterDotIncludeLogging(
-    @LoggedParam("key", { includePath: ["a", "b.c", "d.0", "e"] })
+    @Logged("key", { includePath: ["a", "b.c", "d.0", "e"] })
     key: TestObject,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -66,7 +66,7 @@ class LoggedClass {
   }
 
   async testObjectParameterArrayIncludeLogging(
-    @LoggedParam("key", { includePath: [["a"], ["b", "c"], ["d", "0"], ["e"]] })
+    @Logged("key", { includePath: [["a"], ["b", "c"], ["d", "0"], ["e"]] })
     key: TestObject,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -74,7 +74,7 @@ class LoggedClass {
   }
 
   async testObjectParameterDotExcludeLogging(
-    @LoggedParam("key", { excludePath: ["a", "b.c", "d.0", "e"] })
+    @Logged("key", { excludePath: ["a", "b.c", "d.0", "e"] })
     key: TestObject,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -82,7 +82,7 @@ class LoggedClass {
   }
 
   async testObjectParameterArrayExcludeLogging(
-    @LoggedParam("key", { excludePath: [["a"], ["b", "c"], ["d", "0"], ["e"]] })
+    @Logged("key", { excludePath: [["a"], ["b", "c"], ["d", "0"], ["e"]] })
     key: TestObject,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -90,22 +90,22 @@ class LoggedClass {
   }
 
   async testScopedLogging(
-    @LoggedParam("key") @ScopeKey("scopekey") key: string,
-    @LoggedParam("key2") key2: number,
+    @Logged("key") @ScopeKey("scopekey") key: string,
+    @Logged("key2") key2: number,
     @InjectLogger logger?: ScopedLogger
   ) {
     logger.log(key + key2.toString());
   }
 
   async testPathScopedLogging(
-    @LoggedParam("key") @ScopeKey("scopekey", { path: "b.c" }) key: TestObject,
+    @Logged("key") @ScopeKey("scopekey", { path: "b.c" }) key: TestObject,
     @InjectLogger logger?: ScopedLogger
   ) {
     logger.log(JSON.stringify(key));
   }
 
   async testOrScopedLogging(
-    @LoggedParam("key")
+    @Logged("key")
     @ScopeKey("scopekey-a", { path: "a" })
     @ScopeKey("scopekey-b", { path: "b" })
     key: { a: string } | { b: string },
@@ -115,7 +115,7 @@ class LoggedClass {
   }
 
   async testPriorityScopedLogging(
-    @LoggedParam("key")
+    @Logged("key")
     @ScopeKey("scopekey-a", { path: "a", priority: 0.5 })
     @ScopeKey("scopekey-b", { path: "b" }) // default 1
     key: { a?: string; b?: string },
@@ -126,7 +126,7 @@ class LoggedClass {
   }
 
   async testOptionalScopedLogging(
-    @LoggedParam("key")
+    @Logged("key")
     @ScopeKey("scopekey")
     key?: string,
     @InjectLogger logger?: ScopedLogger
@@ -136,7 +136,7 @@ class LoggedClass {
 
   @ShouldScoped // Warn if there is no valid scopekey
   async testShouldScopedLogging(
-    @LoggedParam("key")
+    @Logged("key")
     @ScopeKey("scopekey")
     key?: string,
     @InjectLogger logger?: ScopedLogger
@@ -146,7 +146,7 @@ class LoggedClass {
 
   @Returns({ result: "http.result", userId: "body.user.id" })
   async testReturnLogging(
-    @LoggedParam("userId")
+    @Logged("userId")
     userId: string,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -168,7 +168,7 @@ class LoggedClass {
 
   @Returns({ result: "http.result", userId: "body.user.id" })
   async testMissingReturnLogging(
-    @LoggedParam("userId")
+    @Logged("userId")
     userId: string,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -186,7 +186,7 @@ class LoggedClass {
 
   @Returns()
   async testRawObjectReturnLogging(
-    @LoggedParam("userId")
+    @Logged("userId")
     userId: string,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -204,7 +204,7 @@ class LoggedClass {
 
   @Returns()
   async testRawValueReturnLogging(
-    @LoggedParam("userId")
+    @Logged("userId")
     userId: string,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -217,7 +217,7 @@ class LoggedClass {
   }
 
   async testLoggerRootLogging(@InjectLogger logger?: ScopedLogger) {
-    this.testLoggerRootLogging2(logger);
+    await this.testLoggerRootLogging2(logger);
   }
 
   testSyncLogging(@InjectLogger logger?: ScopedLogger) {
@@ -227,21 +227,21 @@ class LoggedClass {
 
 class LoggedMethodsClass {
   @LoggedFunction
-  async testParameterLoggingWithoutInjection(@LoggedParam("key") key: number) {
+  async testParameterLoggingWithoutInjection(@Logged("key") key: number) {
     console.log(key);
   }
 
   @LoggedFunction
   async testMultiParameterLoggingWithoutInjection(
-    @LoggedParam("key") key: number,
-    @LoggedParam("key2") key2: string
+    @Logged("key") key: number,
+    @Logged("key2") key2: string
   ) {
     console.log(key, key2);
   }
 
   @LoggedFunction
   async testParameterLoggingWithInjection(
-    @LoggedParam("key") key: number,
+    @Logged("key") key: number,
     @InjectLogger logger?: ScopedLogger
   ) {
     logger.log(key.toString());
@@ -249,8 +249,8 @@ class LoggedMethodsClass {
 
   @LoggedFunction
   async testMultiParameterLoggingWithInjection(
-    @LoggedParam("key") key: number,
-    @LoggedParam("key2") key2: string,
+    @Logged("key") key: number,
+    @Logged("key2") key2: string,
     @InjectLogger logger?: ScopedLogger
   ) {
     logger.log(key.toString() + key2);
@@ -258,7 +258,7 @@ class LoggedMethodsClass {
 
   @LoggedFunction
   async testObjectParameterLogging(
-    @LoggedParam("key") key: TestObject,
+    @Logged("key") key: TestObject,
     @InjectLogger logger?: ScopedLogger
   ) {
     logger.log(JSON.stringify(key));
@@ -266,7 +266,7 @@ class LoggedMethodsClass {
 
   @LoggedFunction
   async testObjectParameterDotIncludeLogging(
-    @LoggedParam("key", { includePath: ["a", "b.c", "d.0", "e"] })
+    @Logged("key", { includePath: ["a", "b.c", "d.0", "e"] })
     key: TestObject,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -275,7 +275,7 @@ class LoggedMethodsClass {
 
   @LoggedFunction
   async testObjectParameterArrayIncludeLogging(
-    @LoggedParam("key", { includePath: [["a"], ["b", "c"], ["d", "0"], ["e"]] })
+    @Logged("key", { includePath: [["a"], ["b", "c"], ["d", "0"], ["e"]] })
     key: TestObject,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -284,7 +284,7 @@ class LoggedMethodsClass {
 
   @LoggedFunction
   async testObjectParameterDotExcludeLogging(
-    @LoggedParam("key", { excludePath: ["a", "b.c", "d.0", "e"] })
+    @Logged("key", { excludePath: ["a", "b.c", "d.0", "e"] })
     key: TestObject,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -293,7 +293,7 @@ class LoggedMethodsClass {
 
   @LoggedFunction
   async testObjectParameterArrayExcludeLogging(
-    @LoggedParam("key", { excludePath: [["a"], ["b", "c"], ["d", "0"], ["e"]] })
+    @Logged("key", { excludePath: [["a"], ["b", "c"], ["d", "0"], ["e"]] })
     key: TestObject,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -302,8 +302,8 @@ class LoggedMethodsClass {
 
   @LoggedFunction
   async testScopedLogging(
-    @LoggedParam("key") @ScopeKey("scopekey") key: string,
-    @LoggedParam("key2") key2: number,
+    @Logged("key") @ScopeKey("scopekey") key: string,
+    @Logged("key2") key2: number,
     @InjectLogger logger?: ScopedLogger
   ) {
     logger.log(key + key2.toString());
@@ -311,7 +311,7 @@ class LoggedMethodsClass {
 
   @LoggedFunction
   async testPathScopedLogging(
-    @LoggedParam("key") @ScopeKey("scopekey", { path: "b.c" }) key: TestObject,
+    @Logged("key") @ScopeKey("scopekey", { path: "b.c" }) key: TestObject,
     @InjectLogger logger?: ScopedLogger
   ) {
     logger.log(JSON.stringify(key));
@@ -319,7 +319,7 @@ class LoggedMethodsClass {
 
   @LoggedFunction
   async testOrScopedLogging(
-    @LoggedParam("key")
+    @Logged("key")
     @ScopeKey("scopekey-a", { path: "a" })
     @ScopeKey("scopekey-b", { path: "b" })
     key: { a: string } | { b: string },
@@ -330,7 +330,7 @@ class LoggedMethodsClass {
 
   @LoggedFunction
   async testPriorityScopedLogging(
-    @LoggedParam("key")
+    @Logged("key")
     @ScopeKey("scopekey-a", { path: "a", priority: 0.5 })
     @ScopeKey("scopekey-b", { path: "b" }) // default 1
     key: { a?: string; b?: string },
@@ -342,7 +342,7 @@ class LoggedMethodsClass {
 
   @LoggedFunction
   async testOptionalScopedLogging(
-    @LoggedParam("key")
+    @Logged("key")
     @ScopeKey("scopekey")
     key?: string,
     @InjectLogger logger?: ScopedLogger
@@ -353,7 +353,7 @@ class LoggedMethodsClass {
   @LoggedFunction
   @ShouldScoped // Warn if there is no valid scopekey
   async testShouldScopedLogging(
-    @LoggedParam("key")
+    @Logged("key")
     @ScopeKey("scopekey")
     key?: string,
     @InjectLogger logger?: ScopedLogger
@@ -364,7 +364,7 @@ class LoggedMethodsClass {
   @LoggedFunction
   @Returns({ result: "http.result", userId: "body.user.id" })
   async testReturnLogging(
-    @LoggedParam("userId")
+    @Logged("userId")
     userId: string,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -387,7 +387,7 @@ class LoggedMethodsClass {
   @LoggedFunction
   @Returns({ result: "http.result", userId: "body.user.id" })
   async testMissingReturnLogging(
-    @LoggedParam("userId")
+    @Logged("userId")
     userId: string,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -406,7 +406,7 @@ class LoggedMethodsClass {
   @LoggedFunction
   @Returns()
   async testRawObjectReturnLogging(
-    @LoggedParam("userId")
+    @Logged("userId")
     userId: string,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -425,7 +425,7 @@ class LoggedMethodsClass {
   @LoggedFunction
   @Returns()
   async testRawValueReturnLogging(
-    @LoggedParam("userId")
+    @Logged("userId")
     userId: string,
     @InjectLogger logger?: ScopedLogger
   ) {
@@ -440,7 +440,7 @@ class LoggedMethodsClass {
 
   @LoggedFunction
   async testLoggerRootLogging(@InjectLogger logger?: ScopedLogger) {
-    this.testLoggerRootLogging2(logger);
+    await this.testLoggerRootLogging2(logger);
   }
 
   @LoggedFunction
