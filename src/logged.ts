@@ -126,7 +126,7 @@ function overrideBuild<F extends Array<any>, R>(
   baseLogger: Logger,
   metadatas: FunctionMetadata,
   key: string,
-  returnsData: ReturnsReflectData[] | true,
+  returnsData: ReturnsReflectData[] | string | true,
   route?: {
     fullRoute: string;
   }
@@ -196,11 +196,13 @@ function overrideBuild<F extends Array<any>, R>(
               .filter((v) => v.length > 0)
               .join(", ")
           : ""
-        : returnsData
-        ? typeof r === "object"
-          ? "WITH " + JSON.stringify(r)
-          : "WITH " + r
-        : "";
+        : typeof returnsData === 'string'
+          ? "WITH " + returnsData + "=" + typeof r === "object" ? JSON.stringify(r) : r
+          : returnsData
+            ? typeof r === "object"
+              ? "WITH " + JSON.stringify(r)
+              : "WITH " + r
+            : "";
 
       injectedLogger.log(
         route

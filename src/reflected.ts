@@ -230,19 +230,21 @@ export function LoggedHeaders(property?: string): LoggedParamReturns {
 
 export function Returns<F extends Array<any>, R>(namePaths?: {
   [name: string]: string;
-}) {
+} | string) {
   return (
     _target: any,
     _key: string | symbol,
-    descriptor: TypedPropertyDescriptor<(...args: F) => Promise<R>>
+    descriptor: TypedPropertyDescriptor<(...args: F) => Promise<R> | R>
   ) => {
     Reflect.defineMetadata(
       returns,
       namePaths
-        ? Object.entries(namePaths).reduce<ReturnsReflectData[]>(
-            (prev, curr) => [...prev, { name: curr[0], path: curr[1] }],
-            []
-          )
+        ? typeof namePaths === 'string'
+          ? namePaths
+          : Object.entries(namePaths).reduce<ReturnsReflectData[]>(
+              (prev, curr) => [...prev, { name: curr[0], path: curr[1] }],
+              []
+            )
         : true,
       descriptor.value
     );
