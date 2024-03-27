@@ -1,4 +1,4 @@
-import { LoggedFunction, LoggedInjectable } from "../logged";
+import { LoggedFunction, LoggedInjectable, LoggedRoute } from "../logged";
 import { ScopedLogger } from "../logger";
 import {
   InjectLogger,

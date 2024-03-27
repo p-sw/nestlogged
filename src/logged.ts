@@ -156,21 +156,19 @@ function overrideBuild<F extends Array<any>, R>(
     }
 
     injectedLogger.log(
-      `${route ? "HIT HTTP" : "CALL"} ${
-        route ? `${route.fullRoute} (${key})` : key
-      } ${
-        metadatas.loggedParams && metadatas.loggedParams.length > 0
-          ? "WITH " +
-            metadatas.loggedParams.map(
-              ({ name, index, include, exclude }) =>
-                name +
-                "=" +
-                objectContainedLoggedSync(args[index], {
-                  include,
-                  exclude,
-                })
-            ).join(", ")
-          : ""
+      `${route ? "HIT HTTP" : "CALL"} ${route ? `${route.fullRoute} (${key})` : key
+      } ${metadatas.loggedParams && metadatas.loggedParams.length > 0
+        ? "WITH " +
+        metadatas.loggedParams.map(
+          ({ name, index, include, exclude }) =>
+            name +
+            "=" +
+            objectContainedLoggedSync(args[index], {
+              include,
+              exclude,
+            })
+        ).join(", ")
+        : ""
       }`
     );
 
@@ -184,13 +182,13 @@ function overrideBuild<F extends Array<any>, R>(
           const resultLogged = Array.isArray(returnsData)
             ? typeof r === "object"
               ? "WITH " +
-                returnsData.map(({ name, path }) => {
-                  const value = getItemByPathSync(r, path);
+              returnsData.map(({ name, path }) => {
+                const value = getItemByPathSync(r, path);
 
-                  return value !== undefined ? `${name}=${value}` : "";
-                })
-                  .filter((v) => v.length > 0)
-                  .join(", ")
+                return value !== undefined ? `${name}=${value}` : "";
+              })
+                .filter((v) => v.length > 0)
+                .join(", ")
               : ""
             : typeof returnsData === 'string'
               ? "WITH " + returnsData + "=" + typeof r === "object" ? JSON.stringify(r) : r
@@ -211,13 +209,13 @@ function overrideBuild<F extends Array<any>, R>(
         const resultLogged = Array.isArray(returnsData)
           ? typeof r === "object"
             ? "WITH " +
-              returnsData.map(({ name, path }) => {
-                const value = getItemByPathSync(r, path);
+            returnsData.map(({ name, path }) => {
+              const value = getItemByPathSync(r, path);
 
-                return value !== undefined ? `${name}=${value}` : "";
-              })
-                .filter((v) => v.length > 0)
-                .join(", ")
+              return value !== undefined ? `${name}=${value}` : "";
+            })
+              .filter((v) => v.length > 0)
+              .join(", ")
             : ""
           : typeof returnsData === 'string'
             ? "WITH " + returnsData + "=" + typeof r === "object" ? JSON.stringify(r) : r
@@ -246,7 +244,7 @@ function overrideBuild<F extends Array<any>, R>(
 export function LoggedFunction<F extends Array<any>, R>(
   _target: any,
   key: string,
-  descriptor: TypedPropertyDescriptor<(...args: F) => Promise<R> | R>
+  descriptor: TypedPropertyDescriptor<(...args: F) => R | Promise<R>>
 ) {
   loggerInit(_target);
 
@@ -314,7 +312,7 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string) {
   return (
     _target: any,
     key: string,
-    descriptor: TypedPropertyDescriptor<(...args: F) => Promise<R> | R>
+    descriptor: TypedPropertyDescriptor<(...args: F) => R>
   ) => {
     loggerInit(_target);
 
@@ -337,9 +335,8 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string) {
     const httpPath: string = Reflect.getMetadata("path", fn);
     const httpMethod: RequestMethod = Reflect.getMetadata("method", fn);
 
-    const fullRoute = `${_target.constructor.name}::${route ?? httpPath}[${
-      RevRequestMethod[httpMethod]
-    }]`;
+    const fullRoute = `${_target.constructor.name}::${route ?? httpPath}[${RevRequestMethod[httpMethod]
+      }]`;
 
     const scopedLoggerInjectableParam: number = Reflect.getOwnMetadata(
       scopedLogger,
