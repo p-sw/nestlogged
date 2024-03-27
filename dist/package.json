@@ -1,6 +1,6 @@
 {
   "name": "nestlogged",
-  "version": "2.2.5",
+  "version": "2.2.6",
   "description": "A NestJS Logger Decorator Library",
   "main": "lib/index.js",
   "repository": "https://github.com/worplo/nestlogged",
