@@ -1,4 +1,4 @@
-import { LoggedFunction, LoggedInjectable, LoggedRoute } from "../logged";
+import { LoggedFunction, LoggedInjectable } from "../logged";
 import { ScopedLogger } from "../logger";
 import {
   InjectLogger,
@@ -13,15 +13,20 @@ type TestObject = {
   e: { p: string; g: number };
 };
 
-const testObject: TestObject = {
-  a: "asdf",
-  b: { c: "zxcv", f: 1 },
-  d: [2, "qwer"],
-  e: { p: "uiop", g: 3 },
-};
+@LoggedInjectable()
+class TestService {
+  public async service(paramA: string, @InjectLogger logger: ScopedLogger) {
+    logger.log(`received paramA ${paramA}`);
+    return paramA
+  }
+}
 
 @LoggedInjectable()
 class LoggedClass {
+  constructor(
+    private service: TestService
+  ) { }
+
   async testParameterLoggingWithoutInjection(@Logged("key") key: number) {
     console.log(key);
   }
@@ -174,10 +179,18 @@ class LoggedClass {
 
   testSyncLogging(@InjectLogger logger?: ScopedLogger) {
     logger.log("synced yay");
+  }
+
+  async testService(@InjectLogger logger?: ScopedLogger) {
+    this.service.service('A', logger);
   }
 }
 
 class LoggedMethodsClass {
+  constructor(
+    private service: TestService
+  ) { }
+
   @LoggedFunction
   async testParameterLoggingWithoutInjection(@Logged("key") key: number) {
     console.log(key);
@@ -349,13 +362,22 @@ class LoggedMethodsClass {
   testSyncLogging(@InjectLogger logger?: ScopedLogger) {
     logger.log("synced yay");
   }
+
+  @LoggedFunction
+  async testService(@InjectLogger logger?: ScopedLogger) {
+    this.service.service('A', logger);
+  }
 }
+
+
+
+const service = new TestService();
 
 /**
  * Choose Class to Test
  */
-const tester = new LoggedClass();
-// const tester = new LoggedMethodsClass();
+const tester = new LoggedClass(service);
+// const tester = new LoggedMethodsClass(service);
 
 /**
  * Choose Method to Test
@@ -376,6 +398,7 @@ const tester = new LoggedClass();
 // void tester.testLoggerRootLogging();
 // tester.testSyncLoggerRootLogging();
 // tester.testSyncLogging();
+void tester.testService();
 
 /**
  * Then run `yarn test`
