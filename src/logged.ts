@@ -138,18 +138,9 @@ function overrideBuild<F extends Array<any>, R>(
         args.length <= metadatas.scopedLoggerInjectableParam ||
         !(args[metadatas.scopedLoggerInjectableParam] instanceof ScopedLogger)
       ) {
-        args[metadatas.scopedLoggerInjectableParam] = new ScopedLogger(
-          baseLogger,
-          key,
-          true,
-          true,
-        );
+        args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(baseLogger, key);
       } else {
-        args[metadatas.scopedLoggerInjectableParam] = new ScopedLogger(
-          args[metadatas.scopedLoggerInjectableParam],
-          key,
-          false
-        );
+        args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromSuper(baseLogger, args[metadatas.scopedLoggerInjectableParam], key);
       }
 
       injectedLogger = args[metadatas.scopedLoggerInjectableParam];
