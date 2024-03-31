@@ -273,6 +273,7 @@ class LoggedMethodsClass {
     @InjectLogger logger?: ScopedLogger
   ) {
     logger.log(userId);
+
     return {
       http: {
         result: "success",
@@ -371,12 +372,12 @@ class LoggedMethodsClass {
 
 
 
-const service = new TestService();
+// const service = new TestService();
 
 /**
  * Choose Class to Test
  */
-const tester = new LoggedClass(service);
+// const tester = new LoggedClass(service);
 // const tester = new LoggedMethodsClass(service);
 
 /**
@@ -398,7 +399,7 @@ const tester = new LoggedClass(service);
 // void tester.testLoggerRootLogging();
 // tester.testSyncLoggerRootLogging();
 // tester.testSyncLogging();
-void tester.testService();
+// void tester.testService();
 
 /**
  * Then run `yarn test`

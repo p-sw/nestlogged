@@ -2,10 +2,8 @@ import { Logger } from "@nestjs/common";
 export declare class ScopedLogger extends Logger {
     private logger;
     private scope;
-    private root;
-    private createScopeId;
-    private readonly scopeId?;
-    constructor(logger: Logger, scope: string, root?: boolean, createScopeId?: boolean);
+    private scopeId;
+    constructor(logger: Logger, scope: string[], scopeId?: string);
     private scopedLog;
     debug: (message: string) => void;
     log: (message: string) => void;
@@ -13,4 +11,6 @@ export declare class ScopedLogger extends Logger {
     verbose: (message: string) => void;
     error: (message: string) => void;
     fatal: (message: string) => void;
+    static fromSuper(baseLogger: Logger, logger: ScopedLogger, scope: string): ScopedLogger;
+    static fromRoot(logger: Logger, scope: string): ScopedLogger;
 }

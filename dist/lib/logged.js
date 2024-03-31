@@ -79,10 +79,10 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData
         if (typeof metadatas.scopedLoggerInjectableParam !== "undefined") {
             if (args.length <= metadatas.scopedLoggerInjectableParam ||
                 !(args[metadatas.scopedLoggerInjectableParam] instanceof logger_1.ScopedLogger)) {
-                args[metadatas.scopedLoggerInjectableParam] = new logger_1.ScopedLogger(baseLogger, key, true, true);
+                args[metadatas.scopedLoggerInjectableParam] = logger_1.ScopedLogger.fromRoot(baseLogger, key);
             }
             else {
-                args[metadatas.scopedLoggerInjectableParam] = new logger_1.ScopedLogger(args[metadatas.scopedLoggerInjectableParam], key, false);
+                args[metadatas.scopedLoggerInjectableParam] = logger_1.ScopedLogger.fromSuper(baseLogger, args[metadatas.scopedLoggerInjectableParam], key);
             }
             injectedLogger = args[metadatas.scopedLoggerInjectableParam];
         }
@@ -90,7 +90,7 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData
             ? "WITH " +
                 metadatas.loggedParams.map(({ name, index, include, exclude }) => name +
                     "=" +
-                    (0, functions_1.objectContainedLoggedSync)(args[index], {
+                    (0, functions_1.imObjectContainedLogSync)(args[index], {
                         include,
                         exclude,
                     })).join(", ")
@@ -101,7 +101,7 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData
                 (r && typeof r === 'object' && typeof r['then'] === 'function')) {
                 return r['then']((r) => {
                     const resultLogged = Array.isArray(returnsData)
-                        ? typeof r === "object"
+                        ? typeof r === "object" && r !== null
                             ? "WITH " +
                                 returnsData.map(({ name, path }) => {
                                     const value = (0, functions_1.getItemByPathSync)(r, path);
@@ -125,7 +125,7 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData
             }
             else {
                 const resultLogged = Array.isArray(returnsData)
-                    ? typeof r === "object"
+                    ? typeof r === "object" && r !== null
                         ? "WITH " +
                             returnsData.map(({ name, path }) => {
                                 const value = (0, functions_1.getItemByPathSync)(r, path);
