@@ -373,7 +373,7 @@ const tester = new LoggedClass();
 // void tester.testMissingReturnLogging("asdf");
 // void tester.testRawObjectReturnLogging("asdf");
 // void tester.testRawValueReturnLogging("asdf");
-void tester.testLoggerRootLogging();
+// void tester.testLoggerRootLogging();
 // tester.testSyncLoggerRootLogging();
 // tester.testSyncLogging();
 
