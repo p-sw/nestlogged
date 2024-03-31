@@ -171,7 +171,7 @@ function overrideBuild<F extends Array<any>, R>(
       ) {
         return r['then']((r: any) => {
           const resultLogged = Array.isArray(returnsData)
-            ? typeof r === "object"
+            ? typeof r === "object" && r !== null
               ? "WITH " +
               returnsData.map(({ name, path }) => {
                 const value = getItemByPathSync(r, path);
@@ -198,7 +198,7 @@ function overrideBuild<F extends Array<any>, R>(
         })
       } else {
         const resultLogged = Array.isArray(returnsData)
-          ? typeof r === "object"
+          ? typeof r === "object" && r !== null
             ? "WITH " +
             returnsData.map(({ name, path }) => {
               const value = getItemByPathSync(r, path);

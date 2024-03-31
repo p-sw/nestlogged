@@ -135,7 +135,7 @@ export function imObjectContainedLogSync(
     exclude?: string[];
   }
 ): string {
-  if (options && typeof ocv === 'object') {
+  if (options && typeof ocv === 'object' && ocv !== null) {
     if (options.include && options.include.length > 0) {
       return JSON.stringify(
         includeObjectSync(ocv, { paths: options.include })
@@ -148,7 +148,7 @@ export function imObjectContainedLogSync(
     }
   }
 
-  if (typeof ocv === "object") {
+  if (typeof ocv === "object" && ocv !== null) {
     return JSON.stringify(ocv);
   } else {
     return `${ocv}`
