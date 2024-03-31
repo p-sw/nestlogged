@@ -14,7 +14,7 @@ import {
   scopeKey,
 } from "./reflected";
 import { loggedParam, scopedLogger } from "./reflected";
-import { objectContainedLoggedSync, getItemByPathSync } from "./functions";
+import { imObjectContainedLogSync, getItemByPathSync } from "./functions";
 import { RequestMethod } from "@nestjs/common";
 
 const RevRequestMethod = [
@@ -163,7 +163,7 @@ function overrideBuild<F extends Array<any>, R>(
           ({ name, index, include, exclude }) =>
             name +
             "=" +
-            objectContainedLoggedSync(args[index], {
+            imObjectContainedLogSync(args[index], {
               include,
               exclude,
             })
