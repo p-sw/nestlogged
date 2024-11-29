@@ -4,7 +4,6 @@ exports.LoggedRoute = exports.LoggedFunction = exports.LoggedController = export
 const common_1 = require("@nestjs/common");
 const logger_1 = require("./logger");
 const reflected_1 = require("./reflected");
-const reflected_2 = require("./reflected");
 const functions_1 = require("./functions");
 const RevRequestMethod = [
     "GET",
@@ -39,7 +38,7 @@ function LoggedInjectable(options) {
                 typeof target.prototype[method] === "function") {
                 if (options && options.verbose)
                     logger.log(`LoggedFunction applied to ${method}`);
-                LoggedFunction(target.prototype, method, {
+                LoggedFunction()(target.prototype, method, {
                     value: target.prototype[method],
                 });
             }
@@ -73,7 +72,23 @@ function LoggedController(param) {
     };
 }
 exports.LoggedController = LoggedController;
-function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData, route) {
+const defaultOverrideBuildOptions = {
+    skipCallLog: false,
+    skipReturnLog: false,
+    skipErrorLog: false,
+};
+class LoggedMetadata {
+    constructor(options) {
+        this.options = options ?? defaultOverrideBuildOptions;
+    }
+    updateOption(options) {
+        this.options = {
+            ...this.options,
+            ...options
+        };
+    }
+}
+function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData, logged, route) {
     return function (...args) {
         let injectedLogger = baseLogger;
         if (typeof metadatas.scopedLoggerInjectableParam !== "undefined") {
@@ -86,20 +101,47 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData
             }
             injectedLogger = args[metadatas.scopedLoggerInjectableParam];
         }
-        injectedLogger.log(`${route ? "HIT HTTP" : "CALL"} ${route ? `${route.fullRoute} (${key})` : key} ${metadatas.loggedParams && metadatas.loggedParams.length > 0
-            ? "WITH " +
-                metadatas.loggedParams.map(({ name, index, include, exclude }) => name +
-                    "=" +
-                    (0, functions_1.imObjectContainedLogSync)(args[index], {
-                        include,
-                        exclude,
-                    })).join(", ")
-            : ""}`);
+        if (!logged.options.skipCallLog) {
+            injectedLogger.log(`${route ? "HIT HTTP" : "CALL"} ${route ? `${route.fullRoute} (${key})` : key} ${metadatas.loggedParams && metadatas.loggedParams.length > 0
+                ? "WITH " +
+                    metadatas.loggedParams.map(({ name, index, include, exclude }) => name +
+                        "=" +
+                        (0, functions_1.imObjectContainedLogSync)(args[index], {
+                            include,
+                            exclude,
+                        })).join(", ")
+                : ""}`);
+        }
         try {
             const r = originalFunction.call(this, ...args);
-            if (originalFunction.constructor.name === 'AsyncFunction' ||
-                (r && typeof r === 'object' && typeof r['then'] === 'function')) {
-                return r['then']((r) => {
+            if (!logged.options.skipReturnLog) {
+                if (originalFunction.constructor.name === 'AsyncFunction' ||
+                    (r && typeof r === 'object' && typeof r['then'] === 'function')) {
+                    return r['then']((r) => {
+                        const resultLogged = Array.isArray(returnsData)
+                            ? typeof r === "object" && r !== null
+                                ? "WITH " +
+                                    returnsData.map(({ name, path }) => {
+                                        const value = (0, functions_1.getItemByPathSync)(r, path);
+                                        return value !== undefined ? `${name}=${value}` : "";
+                                    })
+                                        .filter((v) => v.length > 0)
+                                        .join(", ")
+                                : ""
+                            : typeof returnsData === 'string'
+                                ? "WITH " + returnsData + "=" + typeof r === "object" ? JSON.stringify(r) : r
+                                : returnsData
+                                    ? typeof r === "object"
+                                        ? "WITH " + JSON.stringify(r)
+                                        : "WITH " + r
+                                    : "";
+                        injectedLogger.log(route
+                            ? `RETURNED HTTP ${route.fullRoute} (${key}) ${resultLogged}`
+                            : `RETURNED ${key} ${resultLogged}`);
+                        return r;
+                    });
+                }
+                else {
                     const resultLogged = Array.isArray(returnsData)
                         ? typeof r === "object" && r !== null
                             ? "WITH " +
@@ -121,68 +163,60 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData
                         ? `RETURNED HTTP ${route.fullRoute} (${key}) ${resultLogged}`
                         : `RETURNED ${key} ${resultLogged}`);
                     return r;
-                });
+                }
             }
             else {
-                const resultLogged = Array.isArray(returnsData)
-                    ? typeof r === "object" && r !== null
-                        ? "WITH " +
-                            returnsData.map(({ name, path }) => {
-                                const value = (0, functions_1.getItemByPathSync)(r, path);
-                                return value !== undefined ? `${name}=${value}` : "";
-                            })
-                                .filter((v) => v.length > 0)
-                                .join(", ")
-                        : ""
-                    : typeof returnsData === 'string'
-                        ? "WITH " + returnsData + "=" + typeof r === "object" ? JSON.stringify(r) : r
-                        : returnsData
-                            ? typeof r === "object"
-                                ? "WITH " + JSON.stringify(r)
-                                : "WITH " + r
-                            : "";
-                injectedLogger.log(route
-                    ? `RETURNED HTTP ${route.fullRoute} (${key}) ${resultLogged}`
-                    : `RETURNED ${key} ${resultLogged}`);
                 return r;
             }
         }
         catch (e) {
-            injectedLogger.error(`WHILE ${route ? `HTTP ${route.fullRoute} (${key})` : key} ERROR ${e}`);
+            if (!logged.options.skipErrorLog) {
+                injectedLogger.error(`WHILE ${route ? `HTTP ${route.fullRoute} (${key})` : key} ERROR ${e}`);
+            }
             throw e;
         }
     };
 }
-function LoggedFunction(_target, key, descriptor) {
-    loggerInit(_target);
-    const logger = _target.logger;
-    const fn = descriptor.value;
-    if (!fn || typeof fn !== "function") {
-        logger.warn(`LoggedFunction decorator applied to non-function property: ${key}`);
-        return;
-    }
-    const all = Reflect.getMetadataKeys(fn).map((k) => [
-        k,
-        Reflect.getMetadata(k, fn),
-    ]);
-    const scopedLoggerInjectableParam = Reflect.getOwnMetadata(reflected_2.scopedLogger, _target, key);
-    const loggedParams = Reflect.getOwnMetadata(reflected_2.loggedParam, _target, key);
-    const scopeKeys = Reflect.getOwnMetadata(reflected_1.scopeKey, _target, key);
-    const returnsData = Reflect.getOwnMetadata(reflected_1.returns, fn);
-    const overrideFunction = overrideBuild(fn, logger, {
-        scopedLoggerInjectableParam,
-        loggedParams,
-        scopeKeys,
-    }, key, returnsData);
-    _target[key] = overrideFunction;
-    descriptor.value = overrideFunction;
-    all.forEach(([k, v]) => {
-        Reflect.defineMetadata(k, v, _target[key]);
-        Reflect.defineMetadata(k, v, descriptor.value);
-    });
+function LoggedFunction(options) {
+    return (_target, key, descriptor) => {
+        loggerInit(_target);
+        const logger = _target.logger;
+        const fn = descriptor.value;
+        if (!fn || typeof fn !== "function") {
+            logger.warn(`LoggedFunction decorator applied to non-function property: ${key}`);
+            return;
+        }
+        const logMetadata = Reflect.getOwnMetadata(reflected_1.nestLoggedMetadata, _target, key);
+        if (logMetadata) {
+            // already applied, override instead
+            logMetadata.updateOption(options);
+            return;
+        }
+        const newMetadata = new LoggedMetadata(options);
+        const all = Reflect.getMetadataKeys(fn).map((k) => [
+            k,
+            Reflect.getMetadata(k, fn),
+        ]);
+        const scopedLoggerInjectableParam = Reflect.getOwnMetadata(reflected_1.scopedLogger, _target, key);
+        const loggedParams = Reflect.getOwnMetadata(reflected_1.loggedParam, _target, key);
+        const scopeKeys = Reflect.getOwnMetadata(reflected_1.scopeKey, _target, key);
+        const returnsData = Reflect.getOwnMetadata(reflected_1.returns, fn);
+        const overrideFunction = overrideBuild(fn, logger, {
+            scopedLoggerInjectableParam,
+            loggedParams,
+            scopeKeys,
+        }, key, returnsData, newMetadata, undefined);
+        _target[key] = overrideFunction;
+        descriptor.value = overrideFunction;
+        Reflect.defineMetadata(reflected_1.nestLoggedMetadata, newMetadata, _target, key);
+        all.forEach(([k, v]) => {
+            Reflect.defineMetadata(k, v, _target[key]);
+            Reflect.defineMetadata(k, v, descriptor.value);
+        });
+    };
 }
 exports.LoggedFunction = LoggedFunction;
-function LoggedRoute(route) {
+function LoggedRoute(route, options) {
     return (_target, key, descriptor) => {
         loggerInit(_target);
         const logger = _target.logger;
@@ -191,6 +225,13 @@ function LoggedRoute(route) {
             logger.warn(`LoggedRoute decorator applied to non-function property: ${key}`);
             return;
         }
+        const logMetadata = Reflect.getOwnMetadata(reflected_1.nestLoggedMetadata, _target, key);
+        if (logMetadata) {
+            // already applied, override instead
+            logMetadata.updateOption(options);
+            return;
+        }
+        const newMetadata = new LoggedMetadata(options);
         const all = Reflect.getMetadataKeys(fn).map((k) => [
             k,
             Reflect.getMetadata(k, fn),
@@ -198,19 +239,20 @@ function LoggedRoute(route) {
         const httpPath = Reflect.getMetadata("path", fn);
         const httpMethod = Reflect.getMetadata("method", fn);
         const fullRoute = `${_target.constructor.name}::${route ?? httpPath}[${RevRequestMethod[httpMethod]}]`;
-        const scopedLoggerInjectableParam = Reflect.getOwnMetadata(reflected_2.scopedLogger, _target, key);
-        const loggedParams = Reflect.getOwnMetadata(reflected_2.loggedParam, _target, key);
+        const scopedLoggerInjectableParam = Reflect.getOwnMetadata(reflected_1.scopedLogger, _target, key);
+        const loggedParams = Reflect.getOwnMetadata(reflected_1.loggedParam, _target, key);
         const scopeKeys = Reflect.getOwnMetadata(reflected_1.scopeKey, _target, key);
         const returnsData = Reflect.getOwnMetadata(reflected_1.returns, fn);
         const overrideFunction = overrideBuild(fn, logger, {
             scopedLoggerInjectableParam,
             loggedParams,
             scopeKeys,
-        }, key, returnsData, {
+        }, key, returnsData, newMetadata, {
             fullRoute,
         });
         _target[key] = overrideFunction;
         descriptor.value = overrideFunction;
+        Reflect.defineMetadata(reflected_1.nestLoggedMetadata, newMetadata, _target, key);
         all.forEach(([k, v]) => {
             Reflect.defineMetadata(k, v, _target[key]);
             Reflect.defineMetadata(k, v, descriptor.value);

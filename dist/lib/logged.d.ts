@@ -7,5 +7,11 @@ export declare function LoggedController(prefix: string | string[]): (target: an
 export declare function LoggedController(options: ControllerOptions & {
     verbose?: boolean;
 }): (target: any) => void;
-export declare function LoggedFunction<F extends Array<any>, R>(_target: any, key: string, descriptor: TypedPropertyDescriptor<(...args: F) => R | Promise<R>>): void;
-export declare function LoggedRoute<F extends Array<any>, R>(route?: string): (_target: any, key: string, descriptor: TypedPropertyDescriptor<(...args: F) => R>) => void;
+interface OverrideBuildOptions {
+    skipCallLog: boolean;
+    skipReturnLog: boolean;
+    skipErrorLog: boolean;
+}
+export declare function LoggedFunction<F extends Array<any>, R>(options?: Partial<OverrideBuildOptions>): (_target: any, key: string, descriptor: TypedPropertyDescriptor<(...args: F) => R | Promise<R>>) => void;
+export declare function LoggedRoute<F extends Array<any>, R>(route?: string, options?: Partial<OverrideBuildOptions>): (_target: any, key: string, descriptor: TypedPropertyDescriptor<(...args: F) => R>) => void;
+export {};

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Returns = exports.LoggedHeaders = exports.LoggedBody = exports.LoggedQuery = exports.LoggedParam = exports.Logged = exports.InjectLogger = exports.returns = exports.scopeKey = exports.loggedParam = exports.scopedLogger = void 0;
+exports.Returns = exports.LoggedHeaders = exports.LoggedBody = exports.LoggedQuery = exports.LoggedParam = exports.Logged = exports.InjectLogger = exports.nestLoggedMetadata = exports.returns = exports.scopeKey = exports.loggedParam = exports.scopedLogger = void 0;
 const route_paramtypes_enum_1 = require("@nestjs/common/enums/route-paramtypes.enum");
 const common_1 = require("@nestjs/common");
 const shared_utils_1 = require("@nestjs/common/utils/shared.utils");
@@ -22,6 +22,7 @@ exports.scopedLogger = Symbol("nlogdec-scopedLogger");
 exports.loggedParam = Symbol("nlogdec-loggedParam");
 exports.scopeKey = Symbol("nlogdec-scopeKey");
 exports.returns = Symbol("nlogdec-returns");
+exports.nestLoggedMetadata = Symbol("nlogdec-metadata");
 function InjectLogger(target, propertyKey, parameterIndex) {
     Reflect.defineMetadata(exports.scopedLogger, parameterIndex, target, propertyKey);
 }

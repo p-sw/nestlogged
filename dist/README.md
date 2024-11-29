@@ -17,4 +17,4 @@ yarn add nestlogged
 
 ## More Info
 
-[Github Wiki](https://github.com/Worplo/nestlogged/wiki)
+[Wiki](https://nestlogged.worplo.com)
