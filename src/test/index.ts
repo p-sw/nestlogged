@@ -191,12 +191,12 @@ class LoggedMethodsClass {
     private service: TestService
   ) { }
 
-  @LoggedFunction
+  @LoggedFunction()
   async testParameterLoggingWithoutInjection(@Logged("key") key: number) {
     console.log(key);
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   async testMultiParameterLoggingWithoutInjection(
     @Logged("key") key: number,
     @Logged("key2") key2: string
@@ -204,7 +204,7 @@ class LoggedMethodsClass {
     console.log(key, key2);
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   async testParameterLoggingWithInjection(
     @Logged("key") key: number,
     @InjectLogger logger?: ScopedLogger
@@ -212,7 +212,7 @@ class LoggedMethodsClass {
     logger.log(key.toString());
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   async testMultiParameterLoggingWithInjection(
     @Logged("key") key: number,
     @Logged("key2") key2: string,
@@ -221,7 +221,7 @@ class LoggedMethodsClass {
     logger.log(key.toString() + key2);
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   async testObjectParameterLogging(
     @Logged("key") key: TestObject,
     @InjectLogger logger?: ScopedLogger
@@ -229,7 +229,7 @@ class LoggedMethodsClass {
     logger.log(JSON.stringify(key));
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   async testObjectParameterDotIncludeLogging(
     @Logged("key", { includePath: ["a", "b.c", "d.0", "e"] })
     key: TestObject,
@@ -238,7 +238,7 @@ class LoggedMethodsClass {
     logger.log(JSON.stringify(key));
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   async testObjectParameterArrayIncludeLogging(
     @Logged("key", { includePath: [["a"], ["b", "c"], ["d", "0"], ["e"]] })
     key: TestObject,
@@ -247,7 +247,7 @@ class LoggedMethodsClass {
     logger.log(JSON.stringify(key));
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   async testObjectParameterDotExcludeLogging(
     @Logged("key", { excludePath: ["a", "b.c", "d.0", "e"] })
     key: TestObject,
@@ -256,7 +256,7 @@ class LoggedMethodsClass {
     logger.log(JSON.stringify(key));
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   async testObjectParameterArrayExcludeLogging(
     @Logged("key", { excludePath: [["a"], ["b", "c"], ["d", "0"], ["e"]] })
     key: TestObject,
@@ -265,7 +265,7 @@ class LoggedMethodsClass {
     logger.log(JSON.stringify(key));
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   @Returns({ result: "http.result", userId: "body.user.id" })
   async testReturnLogging(
     @Logged("userId")
@@ -289,7 +289,7 @@ class LoggedMethodsClass {
     };
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   @Returns({ result: "http.result", userId: "body.user.id" })
   async testMissingReturnLogging(
     @Logged("userId")
@@ -308,7 +308,7 @@ class LoggedMethodsClass {
     };
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   @Returns()
   async testRawObjectReturnLogging(
     @Logged("userId")
@@ -327,7 +327,7 @@ class LoggedMethodsClass {
     };
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   @Returns()
   async testRawValueReturnLogging(
     @Logged("userId")
@@ -338,33 +338,33 @@ class LoggedMethodsClass {
     return true;
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   async testLoggerRootLogging2(@InjectLogger logger?: ScopedLogger) {
     logger.log("2");
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   async testLoggerRootLogging(@InjectLogger logger?: ScopedLogger) {
     await this.testLoggerRootLogging2(logger);
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   testSyncLoggerRootLogging2(@InjectLogger logger?: ScopedLogger) {
     logger.log('2')
     return 2
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   testSyncLoggerRootLogging(@InjectLogger logger?: ScopedLogger) {
     logger.log(this.testSyncLoggerRootLogging2(logger).toString())
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   testSyncLogging(@InjectLogger logger?: ScopedLogger) {
     logger.log("synced yay");
   }
 
-  @LoggedFunction
+  @LoggedFunction()
   async testService(@InjectLogger logger?: ScopedLogger) {
     this.service.service('A', logger);
   }
