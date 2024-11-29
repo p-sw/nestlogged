@@ -184,6 +184,11 @@ class LoggedClass {
   async testService(@InjectLogger logger?: ScopedLogger) {
     this.service.service('A', logger);
   }
+
+  @LoggedFunction({ skipCallLog: true, skipReturnLog: true })
+  testOptionOverriding(@InjectLogger logger?: ScopedLogger) {
+    logger.log("testOptionOverriding");
+  }
 }
 
 class LoggedMethodsClass {
@@ -400,6 +405,7 @@ class LoggedMethodsClass {
 // tester.testSyncLoggerRootLogging();
 // tester.testSyncLogging();
 // void tester.testService();
+// tester.testOptionOverriding();
 
 /**
  * Then run `yarn test`
