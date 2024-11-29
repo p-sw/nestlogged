@@ -76,6 +76,8 @@ export const loggedParam = Symbol("nlogdec-loggedParam");
 export const scopeKey = Symbol("nlogdec-scopeKey");
 export const returns = Symbol("nlogdec-returns");
 
+export const nestLoggedMetadata = Symbol("nlogdec-metadata");
+
 export function InjectLogger(
   target: any,
   propertyKey: string | symbol,

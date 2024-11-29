@@ -12,8 +12,10 @@ import {
   ScopeKeyReflectData,
   returns,
   scopeKey,
+  nestLoggedMetadata,
+  loggedParam,
+  scopedLogger
 } from "./reflected";
-import { loggedParam, scopedLogger } from "./reflected";
 import { imObjectContainedLogSync, getItemByPathSync } from "./functions";
 import { RequestMethod } from "@nestjs/common";
 
@@ -127,16 +129,37 @@ interface OverrideBuildOptions {
   skipErrorLog: boolean;
 }
 
+const defaultOverrideBuildOptions: OverrideBuildOptions = {
+  skipCallLog: false,
+  skipReturnLog: false,
+  skipErrorLog: false,
+}
+
+class LoggedMetadata {
+  options: Partial<OverrideBuildOptions>
+
+  constructor(options?: Partial<OverrideBuildOptions>) {
+    this.options = options ?? defaultOverrideBuildOptions
+  }
+
+  updateOption(options: Partial<OverrideBuildOptions>) {
+    this.options = {
+      ...this.options,
+      ...options
+    }
+  }
+}
+
 function overrideBuild<F extends Array<any>, R>(
   originalFunction: (...args: F) => R,
   baseLogger: Logger,
   metadatas: FunctionMetadata,
   key: string,
   returnsData: ReturnsReflectData[] | string | true,
+  logged: LoggedMetadata,
   route?: {
     fullRoute: string;
   },
-  options?: Partial<OverrideBuildOptions>
 ): (...args: F) => R {
   return function (...args: F): R {
     let injectedLogger: Logger = baseLogger;
@@ -153,7 +176,7 @@ function overrideBuild<F extends Array<any>, R>(
       injectedLogger = args[metadatas.scopedLoggerInjectableParam];
     }
 
-    if (!options?.skipCallLog) {
+    if (!logged.options.skipCallLog) {
       injectedLogger.log(
         `${route ? "HIT HTTP" : "CALL"} ${route ? `${route.fullRoute} (${key})` : key
         } ${metadatas.loggedParams && metadatas.loggedParams.length > 0
@@ -174,7 +197,7 @@ function overrideBuild<F extends Array<any>, R>(
 
     try {
       const r: R = originalFunction.call(this, ...args);
-      if (!options?.skipReturnLog) {
+      if (!logged.options.skipReturnLog) {
         if (
           originalFunction.constructor.name === 'AsyncFunction' ||
           (r && typeof r === 'object' && typeof r['then'] === 'function')
@@ -237,7 +260,7 @@ function overrideBuild<F extends Array<any>, R>(
         return r;
       }
     } catch (e) {
-      if (!options?.skipErrorLog) {
+      if (!logged.options.skipErrorLog) {
         injectedLogger.error(
           `WHILE ${route ? `HTTP ${route.fullRoute} (${key})` : key} ERROR ${e}`
         );
@@ -267,6 +290,18 @@ export function LoggedFunction<F extends Array<any>, R>(
       );
       return;
     }
+
+    const logMetadata: LoggedMetadata | undefined = Reflect.getOwnMetadata(
+      nestLoggedMetadata,
+      _target,
+      key
+    )
+    if (logMetadata) {
+      // already applied, override instead
+      logMetadata.updateOption(options)
+      return
+    }
+    const newMetadata = new LoggedMetadata(options);
 
     const all = Reflect.getMetadataKeys(fn).map((k) => [
       k,
@@ -306,13 +341,19 @@ export function LoggedFunction<F extends Array<any>, R>(
       },
       key,
       returnsData,
+      newMetadata,
       undefined,
-      options,
     );
 
     _target[key] = overrideFunction;
     descriptor.value = overrideFunction;
 
+    Reflect.defineMetadata(
+      nestLoggedMetadata,
+      newMetadata,
+      _target,
+      key
+    )
     all.forEach(([k, v]) => {
       Reflect.defineMetadata(k, v, _target[key]);
       Reflect.defineMetadata(k, v, descriptor.value);
@@ -338,6 +379,18 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string, options?: P
       );
       return;
     }
+
+    const logMetadata: LoggedMetadata | undefined = Reflect.getOwnMetadata(
+      nestLoggedMetadata,
+      _target,
+      key
+    )
+    if (logMetadata) {
+      // already applied, override instead
+      logMetadata.updateOption(options)
+      return
+    }
+    const newMetadata = new LoggedMetadata(options);
 
     const all = Reflect.getMetadataKeys(fn).map((k) => [
       k,
@@ -383,15 +436,21 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string, options?: P
       },
       key,
       returnsData,
+      newMetadata,
       {
         fullRoute,
       },
-      options,
     );
 
     _target[key] = overrideFunction;
     descriptor.value = overrideFunction;
 
+    Reflect.defineMetadata(
+      nestLoggedMetadata,
+      newMetadata,
+      _target,
+      key
+    )
     all.forEach(([k, v]) => {
       Reflect.defineMetadata(k, v, _target[key]);
       Reflect.defineMetadata(k, v, descriptor.value);
