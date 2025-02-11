@@ -125,25 +125,21 @@ interface FunctionMetadata {
 }
 
 interface OverrideBuildOptions {
-  logLevel: {
-    call: LogLevel | 'skip';
-    return: LogLevel | 'skip';
-    error: LogLevel | 'skip';
-  }
-  /** @deprecated instead use `{ logLevel: { call: 'skip' } }` */
+  callLogLevel: LogLevel | 'skip';
+  returnLogLevel: LogLevel | 'skip';
+  errorLogLevel: LogLevel | 'skip';
+  /** @deprecated use `callLogLevel: 'skip'` instead */
   skipCallLog: boolean;
-  /** @deprecated instead use `{ logLevel: { return: 'skip' } }` */
+  /** @deprecated use `returnLogLevel: 'skip'` instead */
   skipReturnLog: boolean;
-  /** @deprecated instead use `{ logLevel: { error: 'skip' } }` */
+  /** @deprecated use `errorLogLevel: 'skip'` instead */
   skipErrorLog: boolean;
 }
 
 const defaultOverrideBuildOptions: OverrideBuildOptions = {
-  logLevel: {
-    call: 'log',
-    return: 'log',
-    error: 'error',
-  },
+  callLogLevel: 'log',
+  returnLogLevel: 'log',
+  errorLogLevel: 'error',
   skipCallLog: false,
   skipReturnLog: false,
   skipErrorLog: false,
