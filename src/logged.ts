@@ -1,5 +1,6 @@
 import {
   Logger,
+  LogLevel,
   Injectable,
   Controller,
   ControllerOptions,
@@ -124,15 +125,25 @@ interface FunctionMetadata {
 }
 
 interface OverrideBuildOptions {
-  /** @deprecated */
+  logLevel: {
+    call: LogLevel | 'skip';
+    return: LogLevel | 'skip';
+    error: LogLevel | 'skip';
+  }
+  /** @deprecated instead use `{ logLevel: { call: 'skip' } }` */
   skipCallLog: boolean;
-  /** @deprecated */
+  /** @deprecated instead use `{ logLevel: { return: 'skip' } }` */
   skipReturnLog: boolean;
-  /** @deprecated */
+  /** @deprecated instead use `{ logLevel: { error: 'skip' } }` */
   skipErrorLog: boolean;
 }
 
 const defaultOverrideBuildOptions: OverrideBuildOptions = {
+  logLevel: {
+    call: 'log',
+    return: 'log',
+    error: 'error',
+  },
   skipCallLog: false,
   skipReturnLog: false,
   skipErrorLog: false,
