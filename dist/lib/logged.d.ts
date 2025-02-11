@@ -1,4 +1,4 @@
-import { ControllerOptions, ScopeOptions } from "@nestjs/common";
+import { LogLevel, ControllerOptions, ScopeOptions } from "@nestjs/common";
 export declare function LoggedInjectable(options?: ScopeOptions & {
     verbose?: boolean;
 }): (target: any) => void;
@@ -8,8 +8,14 @@ export declare function LoggedController(options: ControllerOptions & {
     verbose?: boolean;
 }): (target: any) => void;
 interface OverrideBuildOptions {
+    callLogLevel: LogLevel | 'skip';
+    returnLogLevel: LogLevel | 'skip';
+    errorLogLevel: LogLevel | 'skip';
+    /** @deprecated use `callLogLevel: 'skip'` instead */
     skipCallLog: boolean;
+    /** @deprecated use `returnLogLevel: 'skip'` instead */
     skipReturnLog: boolean;
+    /** @deprecated use `errorLogLevel: 'skip'` instead */
     skipErrorLog: boolean;
 }
 export declare function LoggedFunction<F extends Array<any>, R>(options?: Partial<OverrideBuildOptions>): (_target: any, key: string, descriptor: TypedPropertyDescriptor<(...args: F) => R | Promise<R>>) => void;

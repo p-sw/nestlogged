@@ -73,13 +73,19 @@ function LoggedController(param) {
 }
 exports.LoggedController = LoggedController;
 const defaultOverrideBuildOptions = {
+    callLogLevel: 'log',
+    returnLogLevel: 'log',
+    errorLogLevel: 'error',
     skipCallLog: false,
     skipReturnLog: false,
     skipErrorLog: false,
 };
 class LoggedMetadata {
     constructor(options) {
-        this.options = options ?? defaultOverrideBuildOptions;
+        this.options = {
+            ...defaultOverrideBuildOptions,
+            ...(options ?? {}),
+        };
     }
     updateOption(options) {
         this.options = {
@@ -101,8 +107,8 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData
             }
             injectedLogger = args[metadatas.scopedLoggerInjectableParam];
         }
-        if (!logged.options.skipCallLog) {
-            injectedLogger.log(`${route ? "HIT HTTP" : "CALL"} ${route ? `${route.fullRoute} (${key})` : key} ${metadatas.loggedParams && metadatas.loggedParams.length > 0
+        if (logged.options.callLogLevel !== 'skip') {
+            injectedLogger[logged.options.callLogLevel](`${route ? "HIT HTTP" : "CALL"} ${route ? `${route.fullRoute} (${key})` : key} ${metadatas.loggedParams && metadatas.loggedParams.length > 0
                 ? "WITH " +
                     metadatas.loggedParams.map(({ name, index, include, exclude }) => name +
                         "=" +
@@ -114,7 +120,7 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData
         }
         try {
             const r = originalFunction.call(this, ...args);
-            if (!logged.options.skipReturnLog) {
+            if (logged.options.returnLogLevel !== 'skip') {
                 if (originalFunction.constructor.name === 'AsyncFunction' ||
                     (r && typeof r === 'object' && typeof r['then'] === 'function')) {
                     return r['then']((r) => {
@@ -135,7 +141,7 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData
                                         ? "WITH " + JSON.stringify(r)
                                         : "WITH " + r
                                     : "";
-                        injectedLogger.log(route
+                        injectedLogger[logged.options.returnLogLevel](route
                             ? `RETURNED HTTP ${route.fullRoute} (${key}) ${resultLogged}`
                             : `RETURNED ${key} ${resultLogged}`);
                         return r;
@@ -159,7 +165,7 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData
                                     ? "WITH " + JSON.stringify(r)
                                     : "WITH " + r
                                 : "";
-                    injectedLogger.log(route
+                    injectedLogger[logged.options.returnLogLevel](route
                         ? `RETURNED HTTP ${route.fullRoute} (${key}) ${resultLogged}`
                         : `RETURNED ${key} ${resultLogged}`);
                     return r;
@@ -170,8 +176,8 @@ function overrideBuild(originalFunction, baseLogger, metadatas, key, returnsData
             }
         }
         catch (e) {
-            if (!logged.options.skipErrorLog) {
-                injectedLogger.error(`WHILE ${route ? `HTTP ${route.fullRoute} (${key})` : key} ERROR ${e}`);
+            if (logged.options.errorLogLevel !== 'skip') {
+                injectedLogger[logged.options.errorLogLevel](`WHILE ${route ? `HTTP ${route.fullRoute} (${key})` : key} ERROR ${e}`);
             }
             throw e;
         }
