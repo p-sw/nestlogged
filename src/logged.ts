@@ -124,8 +124,11 @@ interface FunctionMetadata {
 }
 
 interface OverrideBuildOptions {
+  /** @deprecated */
   skipCallLog: boolean;
+  /** @deprecated */
   skipReturnLog: boolean;
+  /** @deprecated */
   skipErrorLog: boolean;
 }
 
@@ -182,7 +185,7 @@ function overrideBuild<F extends Array<any>, R>(
         } ${metadatas.loggedParams && metadatas.loggedParams.length > 0
           ? "WITH " +
           metadatas.loggedParams.map(
-            ({name, index, include, exclude}) =>
+            ({ name, index, include, exclude }) =>
               name +
               "=" +
               imObjectContainedLogSync(args[index], {
