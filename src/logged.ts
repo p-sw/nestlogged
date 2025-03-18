@@ -222,7 +222,7 @@ function overrideBuild<F extends Array<any>, R>(
     }
 
     // If this is ExecutionContext based function (e.g. Guard, Interceptor) get Request from Context
-    if (type === 'guard') {
+    if (type === 'guard' || type === 'interceptor') {
       const context = args[0] as ExecutionContext;
       if (context.getType() === 'http') {
         const req = context.switchToHttp().getRequest();
