@@ -5,6 +5,7 @@ import {
   Controller,
   ControllerOptions,
   ScopeOptions,
+  ExecutionContext,
 } from "@nestjs/common";
 import { ScopedLogger } from "./logger";
 import {
@@ -163,18 +164,52 @@ class LoggedMetadata {
   }
 }
 
+type BuildType = 'route' | 'function' | 'guard' | 'interceptor';
+
+const callLogIdentifyMessageDictionary: Record<BuildType, string> = {
+  route: 'HIT HTTP',
+  function: 'CALL',
+  guard: 'HIT GUARD',
+  interceptor: 'HIT INTERCEPTOR'
+}
+
+function createCallLogIdentifyMessage(type: 'route' | 'guard' | 'interceptor', key: string, route: string)
+function createCallLogIdentifyMessage(type: 'function', key: string)
+function createCallLogIdentifyMessage(type: BuildType, key: string, route?: string) {
+  return `${callLogIdentifyMessageDictionary[type]} ${type === 'route' ? `${route} (${key})` : type === 'guard' ? `${route}` : key}`
+}
+
 function overrideBuild<F extends Array<any>, R>(
+  type: 'route',
   originalFunction: (...args: F) => R,
   baseLogger: Logger,
   metadatas: FunctionMetadata,
   key: string,
   returnsData: ReturnsReflectData[] | string | true,
   logged: LoggedMetadata,
-  route?: {
-    fullRoute: string;
-  },
+  route: string,
+): (...args: F) => R;
+function overrideBuild<F extends Array<any>, R>(
+  type: 'function' | 'guard' | 'interceptor',
+  originalFunction: (...args: F) => R,
+  baseLogger: Logger,
+  metadatas: FunctionMetadata,
+  key: string,
+  returnsData: ReturnsReflectData[] | string | true,
+  logged: LoggedMetadata,
+): (...args: F) => R;
+function overrideBuild<F extends Array<any>, R>(
+  type: BuildType,
+  originalFunction: (...args: F) => R,
+  baseLogger: Logger,
+  metadatas: FunctionMetadata,
+  key: string,
+  returnsData: ReturnsReflectData[] | string | true,
+  logged: LoggedMetadata,
+  route?: string,
 ): (...args: F) => R {
   return function (...args: F): R {
+    // Creating ScopedLogger
     let injectedLogger: Logger = baseLogger;
     if (typeof metadatas.scopedLoggerInjectableParam !== "undefined") {
       if (
@@ -189,10 +224,20 @@ function overrideBuild<F extends Array<any>, R>(
       injectedLogger = args[metadatas.scopedLoggerInjectableParam];
     }
 
+    // If this is ExecutionContext based function (e.g. Guard, Interceptor) get Request from Context
+    if (type === 'guard') {
+      const context = args[0] as ExecutionContext;
+      if (context.getType() === 'http') {
+        const req = context.switchToHttp().getRequest();
+        route = new URL(<string>(/* supporting FastifyRequest */ req.raw ? req.raw.url : req.url)).pathname;
+      }
+    }
+
+    // Start Log
     if (logged.options.callLogLevel !== 'skip') {
+      const callLogIdentifyMessage = type === 'route' || type === 'guard' || type === 'interceptor' ? createCallLogIdentifyMessage(type, key, route) : createCallLogIdentifyMessage(type, key)
       injectedLogger[logged.options.callLogLevel](
-        `${route ? "HIT HTTP" : "CALL"} ${route ? `${route.fullRoute} (${key})` : key
-        } ${metadatas.loggedParams && metadatas.loggedParams.length > 0
+        `${callLogIdentifyMessage} ${metadatas.loggedParams && metadatas.loggedParams.length > 0
           ? "WITH " +
           metadatas.loggedParams.map(
             ({ name, index, include, exclude }) =>
@@ -209,7 +254,9 @@ function overrideBuild<F extends Array<any>, R>(
     }
 
     try {
-      const r: R = originalFunction.call(this, ...args);
+      const r: R = originalFunction.call(this, ...args); // Try to call original function
+
+      // Return Log
       if (logged.options.returnLogLevel !== 'skip') {
         if (
           originalFunction.constructor.name === 'AsyncFunction' ||
@@ -237,7 +284,7 @@ function overrideBuild<F extends Array<any>, R>(
 
             injectedLogger[logged.options.returnLogLevel](
               route
-                ? `RETURNED HTTP ${route.fullRoute} (${key}) ${resultLogged}`
+                ? `RETURNED HTTP ${route} (${key}) ${resultLogged}`
                 : `RETURNED ${key} ${resultLogged}`
             );
             return r;
@@ -264,7 +311,7 @@ function overrideBuild<F extends Array<any>, R>(
 
           injectedLogger[logged.options.returnLogLevel](
             route
-              ? `RETURNED HTTP ${route.fullRoute} (${key}) ${resultLogged}`
+              ? `RETURNED HTTP ${route} (${key}) ${resultLogged}`
               : `RETURNED ${key} ${resultLogged}`
           );
           return r;
@@ -273,9 +320,10 @@ function overrideBuild<F extends Array<any>, R>(
         return r;
       }
     } catch (e) {
+      // Error Log
       if (logged.options.errorLogLevel !== 'skip') {
         injectedLogger[logged.options.errorLogLevel](
-          `WHILE ${route ? `HTTP ${route.fullRoute} (${key})` : key} ERROR ${e}`
+          `WHILE ${route ? `HTTP ${route} (${key})` : key} ERROR ${e}`
         );
       }
       throw e;
@@ -345,6 +393,7 @@ export function LoggedFunction<F extends Array<any>, R>(
     );
 
     const overrideFunction = overrideBuild(
+      'function',
       fn,
       logger,
       {
@@ -355,7 +404,6 @@ export function LoggedFunction<F extends Array<any>, R>(
       key,
       returnsData,
       newMetadata,
-      undefined,
     );
 
     _target[key] = overrideFunction;
@@ -440,6 +488,7 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string, options?: P
     );
 
     const overrideFunction = overrideBuild(
+      'route',
       fn,
       logger,
       {
@@ -450,9 +499,7 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string, options?: P
       key,
       returnsData,
       newMetadata,
-      {
-        fullRoute,
-      },
+      fullRoute,
     );
 
     _target[key] = overrideFunction;
@@ -469,4 +516,170 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string, options?: P
       Reflect.defineMetadata(k, v, descriptor.value);
     });
   };
+}
+
+export function LoggedGuard<F extends Array<any>, R>(options?: Partial<OverrideBuildOptions>) {
+  return (
+    _target: any,
+    key: string,
+    descriptor: TypedPropertyDescriptor<(context: ExecutionContext, ...args: F) => R>
+  ) => {
+    loggerInit(_target);
+
+    const logger: Logger = _target.logger;
+
+    const fn = descriptor.value;
+
+    if (!fn || typeof fn!== "function") {
+      logger.warn(
+        `LoggedGuard decorator applied to non-function property: ${key}`
+      );
+      return;
+    }
+
+    const logMetadata: LoggedMetadata | undefined = Reflect.getOwnMetadata(
+      nestLoggedMetadata,
+      _target,
+      key
+    )
+    if (logMetadata) {
+      // already applied, override instead
+      logMetadata.updateOption(options)
+      return
+    }
+    const newMetadata = new LoggedMetadata(options);
+
+    const all = Reflect.getMetadataKeys(fn).map((k) => [
+      k,
+      Reflect.getMetadata(k, fn),
+    ]);
+
+    const scopedLoggerInjectableParam: number = Reflect.getOwnMetadata(
+      scopedLogger,
+      _target,
+      key
+    );
+
+    const scopeKeys: ScopeKeyReflectData[] = Reflect.getOwnMetadata(
+      scopeKey,
+      _target,
+      key
+    );
+
+    const returnsData: ReturnsReflectData[] | true = Reflect.getOwnMetadata(
+      returns,
+      fn
+    );
+
+    const overrideFunction = overrideBuild(
+      'guard',
+      fn,
+      logger,
+      {
+        scopedLoggerInjectableParam,
+        loggedParams: [],
+        scopeKeys,
+      },
+      key,
+      returnsData,
+      newMetadata,
+    );
+
+    _target[key] = overrideFunction;
+    descriptor.value = overrideFunction;
+
+    Reflect.defineMetadata(
+      nestLoggedMetadata,
+      newMetadata,
+      _target,
+      key
+    )
+    all.forEach(([k, v]) => {
+      Reflect.defineMetadata(k, v, _target[key]);
+      Reflect.defineMetadata(k, v, descriptor.value);
+    });
+  }
+}
+
+export function LoggedInterceptor<F extends Array<any>, R>(options?: Partial<OverrideBuildOptions>) {
+  return (
+    _target: any,
+    key: string,
+    descriptor: TypedPropertyDescriptor<(context: ExecutionContext, ...args: F) => R>
+  ) => {
+    loggerInit(_target);
+
+    const logger: Logger = _target.logger;
+
+    const fn = descriptor.value;
+
+    if (!fn || typeof fn!== "function") {
+      logger.warn(
+        `LoggedInterceptor decorator applied to non-function property: ${key}`
+      );
+      return;
+    }
+
+    const logMetadata: LoggedMetadata | undefined = Reflect.getOwnMetadata(
+      nestLoggedMetadata,
+      _target,
+      key
+    )
+    if (logMetadata) {
+      // already applied, override instead
+      logMetadata.updateOption(options)
+      return
+    }
+    const newMetadata = new LoggedMetadata(options);
+
+    const all = Reflect.getMetadataKeys(fn).map((k) => [
+      k,
+      Reflect.getMetadata(k, fn),
+    ]);
+
+    const scopedLoggerInjectableParam: number = Reflect.getOwnMetadata(
+      scopedLogger,
+      _target,
+      key
+    );
+
+    const scopeKeys: ScopeKeyReflectData[] = Reflect.getOwnMetadata(
+      scopeKey,
+      _target,
+      key
+    );
+
+    const returnsData: ReturnsReflectData[] | true = Reflect.getOwnMetadata(
+      returns,
+      fn
+    );
+
+    const overrideFunction = overrideBuild(
+      'interceptor',
+      fn,
+      logger,
+      {
+        scopedLoggerInjectableParam,
+        loggedParams: [],
+        scopeKeys,
+      },
+      key,
+      returnsData,
+      newMetadata,
+    );
+
+    _target[key] = overrideFunction;
+    descriptor.value = overrideFunction;
+
+    Reflect.defineMetadata(
+      nestLoggedMetadata,
+      newMetadata,
+      _target,
+      key
+    )
+    all.forEach(([k, v]) => {
+      Reflect.defineMetadata(k, v, _target[key]);
+      Reflect.defineMetadata(k, v, descriptor.value);
+    });
+  }
 }
