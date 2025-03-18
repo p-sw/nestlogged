@@ -3,6 +3,8 @@ export {
   LoggedFunction,
   LoggedController,
   LoggedInjectable,
+  LoggedGuard,
+  LoggedInterceptor,
 } from "./logged";
 export { ScopedLogger } from "./logger";
 export {
