@@ -11,9 +11,7 @@ import { ScopedLogger } from "./logger";
 import {
   LoggedParamReflectData,
   ReturnsReflectData,
-  ScopeKeyReflectData,
   returns,
-  scopeKey,
   nestLoggedMetadata,
   loggedParam,
   scopedLogger
@@ -121,7 +119,6 @@ export function LoggedController(param?: any): (target: any) => void {
 
 interface FunctionMetadata {
   scopedLoggerInjectableParam?: number;
-  scopeKeys?: ScopeKeyReflectData[];
   loggedParams?: LoggedParamReflectData[];
 }
 
@@ -381,12 +378,6 @@ export function LoggedFunction<F extends Array<any>, R>(
       key
     );
 
-    const scopeKeys: ScopeKeyReflectData[] = Reflect.getOwnMetadata(
-      scopeKey,
-      _target,
-      key
-    );
-
     const returnsData: ReturnsReflectData[] | true = Reflect.getOwnMetadata(
       returns,
       fn
@@ -399,7 +390,6 @@ export function LoggedFunction<F extends Array<any>, R>(
       {
         scopedLoggerInjectableParam,
         loggedParams,
-        scopeKeys,
       },
       key,
       returnsData,
@@ -476,12 +466,6 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string, options?: P
       key
     );
 
-    const scopeKeys: ScopeKeyReflectData[] = Reflect.getOwnMetadata(
-      scopeKey,
-      _target,
-      key
-    );
-
     const returnsData: ReturnsReflectData[] | true = Reflect.getOwnMetadata(
       returns,
       fn
@@ -494,7 +478,6 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string, options?: P
       {
         scopedLoggerInjectableParam,
         loggedParams,
-        scopeKeys,
       },
       key,
       returnsData,
@@ -560,12 +543,6 @@ export function LoggedGuard<F extends Array<any>, R>(options?: Partial<OverrideB
       key
     );
 
-    const scopeKeys: ScopeKeyReflectData[] = Reflect.getOwnMetadata(
-      scopeKey,
-      _target,
-      key
-    );
-
     const returnsData: ReturnsReflectData[] | true = Reflect.getOwnMetadata(
       returns,
       fn
@@ -578,7 +555,6 @@ export function LoggedGuard<F extends Array<any>, R>(options?: Partial<OverrideB
       {
         scopedLoggerInjectableParam,
         loggedParams: [],
-        scopeKeys,
       },
       key,
       returnsData,
@@ -643,12 +619,6 @@ export function LoggedInterceptor<F extends Array<any>, R>(options?: Partial<Ove
       key
     );
 
-    const scopeKeys: ScopeKeyReflectData[] = Reflect.getOwnMetadata(
-      scopeKey,
-      _target,
-      key
-    );
-
     const returnsData: ReturnsReflectData[] | true = Reflect.getOwnMetadata(
       returns,
       fn
@@ -661,7 +631,6 @@ export function LoggedInterceptor<F extends Array<any>, R>(options?: Partial<Ove
       {
         scopedLoggerInjectableParam,
         loggedParams: [],
-        scopeKeys,
       },
       key,
       returnsData,

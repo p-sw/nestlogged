@@ -73,7 +73,6 @@ export interface ReturnsReflectData {
 
 export const scopedLogger = Symbol("nlogdec-scopedLogger");
 export const loggedParam = Symbol("nlogdec-loggedParam");
-export const scopeKey = Symbol("nlogdec-scopeKey");
 export const returns = Symbol("nlogdec-returns");
 
 export const nestLoggedMetadata = Symbol("nlogdec-metadata");
