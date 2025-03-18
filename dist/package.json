@@ -6,7 +6,6 @@
   "repository": "https://git.psw.kr/p-sw/nestlogged",
   "author": "Shinwoo PARK",
   "license": "MIT",
-  "private": false,
   "dependencies": {
     "@nestjs/common": "^10.2.8",
     "hyperid": "^3.1.1",
