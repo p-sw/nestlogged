@@ -1,9 +1,7 @@
-import { Logger } from "@nestjs/common";
+import { Logger, LogLevel } from "@nestjs/common";
 import * as hyperid from 'hyperid';
 
 const createId = hyperid({ fixedLength: true })
-
-type LogLevel = "debug" | "log" | "warn" | "verbose" | "error" | "fatal";
 
 export class ScopedLogger extends Logger {
   constructor(
