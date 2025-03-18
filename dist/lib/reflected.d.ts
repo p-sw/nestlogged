@@ -23,7 +23,6 @@ export interface ReturnsReflectData {
 }
 export declare const scopedLogger: unique symbol;
 export declare const loggedParam: unique symbol;
-export declare const scopeKey: unique symbol;
 export declare const returns: unique symbol;
 export declare const nestLoggedMetadata: unique symbol;
 export declare function InjectLogger(target: any, propertyKey: string | symbol, parameterIndex: number): void;

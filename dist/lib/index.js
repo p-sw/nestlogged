@@ -1,11 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Returns = exports.Logged = exports.LoggedQuery = exports.LoggedBody = exports.LoggedHeaders = exports.LoggedParam = exports.InjectLogger = exports.ScopedLogger = exports.LoggedInjectable = exports.LoggedController = exports.LoggedFunction = exports.LoggedRoute = void 0;
+exports.Returns = exports.Logged = exports.LoggedQuery = exports.LoggedBody = exports.LoggedHeaders = exports.LoggedParam = exports.InjectLogger = exports.ScopedLogger = exports.LoggedInterceptor = exports.LoggedGuard = exports.LoggedInjectable = exports.LoggedController = exports.LoggedFunction = exports.LoggedRoute = void 0;
 var logged_1 = require("./logged");
 Object.defineProperty(exports, "LoggedRoute", { enumerable: true, get: function () { return logged_1.LoggedRoute; } });
 Object.defineProperty(exports, "LoggedFunction", { enumerable: true, get: function () { return logged_1.LoggedFunction; } });
 Object.defineProperty(exports, "LoggedController", { enumerable: true, get: function () { return logged_1.LoggedController; } });
 Object.defineProperty(exports, "LoggedInjectable", { enumerable: true, get: function () { return logged_1.LoggedInjectable; } });
+Object.defineProperty(exports, "LoggedGuard", { enumerable: true, get: function () { return logged_1.LoggedGuard; } });
+Object.defineProperty(exports, "LoggedInterceptor", { enumerable: true, get: function () { return logged_1.LoggedInterceptor; } });
 var logger_1 = require("./logger");
 Object.defineProperty(exports, "ScopedLogger", { enumerable: true, get: function () { return logger_1.ScopedLogger; } });
 var reflected_1 = require("./reflected");
