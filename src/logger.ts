@@ -38,4 +38,7 @@ export class ScopedLogger extends Logger {
       logger, [scope]
     )
   };
+  static createScopeId(): string {
+    return createId();
+  }
 }

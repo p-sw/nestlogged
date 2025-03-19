@@ -185,6 +185,8 @@ function createCallLogIdentifyMessage(type: BuildType, key?: string, route?: str
   return callLogIdentifyMessageDictionary[type];
 }
 
+const REQUEST_LOG_ID = '__nestlogged_request_log_id__';
+
 function overrideBuild<F extends Array<any>, R>(
   type: 'route',
   originalFunction: (...args: F) => R,
@@ -235,8 +237,12 @@ function overrideBuild<F extends Array<any>, R>(
           if (ctx.getType() !== 'http') {
             injectedLogger.error('Cannot inject logger: Request type is not http');
           } else {
-            const req = ctx.switchToHttp().getRequest();
-            // TODO HERE
+            let req = ctx.switchToHttp().getRequest();
+            if (req[REQUEST_LOG_ID] === undefined) {
+              req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
+            } else {
+              // TODO: INHERIT SCOPE ID
+            }
           }
         } else if (type === 'middleware') {
           // args[0] == Request
