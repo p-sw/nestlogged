@@ -161,19 +161,28 @@ class LoggedMetadata {
   }
 }
 
-type BuildType = 'route' | 'function' | 'guard' | 'interceptor';
+type BuildType = 'route' | 'function' | 'guard' | 'interceptor' | 'middleware';
 
 const callLogIdentifyMessageDictionary: Record<BuildType, string> = {
   route: 'HIT HTTP',
   function: 'CALL',
   guard: 'HIT GUARD',
-  interceptor: 'HIT INTERCEPTOR'
+  interceptor: 'HIT INTERCEPTOR',
+  middleware: 'HIT MIDDLEWARE',
 }
 
-function createCallLogIdentifyMessage(type: 'route' | 'guard' | 'interceptor', key: string, route: string)
+function createCallLogIdentifyMessage(type: 'route', key: string, route: string)
+function createCallLogIdentifyMessage(type: 'guard' | 'interceptor' | 'middleware', route: string)
 function createCallLogIdentifyMessage(type: 'function', key: string)
-function createCallLogIdentifyMessage(type: BuildType, key: string, route?: string) {
-  return `${callLogIdentifyMessageDictionary[type]} ${type === 'route' ? `${route} (${key})` : type === 'guard' ? `${route}` : key}`
+function createCallLogIdentifyMessage(type: BuildType, key?: string, route?: string) {
+  if (type === 'route') 
+    return `${callLogIdentifyMessageDictionary[type]} ${route} (${key})`
+  if (type === 'guard' || type === 'interceptor' || type === 'middleware')
+    return `${callLogIdentifyMessageDictionary[type]} ${route}`
+  if (type === 'function')
+    return `${callLogIdentifyMessageDictionary[type]} ${key}`;
+
+  return callLogIdentifyMessageDictionary[type];
 }
 
 function overrideBuild<F extends Array<any>, R>(
@@ -187,7 +196,7 @@ function overrideBuild<F extends Array<any>, R>(
   route: string,
 ): (...args: F) => R;
 function overrideBuild<F extends Array<any>, R>(
-  type: 'function' | 'guard' | 'interceptor',
+  type: 'function' | 'guard' | 'interceptor' | 'middleware',
   originalFunction: (...args: F) => R,
   baseLogger: Logger,
   metadatas: FunctionMetadata,
@@ -626,6 +635,82 @@ export function LoggedInterceptor<F extends Array<any>, R>(options?: Partial<Ove
 
     const overrideFunction = overrideBuild(
       'interceptor',
+      fn,
+      logger,
+      {
+        scopedLoggerInjectableParam,
+        loggedParams: [],
+      },
+      key,
+      returnsData,
+      newMetadata,
+    );
+
+    _target[key] = overrideFunction;
+    descriptor.value = overrideFunction;
+
+    Reflect.defineMetadata(
+      nestLoggedMetadata,
+      newMetadata,
+      _target,
+      key
+    )
+    all.forEach(([k, v]) => {
+      Reflect.defineMetadata(k, v, _target[key]);
+      Reflect.defineMetadata(k, v, descriptor.value);
+    });
+  }
+}
+
+export function LoggedMiddleware<F extends Array<any>, R>(options?: Partial<OverrideBuildOptions>) {
+  return (
+    _target: any,
+    key: string,
+    descriptor: TypedPropertyDescriptor<(context: ExecutionContext, ...args: F) => R>
+  ) => {
+    loggerInit(_target);
+
+    const logger: Logger = _target.logger;
+
+    const fn = descriptor.value;
+
+    if (!fn || typeof fn!== "function") {
+      logger.warn(
+        `LoggedMiddleware decorator applied to non-function property: ${key}`
+      );
+      return;
+    }
+
+    const logMetadata: LoggedMetadata | undefined = Reflect.getOwnMetadata(
+      nestLoggedMetadata,
+      _target,
+      key
+    )
+    if (logMetadata) {
+      // already applied, override instead
+      logMetadata.updateOption(options)
+      return
+    }
+    const newMetadata = new LoggedMetadata(options);
+
+    const all = Reflect.getMetadataKeys(fn).map((k) => [
+      k,
+      Reflect.getMetadata(k, fn),
+    ]);
+
+    const scopedLoggerInjectableParam: number = Reflect.getOwnMetadata(
+      scopedLogger,
+      _target,
+      key
+    );
+
+    const returnsData: ReturnsReflectData[] | true = Reflect.getOwnMetadata(
+      returns,
+      fn
+    );
+
+    const overrideFunction = overrideBuild(
+      'middleware',
       fn,
       logger,
       {
