@@ -33,9 +33,9 @@ export class ScopedLogger extends Logger {
       baseLogger, [...logger.scope, scope], logger.scopeId
     )
   };
-  static fromRoot(logger: Logger, scope: string): ScopedLogger {
+  static fromRoot(logger: Logger, scope: string, scopeId?: string): ScopedLogger {
     return new ScopedLogger(
-      logger, [scope]
+      logger, [scope], scopeId
     )
   };
   static createScopeId(): string {

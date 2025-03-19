@@ -241,13 +241,20 @@ function overrideBuild<F extends Array<any>, R>(
             if (req[REQUEST_LOG_ID] === undefined) {
               req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
             } else {
-              // TODO: INHERIT SCOPE ID
+              args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
             }
           }
         } else if (type === 'middleware') {
-          // args[0] == Request
+          let req = args[0];
+          if (req[REQUEST_LOG_ID] === undefined) {
+            req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
+          } else {
+            args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
+          }
         } else if (type === 'route') {
           // should use @Req
+          // WTF how should I get the request id from request object???????????????????????????????????????????????????????????????
+          // FUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCK
         }
       }
 
@@ -589,7 +596,7 @@ export function LoggedGuard<F extends Array<any>, R>(options?: Partial<OverrideB
         scopedLoggerInjectableParam,
         loggedParams: [],
       },
-      key,
+      _target.constructor.name,
       returnsData,
       newMetadata,
     );
@@ -665,7 +672,7 @@ export function LoggedInterceptor<F extends Array<any>, R>(options?: Partial<Ove
         scopedLoggerInjectableParam,
         loggedParams: [],
       },
-      key,
+      _target.constructor.name,
       returnsData,
       newMetadata,
     );
@@ -741,7 +748,7 @@ export function LoggedMiddleware<F extends Array<any>, R>(options?: Partial<Over
         scopedLoggerInjectableParam,
         loggedParams: [],
       },
-      key,
+      _target.constructor.name,
       returnsData,
       newMetadata,
     );
