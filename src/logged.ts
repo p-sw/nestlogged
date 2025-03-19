@@ -218,13 +218,31 @@ function overrideBuild<F extends Array<any>, R>(
     // Creating ScopedLogger
     let injectedLogger: Logger = baseLogger;
     if (typeof metadatas.scopedLoggerInjectableParam !== "undefined") {
-      if (
-        args.length <= metadatas.scopedLoggerInjectableParam ||
-        !(args[metadatas.scopedLoggerInjectableParam] instanceof ScopedLogger)
-      ) {
-        args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(baseLogger, key);
+      if (type === 'function') {
+        if (
+          args.length <= metadatas.scopedLoggerInjectableParam ||
+          !(args[metadatas.scopedLoggerInjectableParam] instanceof ScopedLogger)
+        ) {
+          args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(baseLogger, key);
+        } else {
+          args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromSuper(baseLogger, args[metadatas.scopedLoggerInjectableParam], key);
+        }
       } else {
-        args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromSuper(baseLogger, args[metadatas.scopedLoggerInjectableParam], key);
+        // special, can access to request object
+        if (type === 'guard' || type === 'interceptor') {
+          // args[0] == ExecutionContext
+          const ctx = (args[0] as ExecutionContext);
+          if (ctx.getType() !== 'http') {
+            injectedLogger.error('Cannot inject logger: Request type is not http');
+          } else {
+            const req = ctx.switchToHttp().getRequest();
+            // TODO HERE
+          }
+        } else if (type === 'middleware') {
+          // args[0] == Request
+        } else if (type === 'route') {
+          // should use @Req
+        }
       }
 
       injectedLogger = args[metadatas.scopedLoggerInjectableParam];
