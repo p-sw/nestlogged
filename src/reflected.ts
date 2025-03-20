@@ -4,7 +4,7 @@ import {isNil, isString} from "@nestjs/common/utils/shared.utils";
 
 const ROUTE_ARGS_METADATA = '__routeArguments__';
 
-function createRouteParamDecorator(paramtype: RouteParamtypes) {
+export function createRouteParamDecorator(paramtype: RouteParamtypes) {
   return (data?: ParamData): ParameterDecorator =>
     (target, key, index) => {
       const args =

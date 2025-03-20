@@ -14,7 +14,8 @@ import {
   returns,
   nestLoggedMetadata,
   loggedParam,
-  scopedLogger
+  scopedLogger,
+  createRouteParamDecorator
 } from "./reflected";
 import { imObjectContainedLogSync, getItemByPathSync } from "./functions";
 import { RequestMethod } from "@nestjs/common";
@@ -240,21 +241,22 @@ function overrideBuild<F extends Array<any>, R>(
             let req = ctx.switchToHttp().getRequest();
             if (req[REQUEST_LOG_ID] === undefined) {
               req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
-            } else {
-              args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
             }
+            args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
           }
         } else if (type === 'middleware') {
           let req = args[0];
           if (req[REQUEST_LOG_ID] === undefined) {
             req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
-          } else {
-            args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
           }
+          args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
         } else if (type === 'route') {
-          // should use @Req
-          // WTF how should I get the request id from request object???????????????????????????????????????????????????????????????
-          // FUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCKFUCK
+          // args[metadatas.scopedLoggerInjectableParam] is now Request object, thanks to code in @LoggedRoute!!!!
+          let req = args[metadatas.scopedLoggerInjectableParam];
+          if (req[REQUEST_LOG_ID] === undefined) {
+            req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
+          }
+          args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
         }
       }
 
@@ -272,7 +274,12 @@ function overrideBuild<F extends Array<any>, R>(
 
     // Start Log
     if (logged.options.callLogLevel !== 'skip') {
-      const callLogIdentifyMessage = type === 'route' || type === 'guard' || type === 'interceptor' ? createCallLogIdentifyMessage(type, key, route) : createCallLogIdentifyMessage(type, key)
+      const callLogIdentifyMessage = 
+        type === 'middleware' || type === 'guard' || type === 'interceptor' 
+          ? createCallLogIdentifyMessage(type, route)
+          : type === 'route' 
+            ? createCallLogIdentifyMessage(type, key, route)
+            : createCallLogIdentifyMessage(type, key);
       injectedLogger[logged.options.callLogLevel](
         `${callLogIdentifyMessage} ${metadatas.loggedParams && metadatas.loggedParams.length > 0
           ? "WITH " +
@@ -365,7 +372,7 @@ function overrideBuild<F extends Array<any>, R>(
       }
       throw e;
     }
-  };
+  }
 }
 
 export function LoggedFunction<F extends Array<any>, R>(
@@ -499,6 +506,10 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string, options?: P
       _target,
       key
     );
+    // if @InjectLogger exists, fake nestjs as it is @Req()
+    if (scopedLoggerInjectableParam !== undefined) {
+      createRouteParamDecorator(0)()(_target, key, scopedLoggerInjectableParam);
+    }
 
     const loggedParams: LoggedParamReflectData[] = Reflect.getOwnMetadata(
       loggedParam,
