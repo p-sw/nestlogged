@@ -172,8 +172,6 @@ const callLogIdentifyMessageDictionary: Record<BuildType, string> = {
   middleware: 'MIDDLEWARE',
 }
 
-function createCallLogIdentifyMessage(message: 'HIT' | 'RETURNED', type: 'guard' | 'interceptor' | 'middleware' | 'route', key: string, route: string)
-function createCallLogIdentifyMessage(message: 'HIT' | 'RETURNED', type: 'function', key: string)
 function createCallLogIdentifyMessage(message: 'HIT' | 'RETURNED', type: BuildType, key?: string, route?: string) {
   if (type === 'guard' || type === 'interceptor' || type === 'middleware' || type === 'route')
     return `${message} ${callLogIdentifyMessageDictionary[type]} ${key} (${route})`
@@ -321,11 +319,7 @@ function overrideBuild<F extends Array<any>, R>(
                     : "WITH " + r
                   : "";
 
-            injectedLogger[logged.options.returnLogLevel](
-              route
-                ? `RETURNED HTTP ${route} (${key}) ${resultLogged}`
-                : `RETURNED ${key} ${resultLogged}`
-            );
+            injectedLogger[logged.options.returnLogLevel](`${createCallLogIdentifyMessage('RETURNED', type, key, route)} ${resultLogged}`);
             return r;
           })
         } else {
@@ -348,11 +342,7 @@ function overrideBuild<F extends Array<any>, R>(
                   : "WITH " + r
                 : "";
 
-          injectedLogger[logged.options.returnLogLevel](
-            route
-              ? `RETURNED HTTP ${route} (${key}) ${resultLogged}`
-              : `RETURNED ${key} ${resultLogged}`
-          );
+          injectedLogger[logged.options.returnLogLevel](`${createCallLogIdentifyMessage('RETURNED', type, key, route)} ${resultLogged}`);
           return r;
         }
       } else {
