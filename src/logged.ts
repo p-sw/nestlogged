@@ -165,25 +165,22 @@ class LoggedMetadata {
 type BuildType = 'route' | 'function' | 'guard' | 'interceptor' | 'middleware';
 
 const callLogIdentifyMessageDictionary: Record<BuildType, string> = {
-  route: 'HIT HTTP',
-  function: 'CALL',
-  guard: 'HIT GUARD',
-  interceptor: 'HIT INTERCEPTOR',
-  middleware: 'HIT MIDDLEWARE',
+  route: 'ENDPOINT',
+  function: 'FUNCTION',
+  guard: 'GUARD',
+  interceptor: 'INTERCEPTOR',
+  middleware: 'MIDDLEWARE',
 }
 
-function createCallLogIdentifyMessage(type: 'route', key: string, route: string)
-function createCallLogIdentifyMessage(type: 'guard' | 'interceptor' | 'middleware', route: string)
-function createCallLogIdentifyMessage(type: 'function', key: string)
-function createCallLogIdentifyMessage(type: BuildType, key?: string, route?: string) {
-  if (type === 'route') 
-    return `${callLogIdentifyMessageDictionary[type]} ${route} (${key})`
-  if (type === 'guard' || type === 'interceptor' || type === 'middleware')
-    return `${callLogIdentifyMessageDictionary[type]} ${route}`
+function createCallLogIdentifyMessage(message: 'HIT' | 'RETURNED', type: 'guard' | 'interceptor' | 'middleware' | 'route', key: string, route: string)
+function createCallLogIdentifyMessage(message: 'HIT' | 'RETURNED', type: 'function', key: string)
+function createCallLogIdentifyMessage(message: 'HIT' | 'RETURNED', type: BuildType, key?: string, route?: string) {
+  if (type === 'guard' || type === 'interceptor' || type === 'middleware' || type === 'route')
+    return `${message} ${callLogIdentifyMessageDictionary[type]} ${key} (${route})`
   if (type === 'function')
-    return `${callLogIdentifyMessageDictionary[type]} ${key}`;
+    return `${message} ${callLogIdentifyMessageDictionary[type]} ${key}`;
 
-  return callLogIdentifyMessageDictionary[type];
+  return `${message} ${callLogIdentifyMessageDictionary[type]}`;
 }
 
 const REQUEST_LOG_ID = '__nestlogged_request_log_id__';
@@ -275,11 +272,9 @@ function overrideBuild<F extends Array<any>, R>(
     // Start Log
     if (logged.options.callLogLevel !== 'skip') {
       const callLogIdentifyMessage = 
-        type === 'middleware' || type === 'guard' || type === 'interceptor' 
-          ? createCallLogIdentifyMessage(type, route)
-          : type === 'route' 
-            ? createCallLogIdentifyMessage(type, key, route)
-            : createCallLogIdentifyMessage(type, key);
+        type === 'middleware' || type === 'guard' || type === 'interceptor' || type === 'route'
+          ? createCallLogIdentifyMessage('HIT', type, key, route)
+          : createCallLogIdentifyMessage('HIT', type, key);
       injectedLogger[logged.options.callLogLevel](
         `${callLogIdentifyMessage} ${metadatas.loggedParams && metadatas.loggedParams.length > 0
           ? "WITH " +
