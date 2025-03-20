@@ -184,7 +184,7 @@ function createCallLogIdentifyMessage(message: 'HIT' | 'RETURNED' | 'ERROR', typ
   return `${message} ${callLogIdentifyMessageDictionary[type]}`;
 }
 
-const REQUEST_LOG_ID = '__nestlogged_request_log_id__';
+export const REQUEST_LOG_ID = '__nestlogged_request_log_id__';
 
 function overrideBuild<F extends Array<any>, R>(
   type: 'route',
