@@ -172,7 +172,10 @@ const callLogIdentifyMessageDictionary: Record<BuildType, string> = {
   middleware: 'MIDDLEWARE',
 }
 
-function createCallLogIdentifyMessage(message: 'HIT' | 'RETURNED', type: BuildType, key?: string, route?: string) {
+function createCallLogIdentifyMessage(message: 'HIT' | 'RETURNED' | 'ERROR', type: BuildType, key?: string, route?: string) {
+  if (message === 'ERROR')
+    return `ERROR WHILE ${callLogIdentifyMessageDictionary[type]} ${key} (${route}): `;
+
   if (type === 'guard' || type === 'interceptor' || type === 'middleware' || type === 'route')
     return `${message} ${callLogIdentifyMessageDictionary[type]} ${key} (${route})`
   if (type === 'function')
@@ -351,9 +354,7 @@ function overrideBuild<F extends Array<any>, R>(
     } catch (e) {
       // Error Log
       if (logged.options.errorLogLevel !== 'skip') {
-        injectedLogger[logged.options.errorLogLevel](
-          `WHILE ${route ? `HTTP ${route} (${key})` : key} ERROR ${e}`
-        );
+        injectedLogger[logged.options.errorLogLevel](`${createCallLogIdentifyMessage('ERROR', type, key, route)} ${e}`);
       }
       throw e;
     }
