@@ -1,8 +1,7 @@
 import {RouteParamtypes} from '@nestjs/common/enums/route-paramtypes.enum';
 import {assignMetadata, ParamData, PipeTransform, RouteParamMetadata, Type} from "@nestjs/common";
+import {ROUTE_ARGS_METADATA} from '@nestjs/common/constants';
 import {isNil, isString} from "@nestjs/common/utils/shared.utils";
-
-const ROUTE_ARGS_METADATA = '__routeArguments__';
 
 export function createRouteParamDecorator(paramtype: RouteParamtypes) {
   return (data?: ParamData): ParameterDecorator =>
