@@ -18,6 +18,7 @@ interface OverrideBuildOptions {
     /** @deprecated use `errorLogLevel: 'skip'` instead */
     skipErrorLog: boolean;
 }
+export declare const REQUEST_LOG_ID = "__nestlogged_request_log_id__";
 export declare function LoggedFunction<F extends Array<any>, R>(options?: Partial<OverrideBuildOptions>): (_target: any, key: string, descriptor: TypedPropertyDescriptor<(...args: F) => R | Promise<R>>) => void;
 export declare function LoggedRoute<F extends Array<any>, R>(route?: string, options?: Partial<OverrideBuildOptions>): (_target: any, key: string, descriptor: TypedPropertyDescriptor<(...args: F) => R>) => void;
 export declare function LoggedGuard<F extends Array<any>, R>(options?: Partial<OverrideBuildOptions>): (_target: any, key: string, descriptor: TypedPropertyDescriptor<(context: ExecutionContext, ...args: F) => R>) => void;

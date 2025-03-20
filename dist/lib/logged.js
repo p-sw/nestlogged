@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LoggedMiddleware = exports.LoggedInterceptor = exports.LoggedGuard = exports.LoggedRoute = exports.LoggedFunction = exports.LoggedController = exports.LoggedInjectable = void 0;
+exports.LoggedMiddleware = exports.LoggedInterceptor = exports.LoggedGuard = exports.LoggedRoute = exports.LoggedFunction = exports.REQUEST_LOG_ID = exports.LoggedController = exports.LoggedInjectable = void 0;
 const common_1 = require("@nestjs/common");
 const logger_1 = require("./logger");
 const reflected_1 = require("./reflected");
@@ -110,7 +110,7 @@ function createCallLogIdentifyMessage(message, type, key, route) {
         return `${message} ${callLogIdentifyMessageDictionary[type]} ${key}`;
     return `${message} ${callLogIdentifyMessageDictionary[type]}`;
 }
-const REQUEST_LOG_ID = '__nestlogged_request_log_id__';
+exports.REQUEST_LOG_ID = '__nestlogged_request_log_id__';
 function overrideBuild(type, originalFunction, baseLogger, metadatas, key, returnsData, logged, route) {
     return function (...args) {
         // Creating ScopedLogger
@@ -135,26 +135,26 @@ function overrideBuild(type, originalFunction, baseLogger, metadatas, key, retur
                     }
                     else {
                         let req = ctx.switchToHttp().getRequest();
-                        if (req[REQUEST_LOG_ID] === undefined) {
-                            req[REQUEST_LOG_ID] = logger_1.ScopedLogger.createScopeId();
+                        if (req[exports.REQUEST_LOG_ID] === undefined) {
+                            req[exports.REQUEST_LOG_ID] = logger_1.ScopedLogger.createScopeId();
                         }
-                        args[metadatas.scopedLoggerInjectableParam] = logger_1.ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
+                        args[metadatas.scopedLoggerInjectableParam] = logger_1.ScopedLogger.fromRoot(baseLogger, key, req[exports.REQUEST_LOG_ID]);
                     }
                 }
                 else if (type === 'middleware') {
                     let req = args[0];
-                    if (req[REQUEST_LOG_ID] === undefined) {
-                        req[REQUEST_LOG_ID] = logger_1.ScopedLogger.createScopeId();
+                    if (req[exports.REQUEST_LOG_ID] === undefined) {
+                        req[exports.REQUEST_LOG_ID] = logger_1.ScopedLogger.createScopeId();
                     }
-                    args[metadatas.scopedLoggerInjectableParam] = logger_1.ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
+                    args[metadatas.scopedLoggerInjectableParam] = logger_1.ScopedLogger.fromRoot(baseLogger, key, req[exports.REQUEST_LOG_ID]);
                 }
                 else if (type === 'route') {
                     // args[metadatas.scopedLoggerInjectableParam] is now Request object, thanks to code in @LoggedRoute!!!!
                     let req = args[metadatas.scopedLoggerInjectableParam];
-                    if (req[REQUEST_LOG_ID] === undefined) {
-                        req[REQUEST_LOG_ID] = logger_1.ScopedLogger.createScopeId();
+                    if (req[exports.REQUEST_LOG_ID] === undefined) {
+                        req[exports.REQUEST_LOG_ID] = logger_1.ScopedLogger.createScopeId();
                     }
-                    args[metadatas.scopedLoggerInjectableParam] = logger_1.ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
+                    args[metadatas.scopedLoggerInjectableParam] = logger_1.ScopedLogger.fromRoot(baseLogger, key, req[exports.REQUEST_LOG_ID]);
                 }
             }
             injectedLogger = args[metadatas.scopedLoggerInjectableParam];
