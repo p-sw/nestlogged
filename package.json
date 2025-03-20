@@ -1,6 +1,6 @@
 {
   "name": "nestlogged",
-  "version": "3.2.0-beta.4",
+  "version": "3.2.0",
   "description": "A NestJS Logger Decorator Library",
   "main": "./dist/lib/index.js",
   "repository": "https://git.psw.kr/p-sw/nestlogged",
