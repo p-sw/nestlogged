@@ -95,20 +95,20 @@ class LoggedMetadata {
     }
 }
 const callLogIdentifyMessageDictionary = {
-    route: 'HIT HTTP',
-    function: 'CALL',
-    guard: 'HIT GUARD',
-    interceptor: 'HIT INTERCEPTOR',
-    middleware: 'HIT MIDDLEWARE',
+    route: 'ENDPOINT',
+    function: 'FUNCTION',
+    guard: 'GUARD',
+    interceptor: 'INTERCEPTOR',
+    middleware: 'MIDDLEWARE',
 };
-function createCallLogIdentifyMessage(type, key, route) {
-    if (type === 'route')
-        return `${callLogIdentifyMessageDictionary[type]} ${route} (${key})`;
-    if (type === 'guard' || type === 'interceptor' || type === 'middleware')
-        return `${callLogIdentifyMessageDictionary[type]} ${route}`;
+function createCallLogIdentifyMessage(message, type, key, route) {
+    if (message === 'ERROR')
+        return `ERROR WHILE ${callLogIdentifyMessageDictionary[type]} ${key} (${route}): `;
+    if (type === 'guard' || type === 'interceptor' || type === 'middleware' || type === 'route')
+        return `${message} ${callLogIdentifyMessageDictionary[type]} ${key} (${route})`;
     if (type === 'function')
-        return `${callLogIdentifyMessageDictionary[type]} ${key}`;
-    return callLogIdentifyMessageDictionary[type];
+        return `${message} ${callLogIdentifyMessageDictionary[type]} ${key}`;
+    return `${message} ${callLogIdentifyMessageDictionary[type]}`;
 }
 const REQUEST_LOG_ID = '__nestlogged_request_log_id__';
 function overrideBuild(type, originalFunction, baseLogger, metadatas, key, returnsData, logged, route) {
@@ -164,16 +164,14 @@ function overrideBuild(type, originalFunction, baseLogger, metadatas, key, retur
             const context = args[0];
             if (context.getType() === 'http') {
                 const req = context.switchToHttp().getRequest();
-                route = new URL(( /* supporting FastifyRequest */req.raw ? req.raw.url : req.url)).pathname;
+                route = /* supporting FastifyRequest */ req.raw ? req.raw.url : req.url;
             }
         }
         // Start Log
         if (logged.options.callLogLevel !== 'skip') {
-            const callLogIdentifyMessage = type === 'middleware' || type === 'guard' || type === 'interceptor'
-                ? createCallLogIdentifyMessage(type, route)
-                : type === 'route'
-                    ? createCallLogIdentifyMessage(type, key, route)
-                    : createCallLogIdentifyMessage(type, key);
+            const callLogIdentifyMessage = type === 'middleware' || type === 'guard' || type === 'interceptor' || type === 'route'
+                ? createCallLogIdentifyMessage('HIT', type, key, route)
+                : createCallLogIdentifyMessage('HIT', type, key);
             injectedLogger[logged.options.callLogLevel](`${callLogIdentifyMessage} ${metadatas.loggedParams && metadatas.loggedParams.length > 0
                 ? "WITH " +
                     metadatas.loggedParams.map(({ name, index, include, exclude }) => name +
@@ -208,9 +206,7 @@ function overrideBuild(type, originalFunction, baseLogger, metadatas, key, retur
                                         ? "WITH " + JSON.stringify(r)
                                         : "WITH " + r
                                     : "";
-                        injectedLogger[logged.options.returnLogLevel](route
-                            ? `RETURNED HTTP ${route} (${key}) ${resultLogged}`
-                            : `RETURNED ${key} ${resultLogged}`);
+                        injectedLogger[logged.options.returnLogLevel](`${createCallLogIdentifyMessage('RETURNED', type, key, route)} ${resultLogged}`);
                         return r;
                     });
                 }
@@ -232,9 +228,7 @@ function overrideBuild(type, originalFunction, baseLogger, metadatas, key, retur
                                     ? "WITH " + JSON.stringify(r)
                                     : "WITH " + r
                                 : "";
-                    injectedLogger[logged.options.returnLogLevel](route
-                        ? `RETURNED HTTP ${route} (${key}) ${resultLogged}`
-                        : `RETURNED ${key} ${resultLogged}`);
+                    injectedLogger[logged.options.returnLogLevel](`${createCallLogIdentifyMessage('RETURNED', type, key, route)} ${resultLogged}`);
                     return r;
                 }
             }
@@ -245,7 +239,7 @@ function overrideBuild(type, originalFunction, baseLogger, metadatas, key, retur
         catch (e) {
             // Error Log
             if (logged.options.errorLogLevel !== 'skip') {
-                injectedLogger[logged.options.errorLogLevel](`WHILE ${route ? `HTTP ${route} (${key})` : key} ERROR ${e}`);
+                injectedLogger[logged.options.errorLogLevel](`${createCallLogIdentifyMessage('ERROR', type, key, route)} ${e}`);
             }
             throw e;
         }
