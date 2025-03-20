@@ -268,7 +268,7 @@ function overrideBuild<F extends Array<any>, R>(
       const context = args[0] as ExecutionContext;
       if (context.getType() === 'http') {
         const req = context.switchToHttp().getRequest();
-        route = new URL(<string>(/* supporting FastifyRequest */ req.raw ? req.raw.url : req.url)).pathname;
+        route = /* supporting FastifyRequest */ req.raw ? req.raw.url : req.url;
       }
     }
 
