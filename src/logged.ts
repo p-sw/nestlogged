@@ -17,7 +17,7 @@ import {
   scopedLogger,
   createRouteParamDecorator
 } from "./reflected";
-import { imObjectContainedLogSync, getItemByPathSync } from "./functions";
+import { imObjectContainedLogSync, getItemByPathSync } from "./internals/utils";
 import { RequestMethod } from "@nestjs/common";
 
 const RevRequestMethod = [
