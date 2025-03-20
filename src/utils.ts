@@ -4,6 +4,6 @@ import { REQUEST_LOG_ID } from "./logged";
 
 const logger = new Logger();
 
-export function getRequestLogger(functionName: string, req: any) {
+export function getRequestLogger(functionName: string, req: any): ScopedLogger {
     return new ScopedLogger(logger, [functionName], req[REQUEST_LOG_ID])
 }
