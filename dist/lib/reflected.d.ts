@@ -1,4 +1,6 @@
-import { PipeTransform, Type } from "@nestjs/common";
+import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
+import { ParamData, PipeTransform, Type } from "@nestjs/common";
+export declare function createRouteParamDecorator(paramtype: RouteParamtypes): (data?: ParamData) => ParameterDecorator;
 export type Path = string | string[];
 export type Paths = Path[];
 export interface IncludeExcludePath {

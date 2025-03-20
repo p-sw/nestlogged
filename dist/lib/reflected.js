@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Returns = exports.LoggedHeaders = exports.LoggedBody = exports.LoggedQuery = exports.LoggedParam = exports.Logged = exports.InjectLogger = exports.nestLoggedMetadata = exports.returns = exports.loggedParam = exports.scopedLogger = void 0;
+exports.Returns = exports.LoggedHeaders = exports.LoggedBody = exports.LoggedQuery = exports.LoggedParam = exports.Logged = exports.InjectLogger = exports.nestLoggedMetadata = exports.returns = exports.loggedParam = exports.scopedLogger = exports.createRouteParamDecorator = void 0;
 const route_paramtypes_enum_1 = require("@nestjs/common/enums/route-paramtypes.enum");
 const common_1 = require("@nestjs/common");
 const shared_utils_1 = require("@nestjs/common/utils/shared.utils");
@@ -11,6 +11,7 @@ function createRouteParamDecorator(paramtype) {
         Reflect.defineMetadata(ROUTE_ARGS_METADATA, (0, common_1.assignMetadata)(args, paramtype, index, data), target.constructor, key);
     };
 }
+exports.createRouteParamDecorator = createRouteParamDecorator;
 const createPipesRouteParamDecorator = (paramtype) => (data, ...pipes) => (target, key, index) => {
     const args = Reflect.getMetadata(ROUTE_ARGS_METADATA, target.constructor, key) || {};
     const hasParamData = (0, shared_utils_1.isNil)(data) || (0, shared_utils_1.isString)(data);

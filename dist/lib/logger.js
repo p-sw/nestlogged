@@ -26,9 +26,12 @@ class ScopedLogger extends common_1.Logger {
         return new ScopedLogger(baseLogger, [...logger.scope, scope], logger.scopeId);
     }
     ;
-    static fromRoot(logger, scope) {
-        return new ScopedLogger(logger, [scope]);
+    static fromRoot(logger, scope, scopeId) {
+        return new ScopedLogger(logger, [scope], scopeId);
     }
     ;
+    static createScopeId() {
+        return createId();
+    }
 }
 exports.ScopedLogger = ScopedLogger;

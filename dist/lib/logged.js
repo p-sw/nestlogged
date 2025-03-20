@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LoggedInterceptor = exports.LoggedGuard = exports.LoggedRoute = exports.LoggedFunction = exports.LoggedController = exports.LoggedInjectable = void 0;
+exports.LoggedMiddleware = exports.LoggedInterceptor = exports.LoggedGuard = exports.LoggedRoute = exports.LoggedFunction = exports.LoggedController = exports.LoggedInjectable = void 0;
 const common_1 = require("@nestjs/common");
 const logger_1 = require("./logger");
 const reflected_1 = require("./reflected");
@@ -98,27 +98,69 @@ const callLogIdentifyMessageDictionary = {
     route: 'HIT HTTP',
     function: 'CALL',
     guard: 'HIT GUARD',
-    interceptor: 'HIT INTERCEPTOR'
+    interceptor: 'HIT INTERCEPTOR',
+    middleware: 'HIT MIDDLEWARE',
 };
 function createCallLogIdentifyMessage(type, key, route) {
-    return `${callLogIdentifyMessageDictionary[type]} ${type === 'route' ? `${route} (${key})` : type === 'guard' ? `${route}` : key}`;
+    if (type === 'route')
+        return `${callLogIdentifyMessageDictionary[type]} ${route} (${key})`;
+    if (type === 'guard' || type === 'interceptor' || type === 'middleware')
+        return `${callLogIdentifyMessageDictionary[type]} ${route}`;
+    if (type === 'function')
+        return `${callLogIdentifyMessageDictionary[type]} ${key}`;
+    return callLogIdentifyMessageDictionary[type];
 }
+const REQUEST_LOG_ID = '__nestlogged_request_log_id__';
 function overrideBuild(type, originalFunction, baseLogger, metadatas, key, returnsData, logged, route) {
     return function (...args) {
         // Creating ScopedLogger
         let injectedLogger = baseLogger;
         if (typeof metadatas.scopedLoggerInjectableParam !== "undefined") {
-            if (args.length <= metadatas.scopedLoggerInjectableParam ||
-                !(args[metadatas.scopedLoggerInjectableParam] instanceof logger_1.ScopedLogger)) {
-                args[metadatas.scopedLoggerInjectableParam] = logger_1.ScopedLogger.fromRoot(baseLogger, key);
+            if (type === 'function') {
+                if (args.length <= metadatas.scopedLoggerInjectableParam ||
+                    !(args[metadatas.scopedLoggerInjectableParam] instanceof logger_1.ScopedLogger)) {
+                    args[metadatas.scopedLoggerInjectableParam] = logger_1.ScopedLogger.fromRoot(baseLogger, key);
+                }
+                else {
+                    args[metadatas.scopedLoggerInjectableParam] = logger_1.ScopedLogger.fromSuper(baseLogger, args[metadatas.scopedLoggerInjectableParam], key);
+                }
             }
             else {
-                args[metadatas.scopedLoggerInjectableParam] = logger_1.ScopedLogger.fromSuper(baseLogger, args[metadatas.scopedLoggerInjectableParam], key);
+                // special, can access to request object
+                if (type === 'guard' || type === 'interceptor') {
+                    // args[0] == ExecutionContext
+                    const ctx = args[0];
+                    if (ctx.getType() !== 'http') {
+                        injectedLogger.error('Cannot inject logger: Request type is not http');
+                    }
+                    else {
+                        let req = ctx.switchToHttp().getRequest();
+                        if (req[REQUEST_LOG_ID] === undefined) {
+                            req[REQUEST_LOG_ID] = logger_1.ScopedLogger.createScopeId();
+                        }
+                        args[metadatas.scopedLoggerInjectableParam] = logger_1.ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
+                    }
+                }
+                else if (type === 'middleware') {
+                    let req = args[0];
+                    if (req[REQUEST_LOG_ID] === undefined) {
+                        req[REQUEST_LOG_ID] = logger_1.ScopedLogger.createScopeId();
+                    }
+                    args[metadatas.scopedLoggerInjectableParam] = logger_1.ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
+                }
+                else if (type === 'route') {
+                    // args[metadatas.scopedLoggerInjectableParam] is now Request object, thanks to code in @LoggedRoute!!!!
+                    let req = args[metadatas.scopedLoggerInjectableParam];
+                    if (req[REQUEST_LOG_ID] === undefined) {
+                        req[REQUEST_LOG_ID] = logger_1.ScopedLogger.createScopeId();
+                    }
+                    args[metadatas.scopedLoggerInjectableParam] = logger_1.ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
+                }
             }
             injectedLogger = args[metadatas.scopedLoggerInjectableParam];
         }
         // If this is ExecutionContext based function (e.g. Guard, Interceptor) get Request from Context
-        if (type === 'guard') {
+        if (type === 'guard' || type === 'interceptor') {
             const context = args[0];
             if (context.getType() === 'http') {
                 const req = context.switchToHttp().getRequest();
@@ -127,7 +169,11 @@ function overrideBuild(type, originalFunction, baseLogger, metadatas, key, retur
         }
         // Start Log
         if (logged.options.callLogLevel !== 'skip') {
-            const callLogIdentifyMessage = type === 'route' || type === 'guard' || type === 'interceptor' ? createCallLogIdentifyMessage(type, key, route) : createCallLogIdentifyMessage(type, key);
+            const callLogIdentifyMessage = type === 'middleware' || type === 'guard' || type === 'interceptor'
+                ? createCallLogIdentifyMessage(type, route)
+                : type === 'route'
+                    ? createCallLogIdentifyMessage(type, key, route)
+                    : createCallLogIdentifyMessage(type, key);
             injectedLogger[logged.options.callLogLevel](`${callLogIdentifyMessage} ${metadatas.loggedParams && metadatas.loggedParams.length > 0
                 ? "WITH " +
                     metadatas.loggedParams.map(({ name, index, include, exclude }) => name +
@@ -266,6 +312,10 @@ function LoggedRoute(route, options) {
         const httpMethod = Reflect.getMetadata("method", fn);
         const fullRoute = `${_target.constructor.name}::${route ?? httpPath}[${RevRequestMethod[httpMethod]}]`;
         const scopedLoggerInjectableParam = Reflect.getOwnMetadata(reflected_1.scopedLogger, _target, key);
+        // if @InjectLogger exists, fake nestjs as it is @Req()
+        if (scopedLoggerInjectableParam !== undefined) {
+            (0, reflected_1.createRouteParamDecorator)(0)()(_target, key, scopedLoggerInjectableParam);
+        }
         const loggedParams = Reflect.getOwnMetadata(reflected_1.loggedParam, _target, key);
         const returnsData = Reflect.getOwnMetadata(reflected_1.returns, fn);
         const overrideFunction = overrideBuild('route', fn, logger, {
@@ -307,7 +357,7 @@ function LoggedGuard(options) {
         const overrideFunction = overrideBuild('guard', fn, logger, {
             scopedLoggerInjectableParam,
             loggedParams: [],
-        }, key, returnsData, newMetadata);
+        }, _target.constructor.name, returnsData, newMetadata);
         _target[key] = overrideFunction;
         descriptor.value = overrideFunction;
         Reflect.defineMetadata(reflected_1.nestLoggedMetadata, newMetadata, _target, key);
@@ -343,7 +393,7 @@ function LoggedInterceptor(options) {
         const overrideFunction = overrideBuild('interceptor', fn, logger, {
             scopedLoggerInjectableParam,
             loggedParams: [],
-        }, key, returnsData, newMetadata);
+        }, _target.constructor.name, returnsData, newMetadata);
         _target[key] = overrideFunction;
         descriptor.value = overrideFunction;
         Reflect.defineMetadata(reflected_1.nestLoggedMetadata, newMetadata, _target, key);
@@ -354,3 +404,39 @@ function LoggedInterceptor(options) {
     };
 }
 exports.LoggedInterceptor = LoggedInterceptor;
+function LoggedMiddleware(options) {
+    return (_target, key, descriptor) => {
+        loggerInit(_target);
+        const logger = _target.logger;
+        const fn = descriptor.value;
+        if (!fn || typeof fn !== "function") {
+            logger.warn(`LoggedMiddleware decorator applied to non-function property: ${key}`);
+            return;
+        }
+        const logMetadata = Reflect.getOwnMetadata(reflected_1.nestLoggedMetadata, _target, key);
+        if (logMetadata) {
+            // already applied, override instead
+            logMetadata.updateOption(options);
+            return;
+        }
+        const newMetadata = new LoggedMetadata(options);
+        const all = Reflect.getMetadataKeys(fn).map((k) => [
+            k,
+            Reflect.getMetadata(k, fn),
+        ]);
+        const scopedLoggerInjectableParam = Reflect.getOwnMetadata(reflected_1.scopedLogger, _target, key);
+        const returnsData = Reflect.getOwnMetadata(reflected_1.returns, fn);
+        const overrideFunction = overrideBuild('middleware', fn, logger, {
+            scopedLoggerInjectableParam,
+            loggedParams: [],
+        }, _target.constructor.name, returnsData, newMetadata);
+        _target[key] = overrideFunction;
+        descriptor.value = overrideFunction;
+        Reflect.defineMetadata(reflected_1.nestLoggedMetadata, newMetadata, _target, key);
+        all.forEach(([k, v]) => {
+            Reflect.defineMetadata(k, v, _target[key]);
+            Reflect.defineMetadata(k, v, descriptor.value);
+        });
+    };
+}
+exports.LoggedMiddleware = LoggedMiddleware;
