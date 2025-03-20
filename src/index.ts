@@ -16,3 +16,6 @@ export {
   Logged,
   Returns
 } from "./reflected";
+export {
+  getRequestLogger
+} from './utils'
