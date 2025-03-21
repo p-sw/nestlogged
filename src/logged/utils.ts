@@ -1,22 +1,22 @@
-import { Logger, LogLevel } from "@nestjs/common";
+import { Logger, LogLevel } from '@nestjs/common';
 
 export const RevRequestMethod = [
-  "GET",
-  "POST",
-  "PUT",
-  "DELETE",
-  "PATCH",
-  "ALL",
-  "OPTIONS",
-  "HEAD",
-  "SEARCH",
+  'GET',
+  'POST',
+  'PUT',
+  'DELETE',
+  'PATCH',
+  'ALL',
+  'OPTIONS',
+  'HEAD',
+  'SEARCH',
 ];
 
 export function loggerInit(_target: any) {
-  if (!Object.getOwnPropertyNames(_target).includes("logger")) {
+  if (!Object.getOwnPropertyNames(_target).includes('logger')) {
     const newTargetLogger = new Logger(_target.constructor.name);
-    newTargetLogger.log("Logger Initialized.");
-    Object.defineProperty(_target, "logger", {
+    newTargetLogger.log('Logger Initialized.');
+    Object.defineProperty(_target, 'logger', {
       writable: false,
       enumerable: false,
       configurable: false,
@@ -25,7 +25,12 @@ export function loggerInit(_target: any) {
   }
 }
 
-export type BuildType = 'route' | 'function' | 'guard' | 'interceptor' | 'middleware';
+export type BuildType =
+  | 'route'
+  | 'function'
+  | 'guard'
+  | 'interceptor'
+  | 'middleware';
 
 const callLogIdentifyMessageDictionary: Record<BuildType, string> = {
   route: 'ENDPOINT',
@@ -33,14 +38,24 @@ const callLogIdentifyMessageDictionary: Record<BuildType, string> = {
   guard: 'GUARD',
   interceptor: 'INTERCEPTOR',
   middleware: 'MIDDLEWARE',
-}
+};
 
-export function createCallLogIdentifyMessage(message: 'HIT' | 'RETURNED' | 'ERROR', type: BuildType, key?: string, route?: string) {
+export function createCallLogIdentifyMessage(
+  message: 'HIT' | 'RETURNED' | 'ERROR',
+  type: BuildType,
+  key?: string,
+  route?: string,
+) {
   if (message === 'ERROR')
     return `ERROR WHILE ${callLogIdentifyMessageDictionary[type]} ${key} (${route}): `;
 
-  if (type === 'guard' || type === 'interceptor' || type === 'middleware' || type === 'route')
-    return `${message} ${callLogIdentifyMessageDictionary[type]} ${key} (${route})`
+  if (
+    type === 'guard' ||
+    type === 'interceptor' ||
+    type === 'middleware' ||
+    type === 'route'
+  )
+    return `${message} ${callLogIdentifyMessageDictionary[type]} ${key} (${route})`;
   if (type === 'function')
     return `${message} ${callLogIdentifyMessageDictionary[type]} ${key}`;
 
@@ -68,4 +83,4 @@ export const defaultOverrideBuildOptions: OverrideBuildOptions = {
   skipCallLog: false,
   skipReturnLog: false,
   skipErrorLog: false,
-}
+};

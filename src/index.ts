@@ -5,8 +5,8 @@ export {
   LoggedInjectable,
   LoggedGuard,
   LoggedInterceptor,
-} from "./logged";
-export { ScopedLogger } from "./logger";
+} from './logged';
+export { ScopedLogger } from './logger';
 export {
   InjectLogger,
   LoggedParam,
@@ -14,8 +14,6 @@ export {
   LoggedBody,
   LoggedQuery,
   Logged,
-  Returns
-} from "./reflected";
-export {
-  getRequestLogger
-} from './utils'
+  Returns,
+} from './reflected';
+export { getRequestLogger } from './utils';

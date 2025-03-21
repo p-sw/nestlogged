@@ -1,14 +1,18 @@
-import { ExecutionContext, Logger } from "@nestjs/common";
-import { OverrideBuildOptions, loggerInit } from "../utils";
-import { LoggedMetadata, nestLoggedMetadata } from "../metadata";
-import { scopedLogger, returns, ReturnsReflectData } from "../../reflected";
-import { overrideBuild } from "../override";
+import { ExecutionContext, Logger } from '@nestjs/common';
+import { OverrideBuildOptions, loggerInit } from '../utils';
+import { LoggedMetadata, nestLoggedMetadata } from '../metadata';
+import { scopedLogger, returns, ReturnsReflectData } from '../../reflected';
+import { overrideBuild } from '../override';
 
-export function LoggedGuard<F extends Array<any>, R>(options?: Partial<OverrideBuildOptions>) {
+export function LoggedGuard<F extends Array<any>, R>(
+  options?: Partial<OverrideBuildOptions>,
+) {
   return (
     _target: any,
     key: string,
-    descriptor: TypedPropertyDescriptor<(context: ExecutionContext, ...args: F) => R>
+    descriptor: TypedPropertyDescriptor<
+      (context: ExecutionContext, ...args: F) => R
+    >,
   ) => {
     loggerInit(_target);
 
@@ -16,9 +20,9 @@ export function LoggedGuard<F extends Array<any>, R>(options?: Partial<OverrideB
 
     const fn = descriptor.value;
 
-    if (!fn || typeof fn!== "function") {
+    if (!fn || typeof fn !== 'function') {
       logger.warn(
-        `LoggedGuard decorator applied to non-function property: ${key}`
+        `LoggedGuard decorator applied to non-function property: ${key}`,
       );
       return;
     }
@@ -26,12 +30,12 @@ export function LoggedGuard<F extends Array<any>, R>(options?: Partial<OverrideB
     const logMetadata: LoggedMetadata | undefined = Reflect.getOwnMetadata(
       nestLoggedMetadata,
       _target,
-      key
-    )
+      key,
+    );
     if (logMetadata) {
       // already applied, override instead
-      logMetadata.updateOption(options)
-      return
+      logMetadata.updateOption(options);
+      return;
     }
     const newMetadata = new LoggedMetadata(options);
 
@@ -43,12 +47,12 @@ export function LoggedGuard<F extends Array<any>, R>(options?: Partial<OverrideB
     const scopedLoggerInjectableParam: number = Reflect.getOwnMetadata(
       scopedLogger,
       _target,
-      key
+      key,
     );
 
     const returnsData: ReturnsReflectData[] | true = Reflect.getOwnMetadata(
       returns,
-      fn
+      fn,
     );
 
     const overrideFunction = overrideBuild(
@@ -67,15 +71,10 @@ export function LoggedGuard<F extends Array<any>, R>(options?: Partial<OverrideB
     _target[key] = overrideFunction;
     descriptor.value = overrideFunction;
 
-    Reflect.defineMetadata(
-      nestLoggedMetadata,
-      newMetadata,
-      _target,
-      key
-    )
+    Reflect.defineMetadata(nestLoggedMetadata, newMetadata, _target, key);
     all.forEach(([k, v]) => {
       Reflect.defineMetadata(k, v, _target[key]);
       Reflect.defineMetadata(k, v, descriptor.value);
     });
-  }
+  };
 }

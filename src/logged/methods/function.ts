@@ -1,16 +1,22 @@
-import { Logger } from "@nestjs/common";
-import { OverrideBuildOptions, loggerInit } from "../utils";
-import { LoggedMetadata, nestLoggedMetadata } from "../metadata";
-import { loggedParam, scopedLogger, returns, ReturnsReflectData, LoggedParamReflectData } from "../../reflected";
-import { overrideBuild } from "../override";
+import { Logger } from '@nestjs/common';
+import { OverrideBuildOptions, loggerInit } from '../utils';
+import { LoggedMetadata, nestLoggedMetadata } from '../metadata';
+import {
+  loggedParam,
+  scopedLogger,
+  returns,
+  ReturnsReflectData,
+  LoggedParamReflectData,
+} from '../../reflected';
+import { overrideBuild } from '../override';
 
 export function LoggedFunction<F extends Array<any>, R>(
-  options?: Partial<OverrideBuildOptions>
+  options?: Partial<OverrideBuildOptions>,
 ) {
   return (
     _target: any,
     key: string,
-    descriptor: TypedPropertyDescriptor<(...args: F) => R | Promise<R>>
+    descriptor: TypedPropertyDescriptor<(...args: F) => R | Promise<R>>,
   ) => {
     loggerInit(_target);
 
@@ -18,9 +24,9 @@ export function LoggedFunction<F extends Array<any>, R>(
 
     const fn = descriptor.value;
 
-    if (!fn || typeof fn !== "function") {
+    if (!fn || typeof fn !== 'function') {
       logger.warn(
-        `LoggedFunction decorator applied to non-function property: ${key}`
+        `LoggedFunction decorator applied to non-function property: ${key}`,
       );
       return;
     }
@@ -28,12 +34,12 @@ export function LoggedFunction<F extends Array<any>, R>(
     const logMetadata: LoggedMetadata | undefined = Reflect.getOwnMetadata(
       nestLoggedMetadata,
       _target,
-      key
-    )
+      key,
+    );
     if (logMetadata) {
       // already applied, override instead
-      logMetadata.updateOption(options)
-      return
+      logMetadata.updateOption(options);
+      return;
     }
     const newMetadata = new LoggedMetadata(options);
 
@@ -45,18 +51,18 @@ export function LoggedFunction<F extends Array<any>, R>(
     const scopedLoggerInjectableParam: number = Reflect.getOwnMetadata(
       scopedLogger,
       _target,
-      key
+      key,
     );
 
     const loggedParams: LoggedParamReflectData[] = Reflect.getOwnMetadata(
       loggedParam,
       _target,
-      key
+      key,
     );
 
     const returnsData: ReturnsReflectData[] | true = Reflect.getOwnMetadata(
       returns,
-      fn
+      fn,
     );
 
     const overrideFunction = overrideBuild(
@@ -75,15 +81,10 @@ export function LoggedFunction<F extends Array<any>, R>(
     _target[key] = overrideFunction;
     descriptor.value = overrideFunction;
 
-    Reflect.defineMetadata(
-      nestLoggedMetadata,
-      newMetadata,
-      _target,
-      key
-    )
+    Reflect.defineMetadata(nestLoggedMetadata, newMetadata, _target, key);
     all.forEach(([k, v]) => {
       Reflect.defineMetadata(k, v, _target[key]);
       Reflect.defineMetadata(k, v, descriptor.value);
     });
-  }
+  };
 }

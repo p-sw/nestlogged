@@ -1,15 +1,24 @@
-import { RequestMethod } from "@nestjs/common";
-import { OverrideBuildOptions, loggerInit, RevRequestMethod } from "../utils";
-import { LoggedMetadata, nestLoggedMetadata } from "../metadata";
-import { loggedParam, scopedLogger, returns, ReturnsReflectData, LoggedParamReflectData } from "../../reflected";
-import { overrideBuild } from "../override";
-import { createRouteParamDecorator } from "../../internals/nest";
+import { RequestMethod } from '@nestjs/common';
+import { OverrideBuildOptions, loggerInit, RevRequestMethod } from '../utils';
+import { LoggedMetadata, nestLoggedMetadata } from '../metadata';
+import {
+  loggedParam,
+  scopedLogger,
+  returns,
+  ReturnsReflectData,
+  LoggedParamReflectData,
+} from '../../reflected';
+import { overrideBuild } from '../override';
+import { createRouteParamDecorator } from '../../internals/nest';
 
-export function LoggedRoute<F extends Array<any>, R>(route?: string, options?: Partial<OverrideBuildOptions>) {
+export function LoggedRoute<F extends Array<any>, R>(
+  route?: string,
+  options?: Partial<OverrideBuildOptions>,
+) {
   return (
     _target: any,
     key: string,
-    descriptor: TypedPropertyDescriptor<(...args: F) => R>
+    descriptor: TypedPropertyDescriptor<(...args: F) => R>,
   ) => {
     loggerInit(_target);
 
@@ -17,9 +26,9 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string, options?: P
 
     const fn = descriptor.value;
 
-    if (!fn || typeof fn !== "function") {
+    if (!fn || typeof fn !== 'function') {
       logger.warn(
-        `LoggedRoute decorator applied to non-function property: ${key}`
+        `LoggedRoute decorator applied to non-function property: ${key}`,
       );
       return;
     }
@@ -27,12 +36,12 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string, options?: P
     const logMetadata: LoggedMetadata | undefined = Reflect.getOwnMetadata(
       nestLoggedMetadata,
       _target,
-      key
-    )
+      key,
+    );
     if (logMetadata) {
       // already applied, override instead
-      logMetadata.updateOption(options)
-      return
+      logMetadata.updateOption(options);
+      return;
     }
     const newMetadata = new LoggedMetadata(options);
 
@@ -41,16 +50,17 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string, options?: P
       Reflect.getMetadata(k, fn),
     ]);
 
-    const httpPath: string = Reflect.getMetadata("path", fn);
-    const httpMethod: RequestMethod = Reflect.getMetadata("method", fn);
+    const httpPath: string = Reflect.getMetadata('path', fn);
+    const httpMethod: RequestMethod = Reflect.getMetadata('method', fn);
 
-    const fullRoute = `${_target.constructor.name}::${route ?? httpPath}[${RevRequestMethod[httpMethod]
-      }]`;
+    const fullRoute = `${_target.constructor.name}::${route ?? httpPath}[${
+      RevRequestMethod[httpMethod]
+    }]`;
 
     const scopedLoggerInjectableParam: number = Reflect.getOwnMetadata(
       scopedLogger,
       _target,
-      key
+      key,
     );
     // if @InjectLogger exists, fake nestjs as it is @Req()
     if (scopedLoggerInjectableParam !== undefined) {
@@ -60,12 +70,12 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string, options?: P
     const loggedParams: LoggedParamReflectData[] = Reflect.getOwnMetadata(
       loggedParam,
       _target,
-      key
+      key,
     );
 
     const returnsData: ReturnsReflectData[] | true = Reflect.getOwnMetadata(
       returns,
-      fn
+      fn,
     );
 
     const overrideFunction = overrideBuild(
@@ -85,12 +95,7 @@ export function LoggedRoute<F extends Array<any>, R>(route?: string, options?: P
     _target[key] = overrideFunction;
     descriptor.value = overrideFunction;
 
-    Reflect.defineMetadata(
-      nestLoggedMetadata,
-      newMetadata,
-      _target,
-      key
-    )
+    Reflect.defineMetadata(nestLoggedMetadata, newMetadata, _target, key);
     all.forEach(([k, v]) => {
       Reflect.defineMetadata(k, v, _target[key]);
       Reflect.defineMetadata(k, v, descriptor.value);

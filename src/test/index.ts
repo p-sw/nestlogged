@@ -1,10 +1,6 @@
-import { LoggedFunction, LoggedInjectable } from "../logged";
-import { ScopedLogger } from "../logger";
-import {
-  InjectLogger,
-  Logged,
-  Returns,
-} from "../reflected";
+import { LoggedFunction, LoggedInjectable } from '../logged';
+import { ScopedLogger } from '../logger';
+import { InjectLogger, Logged, Returns } from '../reflected';
 
 type TestObject = {
   a: string;
@@ -17,151 +13,149 @@ type TestObject = {
 class TestService {
   public async service(paramA: string, @InjectLogger logger: ScopedLogger) {
     logger.log(`received paramA ${paramA}`);
-    return paramA
+    return paramA;
   }
 }
 
 @LoggedInjectable()
 class LoggedClass {
-  constructor(
-    private service: TestService
-  ) { }
+  constructor(private service: TestService) {}
 
-  async testParameterLoggingWithoutInjection(@Logged("key") key: number) {
+  async testParameterLoggingWithoutInjection(@Logged('key') key: number) {
     console.log(key);
   }
 
   async testMultiParameterLoggingWithoutInjection(
-    @Logged("key") key: number,
-    @Logged("key2") key2: string
+    @Logged('key') key: number,
+    @Logged('key2') key2: string,
   ) {
     console.log(key, key2);
   }
 
   async testParameterLoggingWithInjection(
-    @Logged("key") key: number,
-    @InjectLogger logger?: ScopedLogger
+    @Logged('key') key: number,
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(key.toString());
   }
 
   async testMultiParameterLoggingWithInjection(
-    @Logged("key") key: number,
-    @Logged("key2") key2: string,
-    @InjectLogger logger?: ScopedLogger
+    @Logged('key') key: number,
+    @Logged('key2') key2: string,
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(key.toString() + key2);
   }
 
   async testObjectParameterLogging(
-    @Logged("key") key: TestObject,
-    @InjectLogger logger?: ScopedLogger
+    @Logged('key') key: TestObject,
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(JSON.stringify(key));
   }
 
   async testObjectParameterDotIncludeLogging(
-    @Logged("key", { includePath: ["a", "b.c", "d.0", "e"] })
+    @Logged('key', { includePath: ['a', 'b.c', 'd.0', 'e'] })
     key: TestObject,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(JSON.stringify(key));
   }
 
   async testObjectParameterArrayIncludeLogging(
-    @Logged("key", { includePath: [["a"], ["b", "c"], ["d", "0"], ["e"]] })
+    @Logged('key', { includePath: [['a'], ['b', 'c'], ['d', '0'], ['e']] })
     key: TestObject,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(JSON.stringify(key));
   }
 
   async testObjectParameterDotExcludeLogging(
-    @Logged("key", { excludePath: ["a", "b.c", "d.0", "e"] })
+    @Logged('key', { excludePath: ['a', 'b.c', 'd.0', 'e'] })
     key: TestObject,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(JSON.stringify(key));
   }
 
   async testObjectParameterArrayExcludeLogging(
-    @Logged("key", { excludePath: [["a"], ["b", "c"], ["d", "0"], ["e"]] })
+    @Logged('key', { excludePath: [['a'], ['b', 'c'], ['d', '0'], ['e']] })
     key: TestObject,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(JSON.stringify(key));
   }
 
-  @Returns({ result: "http.result", userId: "body.user.id" })
+  @Returns({ result: 'http.result', userId: 'body.user.id' })
   async testReturnLogging(
-    @Logged("userId")
+    @Logged('userId')
     userId: string,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(userId);
     return {
       http: {
-        result: "success",
+        result: 'success',
         code: 200,
       },
       body: {
         user: {
           id: userId,
-          name: "tester",
+          name: 'tester',
         },
-        secret: "supersecret",
+        secret: 'supersecret',
       },
     };
   }
 
-  @Returns({ result: "http.result", userId: "body.user.id" })
+  @Returns({ result: 'http.result', userId: 'body.user.id' })
   async testMissingReturnLogging(
-    @Logged("userId")
+    @Logged('userId')
     userId: string,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(userId);
     return {
       body: {
         user: {
           id: userId,
-          name: "tester",
+          name: 'tester',
         },
-        secret: "supersecret",
+        secret: 'supersecret',
       },
     };
   }
 
   @Returns()
   async testRawObjectReturnLogging(
-    @Logged("userId")
+    @Logged('userId')
     userId: string,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(userId);
     return {
       body: {
         user: {
           id: userId,
-          name: "tester",
+          name: 'tester',
         },
-        secret: "supersecret",
+        secret: 'supersecret',
       },
     };
   }
 
   @Returns()
   async testRawValueReturnLogging(
-    @Logged("userId")
+    @Logged('userId')
     userId: string,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(userId);
     return true;
   }
 
   async testLoggerRootLogging2(@InjectLogger logger?: ScopedLogger) {
-    logger.log("2");
+    logger.log('2');
   }
 
   async testLoggerRootLogging(@InjectLogger logger?: ScopedLogger) {
@@ -169,16 +163,16 @@ class LoggedClass {
   }
 
   testSyncLoggerRootLogging2(@InjectLogger logger?: ScopedLogger) {
-    logger.log('2')
-    return 2
+    logger.log('2');
+    return 2;
   }
 
   testSyncLoggerRootLogging(@InjectLogger logger?: ScopedLogger) {
-    logger.log(this.testSyncLoggerRootLogging2(logger).toString())
+    logger.log(this.testSyncLoggerRootLogging2(logger).toString());
   }
 
   testSyncLogging(@InjectLogger logger?: ScopedLogger) {
-    logger.log("synced yay");
+    logger.log('synced yay');
   }
 
   async testService(@InjectLogger logger?: ScopedLogger) {
@@ -187,128 +181,126 @@ class LoggedClass {
 
   @LoggedFunction({ skipCallLog: true, skipReturnLog: true })
   testOptionOverriding(@InjectLogger logger?: ScopedLogger) {
-    logger.log("testOptionOverriding");
+    logger.log('testOptionOverriding');
   }
 }
 
 class LoggedMethodsClass {
-  constructor(
-    private service: TestService
-  ) { }
+  constructor(private service: TestService) {}
 
   @LoggedFunction()
-  async testParameterLoggingWithoutInjection(@Logged("key") key: number) {
+  async testParameterLoggingWithoutInjection(@Logged('key') key: number) {
     console.log(key);
   }
 
   @LoggedFunction()
   async testMultiParameterLoggingWithoutInjection(
-    @Logged("key") key: number,
-    @Logged("key2") key2: string
+    @Logged('key') key: number,
+    @Logged('key2') key2: string,
   ) {
     console.log(key, key2);
   }
 
   @LoggedFunction()
   async testParameterLoggingWithInjection(
-    @Logged("key") key: number,
-    @InjectLogger logger?: ScopedLogger
+    @Logged('key') key: number,
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(key.toString());
   }
 
   @LoggedFunction()
   async testMultiParameterLoggingWithInjection(
-    @Logged("key") key: number,
-    @Logged("key2") key2: string,
-    @InjectLogger logger?: ScopedLogger
+    @Logged('key') key: number,
+    @Logged('key2') key2: string,
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(key.toString() + key2);
   }
 
   @LoggedFunction()
   async testObjectParameterLogging(
-    @Logged("key") key: TestObject,
-    @InjectLogger logger?: ScopedLogger
+    @Logged('key') key: TestObject,
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(JSON.stringify(key));
   }
 
   @LoggedFunction()
   async testObjectParameterDotIncludeLogging(
-    @Logged("key", { includePath: ["a", "b.c", "d.0", "e"] })
+    @Logged('key', { includePath: ['a', 'b.c', 'd.0', 'e'] })
     key: TestObject,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(JSON.stringify(key));
   }
 
   @LoggedFunction()
   async testObjectParameterArrayIncludeLogging(
-    @Logged("key", { includePath: [["a"], ["b", "c"], ["d", "0"], ["e"]] })
+    @Logged('key', { includePath: [['a'], ['b', 'c'], ['d', '0'], ['e']] })
     key: TestObject,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(JSON.stringify(key));
   }
 
   @LoggedFunction()
   async testObjectParameterDotExcludeLogging(
-    @Logged("key", { excludePath: ["a", "b.c", "d.0", "e"] })
+    @Logged('key', { excludePath: ['a', 'b.c', 'd.0', 'e'] })
     key: TestObject,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(JSON.stringify(key));
   }
 
   @LoggedFunction()
   async testObjectParameterArrayExcludeLogging(
-    @Logged("key", { excludePath: [["a"], ["b", "c"], ["d", "0"], ["e"]] })
+    @Logged('key', { excludePath: [['a'], ['b', 'c'], ['d', '0'], ['e']] })
     key: TestObject,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(JSON.stringify(key));
   }
 
   @LoggedFunction()
-  @Returns({ result: "http.result", userId: "body.user.id" })
+  @Returns({ result: 'http.result', userId: 'body.user.id' })
   async testReturnLogging(
-    @Logged("userId")
+    @Logged('userId')
     userId: string,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(userId);
 
     return {
       http: {
-        result: "success",
+        result: 'success',
         code: 200,
       },
       body: {
         user: {
           id: userId,
-          name: "tester",
+          name: 'tester',
         },
-        secret: "supersecret",
+        secret: 'supersecret',
       },
     };
   }
 
   @LoggedFunction()
-  @Returns({ result: "http.result", userId: "body.user.id" })
+  @Returns({ result: 'http.result', userId: 'body.user.id' })
   async testMissingReturnLogging(
-    @Logged("userId")
+    @Logged('userId')
     userId: string,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(userId);
     return {
       body: {
         user: {
           id: userId,
-          name: "tester",
+          name: 'tester',
         },
-        secret: "supersecret",
+        secret: 'supersecret',
       },
     };
   }
@@ -316,18 +308,18 @@ class LoggedMethodsClass {
   @LoggedFunction()
   @Returns()
   async testRawObjectReturnLogging(
-    @Logged("userId")
+    @Logged('userId')
     userId: string,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(userId);
     return {
       body: {
         user: {
           id: userId,
-          name: "tester",
+          name: 'tester',
         },
-        secret: "supersecret",
+        secret: 'supersecret',
       },
     };
   }
@@ -335,9 +327,9 @@ class LoggedMethodsClass {
   @LoggedFunction()
   @Returns()
   async testRawValueReturnLogging(
-    @Logged("userId")
+    @Logged('userId')
     userId: string,
-    @InjectLogger logger?: ScopedLogger
+    @InjectLogger logger?: ScopedLogger,
   ) {
     logger.log(userId);
     return true;
@@ -345,7 +337,7 @@ class LoggedMethodsClass {
 
   @LoggedFunction()
   async testLoggerRootLogging2(@InjectLogger logger?: ScopedLogger) {
-    logger.log("2");
+    logger.log('2');
   }
 
   @LoggedFunction()
@@ -355,18 +347,18 @@ class LoggedMethodsClass {
 
   @LoggedFunction()
   testSyncLoggerRootLogging2(@InjectLogger logger?: ScopedLogger) {
-    logger.log('2')
-    return 2
+    logger.log('2');
+    return 2;
   }
 
   @LoggedFunction()
   testSyncLoggerRootLogging(@InjectLogger logger?: ScopedLogger) {
-    logger.log(this.testSyncLoggerRootLogging2(logger).toString())
+    logger.log(this.testSyncLoggerRootLogging2(logger).toString());
   }
 
   @LoggedFunction()
   testSyncLogging(@InjectLogger logger?: ScopedLogger) {
-    logger.log("synced yay");
+    logger.log('synced yay');
   }
 
   @LoggedFunction()
@@ -374,8 +366,6 @@ class LoggedMethodsClass {
     this.service.service('A', logger);
   }
 }
-
-
 
 // const service = new TestService();
 

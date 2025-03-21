@@ -1,9 +1,13 @@
-import { Logger, ExecutionContext } from "@nestjs/common";
-import { LoggedParamReflectData, ReturnsReflectData } from "../reflected";
+import { Logger, ExecutionContext } from '@nestjs/common';
+import { LoggedParamReflectData, ReturnsReflectData } from '../reflected';
 import { LoggedMetadata } from './metadata';
-import { BuildType, REQUEST_LOG_ID, createCallLogIdentifyMessage } from "./utils";
-import { objectContainedLogSync, getItemByPathSync } from "../internals/utils";
-import { ScopedLogger } from "../logger";
+import {
+  BuildType,
+  REQUEST_LOG_ID,
+  createCallLogIdentifyMessage,
+} from './utils';
+import { objectContainedLogSync, getItemByPathSync } from '../internals/utils';
+import { ScopedLogger } from '../logger';
 
 interface FunctionMetadata {
   scopedLoggerInjectableParam?: number;
@@ -42,43 +46,64 @@ export function overrideBuild<F extends Array<any>, R>(
   return function (...args: F): R {
     // Creating ScopedLogger
     let injectedLogger: Logger = baseLogger;
-    if (typeof metadatas.scopedLoggerInjectableParam !== "undefined") {
+    if (typeof metadatas.scopedLoggerInjectableParam !== 'undefined') {
       if (type === 'function') {
         if (
           args.length <= metadatas.scopedLoggerInjectableParam ||
           !(args[metadatas.scopedLoggerInjectableParam] instanceof ScopedLogger)
         ) {
-          args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(baseLogger, key);
+          args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(
+            baseLogger,
+            key,
+          );
         } else {
-          args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromSuper(baseLogger, args[metadatas.scopedLoggerInjectableParam], key);
+          args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromSuper(
+            baseLogger,
+            args[metadatas.scopedLoggerInjectableParam],
+            key,
+          );
         }
       } else {
         // special, can access to request object
         if (type === 'guard' || type === 'interceptor') {
           // args[0] == ExecutionContext
-          const ctx = (args[0] as ExecutionContext);
+          const ctx = args[0] as ExecutionContext;
           if (ctx.getType() !== 'http') {
-            injectedLogger.error('Cannot inject logger: Request type is not http');
+            injectedLogger.error(
+              'Cannot inject logger: Request type is not http',
+            );
           } else {
             let req = ctx.switchToHttp().getRequest();
             if (req[REQUEST_LOG_ID] === undefined) {
               req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
             }
-            args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
+            args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(
+              baseLogger,
+              key,
+              req[REQUEST_LOG_ID],
+            );
           }
         } else if (type === 'middleware') {
           let req = args[0];
           if (req[REQUEST_LOG_ID] === undefined) {
             req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
           }
-          args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
+          args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(
+            baseLogger,
+            key,
+            req[REQUEST_LOG_ID],
+          );
         } else if (type === 'route') {
           // args[metadatas.scopedLoggerInjectableParam] is now Request object, thanks to code in @LoggedRoute!!!!
           let req = args[metadatas.scopedLoggerInjectableParam];
           if (req[REQUEST_LOG_ID] === undefined) {
             req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
           }
-          args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(baseLogger, key, req[REQUEST_LOG_ID]);
+          args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(
+            baseLogger,
+            key,
+            req[REQUEST_LOG_ID],
+          );
         }
       }
 
@@ -96,24 +121,30 @@ export function overrideBuild<F extends Array<any>, R>(
 
     // Start Log
     if (logged.options.callLogLevel !== 'skip') {
-      const callLogIdentifyMessage = 
-        type === 'middleware' || type === 'guard' || type === 'interceptor' || type === 'route'
+      const callLogIdentifyMessage =
+        type === 'middleware' ||
+        type === 'guard' ||
+        type === 'interceptor' ||
+        type === 'route'
           ? createCallLogIdentifyMessage('HIT', type, key, route)
           : createCallLogIdentifyMessage('HIT', type, key);
       injectedLogger[logged.options.callLogLevel](
-        `${callLogIdentifyMessage} ${metadatas.loggedParams && metadatas.loggedParams.length > 0
-          ? "WITH " +
-          metadatas.loggedParams.map(
-            ({ name, index, include, exclude }) =>
-              name +
-              "=" +
-              objectContainedLogSync(args[index], {
-                include,
-                exclude,
-              })
-          ).join(", ")
-          : ""
-        }`
+        `${callLogIdentifyMessage} ${
+          metadatas.loggedParams && metadatas.loggedParams.length > 0
+            ? 'WITH ' +
+              metadatas.loggedParams
+                .map(
+                  ({ name, index, include, exclude }) =>
+                    name +
+                    '=' +
+                    objectContainedLogSync(args[index], {
+                      include,
+                      exclude,
+                    }),
+                )
+                .join(', ')
+            : ''
+        }`,
       );
     }
 
@@ -128,48 +159,58 @@ export function overrideBuild<F extends Array<any>, R>(
         ) {
           return r['then']((r: any) => {
             const resultLogged = Array.isArray(returnsData)
-              ? typeof r === "object" && r !== null
-                ? "WITH " +
-                returnsData.map(({ name, path }) => {
-                  const value = getItemByPathSync(r, path);
+              ? typeof r === 'object' && r !== null
+                ? 'WITH ' +
+                  returnsData
+                    .map(({ name, path }) => {
+                      const value = getItemByPathSync(r, path);
 
-                  return value !== undefined ? `${name}=${value}` : "";
-                })
-                  .filter((v) => v.length > 0)
-                  .join(", ")
-                : ""
+                      return value !== undefined ? `${name}=${value}` : '';
+                    })
+                    .filter((v) => v.length > 0)
+                    .join(', ')
+                : ''
               : typeof returnsData === 'string'
-                ? "WITH " + returnsData + "=" + typeof r === "object" ? JSON.stringify(r) : r
+                ? 'WITH ' + returnsData + '=' + typeof r === 'object'
+                  ? JSON.stringify(r)
+                  : r
                 : returnsData
-                  ? typeof r === "object"
-                    ? "WITH " + JSON.stringify(r)
-                    : "WITH " + r
-                  : "";
+                  ? typeof r === 'object'
+                    ? 'WITH ' + JSON.stringify(r)
+                    : 'WITH ' + r
+                  : '';
 
-            injectedLogger[logged.options.returnLogLevel](`${createCallLogIdentifyMessage('RETURNED', type, key, route)} ${resultLogged}`);
+            injectedLogger[logged.options.returnLogLevel](
+              `${createCallLogIdentifyMessage('RETURNED', type, key, route)} ${resultLogged}`,
+            );
             return r;
-          })
+          });
         } else {
           const resultLogged = Array.isArray(returnsData)
-            ? typeof r === "object" && r !== null
-              ? "WITH " +
-              returnsData.map(({ name, path }) => {
-                const value = getItemByPathSync(r, path);
+            ? typeof r === 'object' && r !== null
+              ? 'WITH ' +
+                returnsData
+                  .map(({ name, path }) => {
+                    const value = getItemByPathSync(r, path);
 
-                return value !== undefined ? `${name}=${value}` : "";
-              })
-                .filter((v) => v.length > 0)
-                .join(", ")
-              : ""
+                    return value !== undefined ? `${name}=${value}` : '';
+                  })
+                  .filter((v) => v.length > 0)
+                  .join(', ')
+              : ''
             : typeof returnsData === 'string'
-              ? "WITH " + returnsData + "=" + typeof r === "object" ? JSON.stringify(r) : r
+              ? 'WITH ' + returnsData + '=' + typeof r === 'object'
+                ? JSON.stringify(r)
+                : r
               : returnsData
-                ? typeof r === "object"
-                  ? "WITH " + JSON.stringify(r)
-                  : "WITH " + r
-                : "";
+                ? typeof r === 'object'
+                  ? 'WITH ' + JSON.stringify(r)
+                  : 'WITH ' + r
+                : '';
 
-          injectedLogger[logged.options.returnLogLevel](`${createCallLogIdentifyMessage('RETURNED', type, key, route)} ${resultLogged}`);
+          injectedLogger[logged.options.returnLogLevel](
+            `${createCallLogIdentifyMessage('RETURNED', type, key, route)} ${resultLogged}`,
+          );
           return r;
         }
       } else {
@@ -178,9 +219,11 @@ export function overrideBuild<F extends Array<any>, R>(
     } catch (e) {
       // Error Log
       if (logged.options.errorLogLevel !== 'skip') {
-        injectedLogger[logged.options.errorLogLevel](`${createCallLogIdentifyMessage('ERROR', type, key, route)} ${e}`);
+        injectedLogger[logged.options.errorLogLevel](
+          `${createCallLogIdentifyMessage('ERROR', type, key, route)} ${e}`,
+        );
       }
       throw e;
     }
-  }
+  };
 }

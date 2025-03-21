@@ -1,2 +1,2 @@
-export * from "./methods";
-export { LoggedController, LoggedInjectable } from "./class"
+export * from './methods';
+export { LoggedController, LoggedInjectable } from './class';
