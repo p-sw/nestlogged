@@ -15,9 +15,9 @@ import {
   nestLoggedMetadata,
   loggedParam,
   scopedLogger,
-  createRouteParamDecorator
 } from "./reflected";
 import { imObjectContainedLogSync, getItemByPathSync } from "./internals/utils";
+import { createRouteParamDecorator } from "./internals/nest";
 import { RequestMethod } from "@nestjs/common";
 
 const RevRequestMethod = [
