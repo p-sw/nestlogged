@@ -16,7 +16,7 @@ import {
   loggedParam,
   scopedLogger,
 } from "./reflected";
-import { imObjectContainedLogSync, getItemByPathSync } from "./internals/utils";
+import { objectContainedLogSync, getItemByPathSync } from "./internals/utils";
 import { createRouteParamDecorator } from "./internals/nest";
 import { RequestMethod } from "@nestjs/common";
 
@@ -283,7 +283,7 @@ function overrideBuild<F extends Array<any>, R>(
             ({ name, index, include, exclude }) =>
               name +
               "=" +
-              imObjectContainedLogSync(args[index], {
+              objectContainedLogSync(args[index], {
                 include,
                 exclude,
               })

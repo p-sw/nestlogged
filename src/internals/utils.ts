@@ -58,7 +58,7 @@ export function excludeObjectSync(
   return copied
 }
 
-export function imObjectContainedLogSync(
+export function objectContainedLogSync(
   ocv: any,
   options?: {
     include?: string[];
