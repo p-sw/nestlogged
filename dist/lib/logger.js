@@ -10,26 +10,24 @@ class ScopedLogger extends common_1.Logger {
         this.logger = logger;
         this.scope = scope;
         this.scopeId = scopeId;
-        this.debug = this.scopedLog("debug");
-        this.log = this.scopedLog("log");
-        this.warn = this.scopedLog("warn");
-        this.verbose = this.scopedLog("verbose");
-        this.error = this.scopedLog("error");
-        this.fatal = this.scopedLog("fatal");
+        this.debug = this.scopedLog('debug');
+        this.log = this.scopedLog('log');
+        this.warn = this.scopedLog('warn');
+        this.verbose = this.scopedLog('verbose');
+        this.error = this.scopedLog('error');
+        this.fatal = this.scopedLog('fatal');
     }
     scopedLog(method) {
         return (message) => {
-            this.logger[method](`${this.scopeId ? `(ID ${this.scopeId}) | ` : ""}${this.scope.join(" -> ")}: ${message}`);
+            this.logger[method](`${this.scopeId ? `(ID ${this.scopeId}) | ` : ''}${this.scope.join(' -> ')}: ${message}`);
         };
     }
     static fromSuper(baseLogger, logger, scope) {
         return new ScopedLogger(baseLogger, [...logger.scope, scope], logger.scopeId);
     }
-    ;
     static fromRoot(logger, scope, scopeId) {
         return new ScopedLogger(logger, [scope], scopeId);
     }
-    ;
     static createScopeId() {
         return createId();
     }

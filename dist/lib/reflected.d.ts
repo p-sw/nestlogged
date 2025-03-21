@@ -1,6 +1,4 @@
-import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum';
-import { ParamData, PipeTransform, Type } from "@nestjs/common";
-export declare function createRouteParamDecorator(paramtype: RouteParamtypes): (data?: ParamData) => ParameterDecorator;
+import { Type, PipeTransform } from './internals/nest';
 export type Path = string | string[];
 export type Paths = Path[];
 export interface IncludeExcludePath {
@@ -26,7 +24,6 @@ export interface ReturnsReflectData {
 export declare const scopedLogger: unique symbol;
 export declare const loggedParam: unique symbol;
 export declare const returns: unique symbol;
-export declare const nestLoggedMetadata: unique symbol;
 export declare function InjectLogger(target: any, propertyKey: string | symbol, parameterIndex: number): void;
 type ParameterDecoratorType = (target: any, propertyKey: string | symbol, parameterIndex: number) => void;
 type LoggedParamReturns = (name: string, options?: IncludeExcludePath) => ParameterDecoratorType;

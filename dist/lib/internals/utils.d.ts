@@ -5,12 +5,7 @@ export declare function includeObjectSync(ocv: any, opt: {
 export declare function excludeObjectSync(ocv: any, opt: {
     paths: string[];
 }): any;
-export declare function includeOrExcludeObjectSync(ocv: any, paths: string[], currentPath: string[], include: boolean): any;
-export declare function objectContainedLoggedSync(ocv: any, options?: {
-    include?: string[];
-    exclude: string[];
-}): string;
-export declare function imObjectContainedLogSync(ocv: any, options?: {
+export declare function objectContainedLogSync(ocv: any, options?: {
     include?: string[];
     exclude?: string[];
 }): string;
