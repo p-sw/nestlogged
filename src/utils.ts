@@ -1,6 +1,6 @@
 import { Logger } from "@nestjs/common";
 import { ScopedLogger } from "./logger";
-import { REQUEST_LOG_ID } from "./logged";
+import { REQUEST_LOG_ID } from "./logged/utils";
 
 const logger = new Logger();
 
