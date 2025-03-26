@@ -1,5 +1,5 @@
 import { RequestMethod } from '@nestjs/common';
-import { OverrideBuildOptions, loggerInit, RevRequestMethod } from 'nestlogged/lib/logged/utils';
+import { OverrideBuildOptions, RevRequestMethod } from 'nestlogged/lib/logged/utils';
 import { LoggedMetadata, nestLoggedMetadata } from 'nestlogged/lib/logged/metadata';
 import {
   loggedParam,
@@ -20,14 +20,10 @@ export function LoggedRoute<F extends Array<any>, R>(
     key: string,
     descriptor: TypedPropertyDescriptor<(...args: F) => R>,
   ) => {
-    loggerInit(_target);
-
-    const logger = _target.logger;
-
     const fn = descriptor.value;
 
     if (!fn || typeof fn !== 'function') {
-      logger.warn(
+      console.warn(
         `LoggedRoute decorator applied to non-function property: ${key}`,
       );
       return;
@@ -81,7 +77,7 @@ export function LoggedRoute<F extends Array<any>, R>(
     const overrideFunction = overrideBuild(
       'route',
       fn,
-      logger,
+      _target,
       {
         scopedLoggerInjectableParam,
         loggedParams,

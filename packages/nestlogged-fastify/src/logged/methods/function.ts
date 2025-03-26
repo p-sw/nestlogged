@@ -1,5 +1,4 @@
-import { Logger } from '@nestjs/common';
-import { OverrideBuildOptions, loggerInit } from 'nestlogged/lib/logged/utils';
+import { OverrideBuildOptions } from 'nestlogged/lib/logged/utils';
 import { LoggedMetadata, nestLoggedMetadata } from 'nestlogged/lib/logged/metadata';
 import {
   loggedParam,
@@ -18,14 +17,10 @@ export function LoggedFunction<F extends Array<any>, R>(
     key: string,
     descriptor: TypedPropertyDescriptor<(...args: F) => R | Promise<R>>,
   ) => {
-    loggerInit(_target);
-
-    const logger: Logger = _target.logger;
-
     const fn = descriptor.value;
 
     if (!fn || typeof fn !== 'function') {
-      logger.warn(
+      console.warn(
         `LoggedFunction decorator applied to non-function property: ${key}`,
       );
       return;
@@ -68,7 +63,7 @@ export function LoggedFunction<F extends Array<any>, R>(
     const overrideFunction = overrideBuild(
       'function',
       fn,
-      logger,
+      _target,
       {
         scopedLoggerInjectableParam,
         loggedParams,

@@ -1,5 +1,5 @@
-import { ExecutionContext, Logger } from '@nestjs/common';
-import { OverrideBuildOptions, loggerInit } from 'nestlogged/lib/logged/utils';
+import { ExecutionContext } from '@nestjs/common';
+import { OverrideBuildOptions } from 'nestlogged/lib/logged/utils';
 import { LoggedMetadata, nestLoggedMetadata } from 'nestlogged/lib/logged/metadata';
 import { scopedLogger, returns, ReturnsReflectData } from 'nestlogged/lib/reflected';
 import { overrideBuild } from '../override';
@@ -14,14 +14,10 @@ export function LoggedGuard<F extends Array<any>, R>(
       (context: ExecutionContext, ...args: F) => R
     >,
   ) => {
-    loggerInit(_target);
-
-    const logger: Logger = _target.logger;
-
     const fn = descriptor.value;
 
     if (!fn || typeof fn !== 'function') {
-      logger.warn(
+      console.warn(
         `LoggedGuard decorator applied to non-function property: ${key}`,
       );
       return;
@@ -58,7 +54,7 @@ export function LoggedGuard<F extends Array<any>, R>(
     const overrideFunction = overrideBuild(
       'guard',
       fn,
-      logger,
+      _target,
       {
         scopedLoggerInjectableParam,
         loggedParams: [],

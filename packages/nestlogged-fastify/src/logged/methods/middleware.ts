@@ -1,6 +1,4 @@
 import { OverrideBuildOptions } from 'nestlogged/lib/logged/utils';
-import { Logger } from '@nestjs/common';
-import { loggerInit } from 'nestlogged/lib/logged/utils';
 import { LoggedMetadata, nestLoggedMetadata } from 'nestlogged/lib/logged/metadata';
 import { scopedLogger, returns, ReturnsReflectData } from 'nestlogged/lib/reflected';
 import { overrideBuild } from '../override';
@@ -15,14 +13,10 @@ export function LoggedMiddleware<F extends Array<any>, R>(
       (...args: F) => R
     >,
   ) => {
-    loggerInit(_target);
-
-    const logger: Logger = _target.logger;
-
     const fn = descriptor.value;
 
     if (!fn || typeof fn !== 'function') {
-      logger.warn(
+      console.warn(
         `LoggedMiddleware decorator applied to non-function property: ${key}`,
       );
       return;
@@ -59,7 +53,7 @@ export function LoggedMiddleware<F extends Array<any>, R>(
     const overrideFunction = overrideBuild(
       'middleware',
       fn,
-      logger,
+      _target,
       {
         scopedLoggerInjectableParam,
         loggedParams: [],
