@@ -4,15 +4,13 @@ import {
   ControllerOptions,
   ScopeOptions,
 } from '@nestjs/common';
-import { loggerInit, RevRequestMethod } from './utils';
+import { RevRequestMethod } from './utils';
 import { LoggedRoute, LoggedFunction } from './methods';
 
 export function LoggedInjectable(
   options?: ScopeOptions & { verbose?: boolean },
 ) {
   return (target: any) => {
-    loggerInit(target.prototype);
-
     const logger = target.prototype.logger;
 
     const methods = Object.getOwnPropertyNames(target.prototype);
@@ -44,8 +42,6 @@ export function LoggedController(
 
 export function LoggedController(param?: any): (target: any) => void {
   return (target: any) => {
-    loggerInit(target.prototype);
-
     const logger = target.prototype.logger;
 
     const methods = Object.getOwnPropertyNames(target.prototype);

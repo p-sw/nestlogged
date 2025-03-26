@@ -1,6 +1,5 @@
 import { OverrideBuildOptions } from '../utils';
 import { ExecutionContext, Logger } from '@nestjs/common';
-import { loggerInit } from '../utils';
 import { LoggedMetadata, nestLoggedMetadata } from '../metadata';
 import { scopedLogger, returns, ReturnsReflectData } from '../../reflected';
 import { overrideBuild } from '../override';
@@ -15,14 +14,10 @@ export function LoggedInterceptor<F extends Array<any>, R>(
       (context: ExecutionContext, ...args: F) => R
     >,
   ) => {
-    loggerInit(_target);
-
-    const logger: Logger = _target.logger;
-
     const fn = descriptor.value;
 
     if (!fn || typeof fn !== 'function') {
-      logger.warn(
+      console.warn(
         `LoggedInterceptor decorator applied to non-function property: ${key}`,
       );
       return;
@@ -59,7 +54,7 @@ export function LoggedInterceptor<F extends Array<any>, R>(
     const overrideFunction = overrideBuild(
       'interceptor',
       fn,
-      logger,
+      _target,
       {
         scopedLoggerInjectableParam,
         loggedParams: [],

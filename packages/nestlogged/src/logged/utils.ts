@@ -23,6 +23,8 @@ export function loggerInit(_target: any) {
       value: newTargetLogger,
     });
   }
+
+  return _target.logger as Logger;
 }
 
 export type BuildType =

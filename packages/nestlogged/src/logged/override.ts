@@ -5,6 +5,7 @@ import {
   BuildType,
   REQUEST_LOG_ID,
   createCallLogIdentifyMessage,
+  loggerInit,
 } from './utils';
 import { objectContainedLogSync, getItemByPathSync } from '../internals/utils';
 import { ScopedLogger } from '../logger';
@@ -17,7 +18,7 @@ interface FunctionMetadata {
 export function overrideBuild<F extends Array<any>, R>(
   type: 'route',
   originalFunction: (...args: F) => R,
-  baseLogger: Logger,
+  _target: any,
   metadatas: FunctionMetadata,
   key: string,
   returnsData: ReturnsReflectData[] | string | true,
@@ -27,7 +28,7 @@ export function overrideBuild<F extends Array<any>, R>(
 export function overrideBuild<F extends Array<any>, R>(
   type: 'function' | 'guard' | 'interceptor' | 'middleware',
   originalFunction: (...args: F) => R,
-  baseLogger: Logger,
+  _target: any,
   metadatas: FunctionMetadata,
   key: string,
   returnsData: ReturnsReflectData[] | string | true,
@@ -36,7 +37,7 @@ export function overrideBuild<F extends Array<any>, R>(
 export function overrideBuild<F extends Array<any>, R>(
   type: BuildType,
   originalFunction: (...args: F) => R,
-  baseLogger: Logger,
+  _target: any,
   metadatas: FunctionMetadata,
   key: string,
   returnsData: ReturnsReflectData[] | string | true,
@@ -44,6 +45,8 @@ export function overrideBuild<F extends Array<any>, R>(
   route?: string,
 ): (...args: F) => R {
   return function (...args: F): R {
+    const baseLogger: Logger = loggerInit(_target);
+
     // Creating ScopedLogger
     let injectedLogger: Logger = baseLogger;
     if (typeof metadatas.scopedLoggerInjectableParam !== 'undefined') {
