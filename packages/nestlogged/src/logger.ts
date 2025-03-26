@@ -36,7 +36,7 @@ export class ScopedLogger extends Logger {
   static fromSuper(
     baseLogger: Logger,
     logger: ScopedLogger,
-    scope: string,
+    scope: string | string[],
   ): ScopedLogger {
     return new ScopedLogger(
       baseLogger,
@@ -46,7 +46,7 @@ export class ScopedLogger extends Logger {
   }
   static fromRoot(
     logger: Logger,
-    scope: string,
+    scope: string | string[],
     scopeId?: string,
   ): ScopedLogger {
     return new ScopedLogger(logger, [scope], scopeId);
