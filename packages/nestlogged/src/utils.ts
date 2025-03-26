@@ -100,5 +100,5 @@ export const yellow = colorIfAllowed(
 );
 
 export function formatScope(scopes: (string | string[])[]): string {
-  return scopes.map((v) => typeof v === 'string' ? v : v.join('.')).join(' -> ') + ' ';
+  return scopes.map((v) => typeof v === 'string' ? v : v.join('.')).join(' -> ') + ': ';
 }
