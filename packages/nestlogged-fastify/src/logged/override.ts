@@ -45,6 +45,8 @@ export function overrideBuild<F extends Array<any>, R>(
   logged: LoggedMetadata,
   route?: string,
 ): (...args: F) => R {
+  const name = _target.name ?? _target.constructor.name;
+
   return function (...args: F): R {
     const baseLogger: Logger = loggerInit(_target);
 
@@ -58,13 +60,13 @@ export function overrideBuild<F extends Array<any>, R>(
         ) {
           args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(
             baseLogger,
-            key,
+            [name, key],
           );
         } else {
           args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromSuper(
             baseLogger,
             args[metadatas.scopedLoggerInjectableParam],
-            key,
+            [name, key],
           );
         }
       } else {
@@ -83,7 +85,7 @@ export function overrideBuild<F extends Array<any>, R>(
             }
             args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(
               baseLogger,
-              key,
+              [name, key],
               req[REQUEST_LOG_ID],
             );
           }
@@ -94,7 +96,7 @@ export function overrideBuild<F extends Array<any>, R>(
           }
           args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(
             baseLogger,
-            key,
+            [name, key],
             req[REQUEST_LOG_ID],
           );
         } else if (type === 'route') {
@@ -105,7 +107,7 @@ export function overrideBuild<F extends Array<any>, R>(
           }
           args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(
             baseLogger,
-            key,
+            [name, key],
             req[REQUEST_LOG_ID],
           );
         }
@@ -133,8 +135,8 @@ export function overrideBuild<F extends Array<any>, R>(
         type === 'guard' ||
         type === 'interceptor' ||
         type === 'route'
-          ? createCallLogIdentifyMessage('HIT', type, key, route)
-          : createCallLogIdentifyMessage('HIT', type, key);
+          ? createCallLogIdentifyMessage('HIT', type, `${name}.${key}`, route)
+          : createCallLogIdentifyMessage('HIT', type, `${name}.${key}`);
       injectedLogger[logged.options.callLogLevel](
         `${callLogIdentifyMessage} ${
           metadatas.loggedParams && metadatas.loggedParams.length > 0
@@ -188,7 +190,7 @@ export function overrideBuild<F extends Array<any>, R>(
                   : '';
 
             injectedLogger[logged.options.returnLogLevel](
-              `${createCallLogIdentifyMessage('RETURNED', type, key, route)} ${resultLogged}`,
+              `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
             );
             return r;
           });
@@ -216,7 +218,7 @@ export function overrideBuild<F extends Array<any>, R>(
                 : '';
 
           injectedLogger[logged.options.returnLogLevel](
-            `${createCallLogIdentifyMessage('RETURNED', type, key, route)} ${resultLogged}`,
+            `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
           );
           return r;
         }
@@ -227,7 +229,7 @@ export function overrideBuild<F extends Array<any>, R>(
       // Error Log
       if (logged.options.errorLogLevel !== 'skip') {
         injectedLogger[logged.options.errorLogLevel](
-          `${createCallLogIdentifyMessage('ERROR', type, key, route)} ${e}`,
+          `${createCallLogIdentifyMessage('ERROR', type, `${name}.${key}`, route)} ${e}`,
         );
       }
       throw e;
