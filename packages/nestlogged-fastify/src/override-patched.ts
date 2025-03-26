@@ -116,8 +116,11 @@ export function overrideBuild<F extends Array<any>, R>(
       const context = args[0] as ExecutionContext;
       if (context.getType() === 'http') {
         const req = context.switchToHttp().getRequest();
-        route = /* supporting FastifyRequest */ req.raw ? req.raw.url : req.url;
+        route = req.raw.url;
       }
+    } else if (type === 'middleware') {
+      const req = args[0];
+      route = req.originalUrl;
     }
 
     // Start Log
