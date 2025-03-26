@@ -7,7 +7,7 @@ export {
   LoggedInterceptor,
   LoggedMiddleware,
 } from './logged';
-export { ScopedLogger } from './logger';
+export { ScopedLogger, ConsoleLogger, ConsoleLoggerOptions } from './logger';
 export {
   InjectLogger,
   LoggedParam,
