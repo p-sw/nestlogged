@@ -1,6 +1,6 @@
 {
   "name": "nestlogged-fastify",
-  "version": "3.2.5",
+  "version": "3.3.0",
   "description": "A NestJS Logger Decorator Library With Fastify Support",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -11,7 +11,7 @@
     "@nestjs/common": "^11.0.12",
     "fastify": "^5.2.2",
     "hyperid": "^3.1.1",
-    "nestlogged": "^3.2.5",
+    "nestlogged": "^3.3.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1"
   },
