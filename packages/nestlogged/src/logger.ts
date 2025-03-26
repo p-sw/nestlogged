@@ -386,7 +386,7 @@ export class ConsoleLogger implements LoggerService {
     if (!scopeInfo) return ['', ''];
     const scopeId = scopeInfo[NestloggedScopeId];
     const formattedScope = formatScope(scopeInfo[NestloggedScope]);
-    return this.options.colors ? [`ID=[${clc.cyanBright(scopeId)}] | `, formattedScope] : [`ID=[${scopeId}] | `, formattedScope]
+    return this.options.colors ? [`ID=[${clc.cyanBright(scopeId)}] | `, clc.cyanBright(formattedScope)] : [`ID=[${scopeId}] | `, formattedScope]
   }
 
   protected printAsJson(
@@ -462,9 +462,7 @@ export class ConsoleLogger implements LoggerService {
     const output = this.stringifyMessage(message, logLevel);
     pidMessage = this.colorize(pidMessage, logLevel);
     formattedLogLevel = this.colorize(formattedLogLevel, logLevel);
-    let colorizedScope = '';
-    if (formattedScopeInfo[1]) colorizedScope = this.colorize(formattedScopeInfo[1], logLevel);
-    return `${pidMessage}${this.getTimestamp()} ${formattedLogLevel} ${contextMessage}${formattedScopeInfo[0]}${colorizedScope}${output}${timestampDiff}\n`;
+    return `${pidMessage}${this.getTimestamp()} ${formattedLogLevel} ${contextMessage}${formattedScopeInfo[0]}${formattedScopeInfo[1]}${output}${timestampDiff}\n`;
   }
 
   protected stringifyMessage(message: unknown, logLevel: LogLevel) {
