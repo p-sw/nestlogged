@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { RevRequestMethod } from 'nestlogged/lib/logged/utils';
 import { LoggedRoute, LoggedFunction } from './methods';
+import { logger } from 'nestlogged/lib/internals/utils';
 
 export function LoggedInjectable(
   options?: ScopeOptions & { verbose?: boolean },
@@ -19,7 +20,7 @@ export function LoggedInjectable(
         typeof target.prototype[method] === 'function'
       ) {
         if (options && options.verbose)
-          console.log(`LoggedFunction applied to ${method}`);
+          logger.log(`LoggedFunction applied to ${target.name}.${method}`);
         LoggedFunction()(target.prototype, method, {
           value: target.prototype[method],
         });
@@ -58,8 +59,8 @@ export function LoggedController(param?: any): (target: any) => void {
             'method',
             target.prototype[method],
           );
-          console.log(
-            `LoggedRoute applied to ${method} (${RevRequestMethod[httpMethod]} ${path})`,
+          logger.log(
+            `LoggedRoute applied to ${target.name}.${method} (${RevRequestMethod[httpMethod]} ${path})`,
           );
         }
         LoggedRoute()(target.prototype, method, {
