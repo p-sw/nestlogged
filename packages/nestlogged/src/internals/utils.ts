@@ -1,3 +1,5 @@
+import { Logger } from "@nestjs/common";
+
 export const notIncludedSymbol = Symbol('notIncluded');
 
 export function includeObjectSync(
@@ -95,3 +97,5 @@ export function getItemByPathSync(obj: object, path: string | string[]) {
       : obj[paths[0]]
     : undefined;
 }
+
+export const logger = new Logger('NestLogged');
