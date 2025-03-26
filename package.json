@@ -1,5 +1,5 @@
 {
-  "name": "nestlogged",
+  "name": "nestlogged-root",
   "version": "3.2.3",
   "description": "A NestJS Logger Decorator Library",
   "main": "./dist/lib/index.js",
