@@ -6,13 +6,12 @@ import {
 } from '@nestjs/common';
 import { RevRequestMethod } from './utils';
 import { LoggedRoute, LoggedFunction } from './methods';
+import { logger } from '../internals/utils';
 
 export function LoggedInjectable(
   options?: ScopeOptions & { verbose?: boolean },
 ) {
   return (target: any) => {
-    const logger = target.prototype.logger;
-
     const methods = Object.getOwnPropertyNames(target.prototype);
 
     methods.forEach((method) => {
@@ -21,7 +20,7 @@ export function LoggedInjectable(
         typeof target.prototype[method] === 'function'
       ) {
         if (options && options.verbose)
-          logger.log(`LoggedFunction applied to ${method}`);
+          logger.log(`LoggedFunction applied to ${target.name}.${method}`);
         LoggedFunction()(target.prototype, method, {
           value: target.prototype[method],
         });
@@ -42,8 +41,6 @@ export function LoggedController(
 
 export function LoggedController(param?: any): (target: any) => void {
   return (target: any) => {
-    const logger = target.prototype.logger;
-
     const methods = Object.getOwnPropertyNames(target.prototype);
 
     let verbose =
@@ -62,8 +59,8 @@ export function LoggedController(param?: any): (target: any) => void {
             'method',
             target.prototype[method],
           );
-          logger.log(
-            `LoggedRoute applied to ${method} (${RevRequestMethod[httpMethod]} ${path})`,
+          console.log(
+            `LoggedRoute applied to ${target.name}.${method} (${RevRequestMethod[httpMethod]} ${path})`,
           );
         }
         LoggedRoute()(target.prototype, method, {
