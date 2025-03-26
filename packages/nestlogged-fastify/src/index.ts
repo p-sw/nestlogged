@@ -1,10 +1,4 @@
 export {
-  LoggedRoute,
-  LoggedFunction,
-  LoggedController,
-  LoggedInjectable,
-  LoggedGuard,
-  LoggedInterceptor,
   ScopedLogger,
   InjectLogger,
   LoggedParam,
@@ -15,3 +9,12 @@ export {
   Returns,
   getRequestLogger
 } from 'nestlogged';
+export {
+  LoggedRoute,
+  LoggedFunction,
+  LoggedController,
+  LoggedInjectable,
+  LoggedGuard,
+  LoggedInterceptor,
+  LoggedMiddleware,
+} from './logged'
