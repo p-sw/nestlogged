@@ -5,6 +5,7 @@ export {
   LoggedInjectable,
   LoggedGuard,
   LoggedInterceptor,
+  LoggedMiddleware,
 } from './logged';
 export { ScopedLogger } from './logger';
 export {
