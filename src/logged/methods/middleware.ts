@@ -1,5 +1,5 @@
 import { OverrideBuildOptions } from '../utils';
-import { ExecutionContext, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { loggerInit } from '../utils';
 import { LoggedMetadata, nestLoggedMetadata } from '../metadata';
 import { scopedLogger, returns, ReturnsReflectData } from '../../reflected';
@@ -12,7 +12,7 @@ export function LoggedMiddleware<F extends Array<any>, R>(
     _target: any,
     key: string,
     descriptor: TypedPropertyDescriptor<
-      (context: ExecutionContext, ...args: F) => R
+      (...args: F) => R
     >,
   ) => {
     loggerInit(_target);
