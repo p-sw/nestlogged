@@ -12,9 +12,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/common@npm:^10.2.8":
-  version: 10.4.15
-  resolution: "@nestjs/common@npm:10.4.15"
+"@nestjs/common@npm:^11.0.12":
+  version: 11.0.12
+  resolution: "@nestjs/common@npm:11.0.12"
   dependencies:
     iterare: "npm:1.2.1"
     tslib: "npm:2.8.1"
@@ -29,7 +29,7 @@ __metadata:
       optional: true
     class-validator:
       optional: true
-  checksum: 10c0/9566993fd3f805df2be632f5a16ca90d81b0deeb50e1e7cde4a49d4948c0d8d7db58b42ded70f35061e95e91a40d2adcd9e19cb2771090114eb737f62d2ea4c6
+  checksum: 10c0/cf8976279dfd04e6a6c2f909e36dcfb4d06207e8dc0eafffcd966fc2d7a147ce511f0ca616c9157fe7c1a316e81241b372d569ab8b8b0aa587cd42283ce0f0f2
   languageName: node
   linkType: hard
 
@@ -88,7 +88,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "nestlogged@workspace:."
   dependencies:
-    "@nestjs/common": "npm:^10.2.8"
+    "@nestjs/common": "npm:^11.0.12"
     "@types/node": "npm:^20.9.1"
     hyperid: "npm:^3.1.1"
     reflect-metadata: "npm:^0.1.13"
