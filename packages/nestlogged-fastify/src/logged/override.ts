@@ -9,7 +9,6 @@ import {
 } from 'nestlogged/lib/logged/utils';
 import { objectContainedLogSync, getItemByPathSync } from 'nestlogged/lib/internals/utils';
 import { ScopedLogger } from 'nestlogged/lib/logger';
-import { kRequestPayloadStream } from 'fastify/lib/symbols';
 
 interface FunctionMetadata {
   scopedLoggerInjectableParam?: number;
@@ -79,7 +78,7 @@ export function overrideBuild<F extends Array<any>, R>(
               'Cannot inject logger: Request type is not http',
             );
           } else {
-            let req = ctx.switchToHttp().getRequest()[kRequestPayloadStream];
+            let req = ctx.switchToHttp().getRequest()['raw'];
             if (req[REQUEST_LOG_ID] === undefined) {
               req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
             }
@@ -101,7 +100,7 @@ export function overrideBuild<F extends Array<any>, R>(
           );
         } else if (type === 'route') {
           // args[metadatas.scopedLoggerInjectableParam] is now Request object, thanks to code in @LoggedRoute!!!!
-          let req = args[metadatas.scopedLoggerInjectableParam][kRequestPayloadStream];
+          let req = args[metadatas.scopedLoggerInjectableParam]['raw'];
           if (req[REQUEST_LOG_ID] === undefined) {
             req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
           }
