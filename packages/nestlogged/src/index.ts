@@ -6,6 +6,7 @@ export {
   LoggedGuard,
   LoggedInterceptor,
   LoggedMiddleware,
+  LoggedExceptionFilter
 } from './logged';
 export { ScopedLogger, ConsoleLogger, ConsoleLoggerOptions } from './logger';
 export {
