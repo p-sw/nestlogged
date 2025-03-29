@@ -126,12 +126,15 @@ export function overrideBuild<F extends Array<any>, R>(
     }
 
     // If this is ExecutionContext based function (e.g. Guard, Interceptor) get Request from Context
-    if (type === 'guard' || type === 'interceptor' || type === 'middleware') {
+    if (type === 'guard' || type === 'interceptor') {
       const context = args[0] as ExecutionContext;
       if (context.getType() === 'http') {
         const req = context.switchToHttp().getRequest();
         route = req.url;
       }
+    } else if (type === 'middleware') {
+      const req = args[0];
+      route = req.url;
     }
 
     // Start Log
