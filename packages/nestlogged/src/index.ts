@@ -17,4 +17,4 @@ export {
   Logged,
   Returns,
 } from './reflected';
-export { getRequestLogger } from './utils';
+export { getRequestLogger, NestloggedScope as Symbol_NestloggedScope, NestloggedScopeId as Symbol_NestloggedScopeId } from './utils';
