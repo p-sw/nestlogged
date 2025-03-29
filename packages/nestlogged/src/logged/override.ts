@@ -70,9 +70,9 @@ export function overrideBuild<F extends Array<any>, R>(
         }
       } else {
         // special, can access to request object
-        if (type === 'guard' || type === 'interceptor') {
+        if (type === 'guard' || type === 'interceptor' || type === 'exception') {
           // args[0] == ExecutionContext
-          const ctx = args[0] as ExecutionContext;
+          const ctx = args[type === 'exception' ? 1 : 0] as ExecutionContext;
           if (ctx.getType() !== 'http') {
             injectedLogger.error(
               'Cannot inject logger: Request type is not http',
@@ -90,16 +90,6 @@ export function overrideBuild<F extends Array<any>, R>(
           }
         } else if (type === 'middleware') {
           let req = args[0];
-          if (req[REQUEST_LOG_ID] === undefined) {
-            req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
-          }
-          args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(
-            baseLogger,
-            [name, key],
-            req[REQUEST_LOG_ID],
-          );
-        } else if (type === 'exception') {
-          const req = (args[1] as ArgumentsHost).switchToHttp().getRequest();
           if (req[REQUEST_LOG_ID] === undefined) {
             req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
           }
