@@ -26,7 +26,7 @@ export function overrideBuild<F extends Array<any>, R>(
   route: string,
 ): (...args: F) => R;
 export function overrideBuild<F extends Array<any>, R>(
-  type: 'function' | 'guard' | 'interceptor' | 'middleware',
+  type: 'function' | 'guard' | 'interceptor' | 'middleware' | 'exception',
   originalFunction: (...args: F) => R,
   _target: any,
   metadatas: FunctionMetadata,
@@ -70,9 +70,9 @@ export function overrideBuild<F extends Array<any>, R>(
         }
       } else {
         // special, can access to request object
-        if (type === 'guard' || type === 'interceptor') {
+        if (type === 'guard' || type === 'interceptor' || type === 'exception') {
           // args[0] == ExecutionContext
-          const ctx = args[0] as ExecutionContext;
+          const ctx = args[type === 'exception' ? 1 : 0] as ExecutionContext;
           if (ctx.getType() !== 'http') {
             injectedLogger.error(
               'Cannot inject logger: Request type is not http',

@@ -19,4 +19,5 @@ export {
   LoggedGuard,
   LoggedInterceptor,
   LoggedMiddleware,
+  LoggedExceptionFilter,
 } from './logged'
