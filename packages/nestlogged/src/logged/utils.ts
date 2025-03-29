@@ -32,7 +32,8 @@ export type BuildType =
   | 'function'
   | 'guard'
   | 'interceptor'
-  | 'middleware';
+  | 'middleware'
+  | 'exception';
 
 const callLogIdentifyMessageDictionary: Record<BuildType, string> = {
   route: 'ENDPOINT',
@@ -40,6 +41,7 @@ const callLogIdentifyMessageDictionary: Record<BuildType, string> = {
   guard: 'GUARD',
   interceptor: 'INTERCEPTOR',
   middleware: 'MIDDLEWARE',
+  exception: 'EXCEPTION FILTER',
 };
 
 export function createCallLogIdentifyMessage(

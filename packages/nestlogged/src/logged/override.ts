@@ -1,4 +1,4 @@
-import { Logger, ExecutionContext } from '@nestjs/common';
+import { Logger, ExecutionContext, ArgumentsHost } from '@nestjs/common';
 import { LoggedParamReflectData, ReturnsReflectData } from '../reflected';
 import { LoggedMetadata } from './metadata';
 import {
@@ -26,7 +26,7 @@ export function overrideBuild<F extends Array<any>, R>(
   route: string,
 ): (...args: F) => R;
 export function overrideBuild<F extends Array<any>, R>(
-  type: 'function' | 'guard' | 'interceptor' | 'middleware',
+  type: 'function' | 'guard' | 'interceptor' | 'middleware' | 'exception',
   originalFunction: (...args: F) => R,
   _target: any,
   metadatas: FunctionMetadata,
@@ -90,6 +90,16 @@ export function overrideBuild<F extends Array<any>, R>(
           }
         } else if (type === 'middleware') {
           let req = args[0];
+          if (req[REQUEST_LOG_ID] === undefined) {
+            req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
+          }
+          args[metadatas.scopedLoggerInjectableParam] = ScopedLogger.fromRoot(
+            baseLogger,
+            [name, key],
+            req[REQUEST_LOG_ID],
+          );
+        } else if (type === 'exception') {
+          const req = (args[1] as ArgumentsHost).switchToHttp().getRequest();
           if (req[REQUEST_LOG_ID] === undefined) {
             req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
           }
