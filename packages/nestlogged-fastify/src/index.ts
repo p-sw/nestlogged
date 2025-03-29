@@ -7,7 +7,9 @@ export {
   LoggedQuery,
   Logged,
   Returns,
-  getRequestLogger
+  getRequestLogger,
+  Symbol_NestloggedScope,
+  Symbol_NestloggedScopeId
 } from 'nestlogged';
 export {
   LoggedRoute,
