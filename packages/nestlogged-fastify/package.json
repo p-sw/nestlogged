@@ -1,6 +1,6 @@
 {
   "name": "nestlogged-fastify",
-  "version": "3.4.2",
+  "version": "3.4.3",
   "description": "A NestJS Logger Decorator Library With Fastify Support",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
