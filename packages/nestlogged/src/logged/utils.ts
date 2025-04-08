@@ -1,4 +1,5 @@
 import { Logger, LogLevel } from '@nestjs/common';
+import { ScopedLogger } from '../logger';
 
 export const RevRequestMethod = [
   'GET',
@@ -88,3 +89,26 @@ export const defaultOverrideBuildOptions: OverrideBuildOptions = {
   skipReturnLog: false,
   skipErrorLog: false,
 };
+
+export function injectLogger<T extends Array<any>>(args: T, baseLogger: Logger, paramIndex: number, scope: string | string[], scopeId?: string) {
+  if (
+    args.length <= paramIndex
+  ) {
+    if (args.length !== paramIndex) for (let i = args.length; i < paramIndex; i++) args.push(undefined);
+    args.push(ScopedLogger.fromRoot(baseLogger, scope, scopeId));
+  } else if (
+    !(args[paramIndex] instanceof ScopedLogger)
+  ) {
+    args.splice(
+      paramIndex,
+      0,
+      ScopedLogger.fromRoot(baseLogger, scope, scopeId)
+    );
+  } else {
+    args[paramIndex] = ScopedLogger.fromSuper(
+      baseLogger,
+      args[paramIndex],
+      scope,
+    );
+  }
+}
