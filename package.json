@@ -3,7 +3,7 @@
   "version": "3.2.3",
   "description": "A NestJS Logger Decorator Library",
   "main": "./dist/lib/index.js",
-  "repository": "https://git.psw.kr/p-sw/nestlogged",
+  "repository": "https://github.com/p-sw/nestlogged",
   "author": "Shinwoo PARK",
   "license": "MIT",
   "private": true,

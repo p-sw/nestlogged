@@ -4,7 +4,7 @@
   "description": "A NestJS Logger Decorator Library",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
-  "repository": "https://git.psw.kr/p-sw/nestlogged",
+  "repository": "https://github.com/p-sw/nestlogged",
   "author": "Shinwoo PARK",
   "license": "MIT",
   "dependencies": {
