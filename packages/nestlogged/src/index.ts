@@ -6,9 +6,10 @@ export {
   LoggedGuard,
   LoggedInterceptor,
   LoggedMiddleware,
-  LoggedExceptionFilter
+  LoggedExceptionFilter,
 } from './logged';
-export { ScopedLogger, ConsoleLogger, ConsoleLoggerOptions } from './logger';
+export { ScopedLogger, ConsoleLogger } from './logger';
+export { ConsoleLoggerOptions } from '@nestjs/common';
 export {
   InjectLogger,
   LoggedParam,
@@ -18,4 +19,8 @@ export {
   Logged,
   Returns,
 } from './reflected';
-export { getRequestLogger, NestloggedScope as Symbol_NestloggedScope, NestloggedScopeId as Symbol_NestloggedScopeId } from './utils';
+export {
+  getRequestLogger,
+  NestloggedScope as Symbol_NestloggedScope,
+  NestloggedScopeId as Symbol_NestloggedScopeId,
+} from './utils';
