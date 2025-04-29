@@ -1,6 +1,25 @@
-import { Logger, LoggerService, LogLevel, Injectable, Optional } from '@nestjs/common';
+import {
+  Logger,
+  LogLevel,
+  Injectable,
+  Optional,
+  ConsoleLoggerOptions,
+  ConsoleLogger as NestConsoleLogger,
+} from '@nestjs/common';
 import { inspect, InspectOptions } from 'util';
-import { isString, isPlainObject, isFunction, isUndefined, clc, yellow, isLogLevelEnabled, isScope, LogScopeInformation, NestloggedScopeId, NestloggedScope, formatScope } from './utils';
+import {
+  isString,
+  isPlainObject,
+  isFunction,
+  isUndefined,
+  clc,
+  yellow,
+  isScope,
+  LogScopeInformation,
+  NestloggedScopeId,
+  NestloggedScope,
+  formatScope,
+} from './utils';
 import * as hyperid from 'hyperid';
 
 const createId = hyperid({ fixedLength: true });
@@ -58,123 +77,8 @@ export class ScopedLogger extends Logger {
 
 const DEFAULT_DEPTH = 5;
 
-export interface ConsoleLoggerOptions {
-  /**
-   * Enabled log levels.
-   */
-  logLevels?: LogLevel[];
-  /**
-   * If enabled, will print timestamp (time difference) between current and previous log message.
-   * Note: This option is not used when `json` is enabled.
-   */
-  timestamp?: boolean;
-  /**
-   * A prefix to be used for each log message.
-   * Note: This option is not used when `json` is enabled.
-   */
-  prefix?: string;
-  /**
-   * If enabled, will print the log message in JSON format.
-   */
-  json?: boolean;
-  /**
-   * If enabled, will print the log message in color.
-   * Default true if json is disabled, false otherwise
-   */
-  colors?: boolean;
-  /**
-   * The context of the logger.
-   */
-  context?: string;
-  /**
-   * If enabled, will print the log message in a single line, even if it is an object with multiple properties.
-   * If set to a number, the most n inner elements are united on a single line as long as all properties fit into breakLength. Short array elements are also grouped together.
-   * Default true when `json` is enabled, false otherwise.
-   */
-  compact?: boolean | number;
-  /**
-   * Specifies the maximum number of Array, TypedArray, Map, Set, WeakMap, and WeakSet elements to include when formatting.
-   * Set to null or Infinity to show all elements. Set to 0 or negative to show no elements.
-   * Ignored when `json` is enabled, colors are disabled, and `compact` is set to true as it produces a parseable JSON output.
-   * @default 100
-   */
-  maxArrayLength?: number;
-  /**
-   * Specifies the maximum number of characters to include when formatting.
-   * Set to null or Infinity to show all elements. Set to 0 or negative to show no characters.
-   * Ignored when `json` is enabled, colors are disabled, and `compact` is set to true as it produces a parseable JSON output.
-   * @default 10000.
-   */
-  maxStringLength?: number;
-  /**
-   * If enabled, will sort keys while formatting objects.
-   * Can also be a custom sorting function.
-   * Ignored when `json` is enabled, colors are disabled, and `compact` is set to true as it produces a parseable JSON output.
-   * @default false
-   */
-  sorted?: boolean | ((a: string, b: string) => number);
-  /**
-   * Specifies the number of times to recurse while formatting object. T
-   * This is useful for inspecting large objects. To recurse up to the maximum call stack size pass Infinity or null.
-   * Ignored when `json` is enabled, colors are disabled, and `compact` is set to true as it produces a parseable JSON output.
-   * @default 5
-   */
-  depth?: number;
-  /**
-   * If true, object's non-enumerable symbols and properties are included in the formatted result.
-   * WeakMap and WeakSet entries are also included as well as user defined prototype properties
-   * @default false
-   */
-  showHidden?: boolean;
-  /**
-   * The length at which input values are split across multiple lines. Set to Infinity to format the input as a single line (in combination with "compact" set to true).
-   * Default Infinity when "compact" is true, 80 otherwise.
-   * Ignored when `json` is enabled, colors are disabled, and `compact` is set to true as it produces a parseable JSON output.
-   */
-  breakLength?: number;
-}
-
-const DEFAULT_LOG_LEVELS: LogLevel[] = [
-  'log',
-  'error',
-  'warn',
-  'debug',
-  'verbose',
-  'fatal',
-];
-
-const dateTimeFormatter = new Intl.DateTimeFormat(undefined, {
-  year: 'numeric',
-  hour: 'numeric',
-  minute: 'numeric',
-  second: 'numeric',
-  day: '2-digit',
-  month: '2-digit',
-});
-
 @Injectable()
-export class ConsoleLogger implements LoggerService {
-  /**
-   * The options of the logger.
-   */
-  protected options: ConsoleLoggerOptions;
-  /**
-   * The context of the logger (can be set manually or automatically inferred).
-   */
-  protected context?: string;
-  /**
-   * The original context of the logger (set in the constructor).
-   */
-  protected originalContext?: string;
-  /**
-   * The options used for the "inspect" method.
-   */
-  protected inspectOptions: InspectOptions;
-  /**
-   * The last timestamp at which the log message was printed.
-   */
-  protected static lastTimestampAt?: number;
-
+export class ConsoleLogger extends NestConsoleLogger {
   constructor();
   constructor(context: string);
   constructor(options: ConsoleLoggerOptions);
@@ -185,25 +89,7 @@ export class ConsoleLogger implements LoggerService {
     @Optional()
     options?: ConsoleLoggerOptions,
   ) {
-    // eslint-disable-next-line prefer-const
-    let [context, opts] = isString(contextOrOptions)
-      ? [contextOrOptions, options]
-      : options
-        ? [undefined, options]
-        : [contextOrOptions?.context, contextOrOptions];
-
-    opts = opts ?? {};
-    opts.logLevels ??= DEFAULT_LOG_LEVELS;
-    opts.colors ??= opts.colors ?? (opts.json ? false : true);
-    opts.prefix ??= 'Nest';
-
-    this.options = opts;
-    this.inspectOptions = this.getInspectOptions();
-
-    if (context) {
-      this.context = context;
-      this.originalContext = context;
-    }
+    super(contextOrOptions as string /* fuck */, options);
   }
 
   /**
@@ -216,11 +102,16 @@ export class ConsoleLogger implements LoggerService {
     if (!this.isLevelEnabled('log')) {
       return;
     }
-    const { messages, context, scopeInfo } = this.getContextAndMessagesToPrint([
-      message,
-      ...optionalParams,
-    ]);
-    this.printMessages(messages, context, 'log', undefined, undefined, scopeInfo);
+    const { messages, context, scopeInfo } =
+      this.getContextAndMessagesAndScopeToPrint([message, ...optionalParams]);
+    this.printMessages(
+      messages,
+      context,
+      'log',
+      undefined,
+      undefined,
+      scopeInfo,
+    );
   }
 
   /**
@@ -235,7 +126,10 @@ export class ConsoleLogger implements LoggerService {
       return;
     }
     const { messages, context, stack, scopeInfo } =
-      this.getContextAndStackAndMessagesToPrint([message, ...optionalParams]);
+      this.getContextAndStackAndMessagesAndScopeToPrint([
+        message,
+        ...optionalParams,
+      ]);
 
     this.printMessages(messages, context, 'error', 'stderr', stack, scopeInfo);
     this.printStackTrace(stack!);
@@ -251,11 +145,16 @@ export class ConsoleLogger implements LoggerService {
     if (!this.isLevelEnabled('warn')) {
       return;
     }
-    const { messages, context, scopeInfo } = this.getContextAndMessagesToPrint([
-      message,
-      ...optionalParams,
-    ]);
-    this.printMessages(messages, context, 'warn', undefined, undefined, scopeInfo);
+    const { messages, context, scopeInfo } =
+      this.getContextAndMessagesAndScopeToPrint([message, ...optionalParams]);
+    this.printMessages(
+      messages,
+      context,
+      'warn',
+      undefined,
+      undefined,
+      scopeInfo,
+    );
   }
 
   /**
@@ -268,11 +167,16 @@ export class ConsoleLogger implements LoggerService {
     if (!this.isLevelEnabled('debug')) {
       return;
     }
-    const { messages, context, scopeInfo } = this.getContextAndMessagesToPrint([
-      message,
-      ...optionalParams,
-    ]);
-    this.printMessages(messages, context, 'debug', undefined, undefined, scopeInfo);
+    const { messages, context, scopeInfo } =
+      this.getContextAndMessagesAndScopeToPrint([message, ...optionalParams]);
+    this.printMessages(
+      messages,
+      context,
+      'debug',
+      undefined,
+      undefined,
+      scopeInfo,
+    );
   }
 
   /**
@@ -285,11 +189,16 @@ export class ConsoleLogger implements LoggerService {
     if (!this.isLevelEnabled('verbose')) {
       return;
     }
-    const { messages, context, scopeInfo } = this.getContextAndMessagesToPrint([
-      message,
-      ...optionalParams,
-    ]);
-    this.printMessages(messages, context, 'verbose', undefined, undefined, scopeInfo);
+    const { messages, context, scopeInfo } =
+      this.getContextAndMessagesAndScopeToPrint([message, ...optionalParams]);
+    this.printMessages(
+      messages,
+      context,
+      'verbose',
+      undefined,
+      undefined,
+      scopeInfo,
+    );
   }
 
   /**
@@ -302,46 +211,16 @@ export class ConsoleLogger implements LoggerService {
     if (!this.isLevelEnabled('fatal')) {
       return;
     }
-    const { messages, context, scopeInfo } = this.getContextAndMessagesToPrint([
-      message,
-      ...optionalParams,
-    ]);
-    this.printMessages(messages, context, 'fatal', undefined, undefined, scopeInfo);
-  }
-
-  /**
-   * Set log levels
-   * @param levels log levels
-   */
-  setLogLevels(levels: LogLevel[]) {
-    if (!this.options) {
-      this.options = {};
-    }
-    this.options.logLevels = levels;
-  }
-
-  /**
-   * Set logger context
-   * @param context context
-   */
-  setContext(context: string) {
-    this.context = context;
-  }
-
-  /**
-   * Resets the logger context to the value that was passed in the constructor.
-   */
-  resetContext() {
-    this.context = this.originalContext;
-  }
-
-  isLevelEnabled(level: LogLevel): boolean {
-    const logLevels = this.options?.logLevels;
-    return isLogLevelEnabled(level, logLevels);
-  }
-
-  protected getTimestamp(): string {
-    return dateTimeFormatter.format(Date.now());
+    const { messages, context, scopeInfo } =
+      this.getContextAndMessagesAndScopeToPrint([message, ...optionalParams]);
+    this.printMessages(
+      messages,
+      context,
+      'fatal',
+      undefined,
+      undefined,
+      scopeInfo,
+    );
   }
 
   protected printMessages(
@@ -352,7 +231,7 @@ export class ConsoleLogger implements LoggerService {
     errorStack?: unknown,
     scopeInfo?: LogScopeInformation,
   ) {
-    messages.forEach(message => {
+    messages.forEach((message) => {
       if (this.options.json) {
         this.printAsJson(message, {
           context,
@@ -375,18 +254,22 @@ export class ConsoleLogger implements LoggerService {
         formattedLogLevel,
         contextMessage,
         timestampDiff,
-        formattedScopeInfo
+        formattedScopeInfo,
       );
 
       process[writeStreamType ?? 'stdout'].write(formattedMessage);
     });
   }
 
-  protected formatScopeInfo(scopeInfo?: LogScopeInformation): [string, string] {
-    if (!scopeInfo) return ['', ''];
+  protected formatScopeInfo(
+    scopeInfo?: LogScopeInformation,
+  ): [string, string] | undefined {
+    if (!scopeInfo) return undefined;
     const scopeId = scopeInfo[NestloggedScopeId];
     const formattedScope = formatScope(scopeInfo[NestloggedScope]);
-    return this.options.colors ? [`ID=[${clc.cyanBright(scopeId)}] | `, clc.cyanBright(formattedScope)] : [`ID=[${scopeId}] | `, formattedScope]
+    return this.options.colors
+      ? [`ID=[${clc.cyanBright(scopeId)}] | `, clc.cyanBright(formattedScope)]
+      : [`ID=[${scopeId}] | `, formattedScope];
   }
 
   protected printAsJson(
@@ -437,19 +320,6 @@ export class ConsoleLogger implements LoggerService {
     process[options.writeStreamType ?? 'stdout'].write(`${formattedMessage}\n`);
   }
 
-  protected formatPid(pid: number) {
-    return `[${this.options.prefix}] ${pid}  - `;
-  }
-
-  protected formatContext(context: string): string {
-    if (!context) {
-      return '';
-    }
-
-    context = `[${context}] `;
-    return this.options.colors ? yellow(context) : context;
-  }
-
   protected formatMessage(
     logLevel: LogLevel,
     message: unknown,
@@ -457,8 +327,9 @@ export class ConsoleLogger implements LoggerService {
     formattedLogLevel: string,
     contextMessage: string,
     timestampDiff: string,
-    formattedScopeInfo: [string, string],
+    formattedScopeInfo?: [string, string],
   ) {
+    if (!formattedScopeInfo) formattedScopeInfo = ['', ''];
     const output = this.stringifyMessage(message, logLevel);
     pidMessage = this.colorize(pidMessage, logLevel);
     formattedLogLevel = this.colorize(formattedLogLevel, logLevel);
@@ -495,7 +366,7 @@ export class ConsoleLogger implements LoggerService {
     if (!this.options.colors || this.options.json) {
       return message;
     }
-    const color = this.getColorByLogLevel(logLevel);
+    const color = this._getColorByLogLevel(logLevel);
     return color(message);
   }
 
@@ -571,16 +442,16 @@ export class ConsoleLogger implements LoggerService {
     return value;
   }
 
-  private getContextAndMessagesToPrint(args: unknown[]): {
-    scopeInfo?: LogScopeInformation,
-    messages: any,
-    context?: string,
+  private getContextAndMessagesAndScopeToPrint(args: unknown[]): {
+    scopeInfo?: LogScopeInformation;
+    messages: any;
+    context?: string;
   } {
     if (isScope(args[0])) {
       return {
         scopeInfo: args[0],
-        ...this.getContextAndMessagesToPrint(args.slice(1)),
-      }
+        ...this.getContextAndMessagesAndScopeToPrint(args.slice(1)),
+      };
     }
     if (args?.length <= 1) {
       return { messages: args, context: this.context };
@@ -596,7 +467,7 @@ export class ConsoleLogger implements LoggerService {
     };
   }
 
-  private getContextAndStackAndMessagesToPrint(args: unknown[]): {
+  private getContextAndStackAndMessagesAndScopeToPrint(args: unknown[]): {
     messages: any;
     context: string;
     stack?: string;
@@ -605,11 +476,11 @@ export class ConsoleLogger implements LoggerService {
     if (isScope(args[0])) {
       return {
         scopeInfo: args[0],
-        ...this.getContextAndStackAndMessagesToPrint(args.slice(1)),
-      }
+        ...this.getContextAndStackAndMessagesAndScopeToPrint(args.slice(1)),
+      };
     }
     if (args.length === 2) {
-      return this.isStackFormat(args[1])
+      return this._isStackFormat(args[1])
         ? {
             messages: [args[0]],
             stack: args[1] as string,
@@ -621,7 +492,8 @@ export class ConsoleLogger implements LoggerService {
           };
     }
 
-    const { messages, context } = this.getContextAndMessagesToPrint(args);
+    const { messages, context } =
+      this.getContextAndMessagesAndScopeToPrint(args);
     if (messages?.length <= 1) {
       return { messages, context };
     }
@@ -638,7 +510,7 @@ export class ConsoleLogger implements LoggerService {
     };
   }
 
-  private isStackFormat(stack: unknown) {
+  private _isStackFormat(stack: unknown) {
     if (!isString(stack) && !isUndefined(stack)) {
       return false;
     }
@@ -646,7 +518,7 @@ export class ConsoleLogger implements LoggerService {
     return /^(.)+\n\s+at .+:\d+:\d+/.test(stack!);
   }
 
-  private getColorByLogLevel(level: LogLevel) {
+  private _getColorByLogLevel(level: LogLevel) {
     switch (level) {
       case 'debug':
         return clc.magentaBright;
