@@ -5,70 +5,80 @@ import {
   ScopeOptions,
 } from '@nestjs/common';
 import { RevRequestMethod } from './utils';
-import { LoggedRoute, LoggedFunction } from './methods';
+import { LoggedRouteBuild, LoggedFunctionBuild } from './methods';
 import { logger } from '../internals/utils';
+import { overrideBuild } from './override';
 
-export function LoggedInjectable(
-  options?: ScopeOptions & { verbose?: boolean },
-) {
-  return (target: any) => {
-    const methods = Object.getOwnPropertyNames(target.prototype);
+/**
+ * @internal
+ */
+export function LoggedInjectable(oB: typeof overrideBuild = overrideBuild) {
+  return function LoggedInjectable(
+    options?: ScopeOptions & { verbose?: boolean },
+  ) {
+    return (target: any) => {
+      const methods = Object.getOwnPropertyNames(target.prototype);
 
-    methods.forEach((method) => {
-      if (
-        method !== 'constructor' &&
-        typeof target.prototype[method] === 'function'
-      ) {
-        if (options && options.verbose)
-          logger.log(`LoggedFunction applied to ${target.name}.${method}`);
-        LoggedFunction()(target.prototype, method, {
-          value: target.prototype[method],
-        });
-      }
-    });
+      methods.forEach((method) => {
+        if (
+          method !== 'constructor' &&
+          typeof target.prototype[method] === 'function'
+        ) {
+          if (options && options.verbose)
+            logger.log(`LoggedFunction applied to ${target.name}.${method}`);
+          LoggedFunctionBuild(oB)()(target.prototype, method, {
+            value: target.prototype[method],
+          });
+        }
+      });
 
-    Injectable(options)(target);
+      Injectable(options)(target);
+    };
   };
 }
 
-export function LoggedController(): (target: any) => void;
-export function LoggedController(
-  prefix: string | string[],
-): (target: any) => void;
-export function LoggedController(
-  options: ControllerOptions & { verbose?: boolean },
-): (target: any) => void;
+/**
+ * @internal
+ */
+export function LoggedController(oB: typeof overrideBuild = overrideBuild) {
+  function LoggedController(): (target: any) => void;
+  function LoggedController(prefix: string | string[]): (target: any) => void;
+  function LoggedController(
+    options: ControllerOptions & { verbose?: boolean },
+  ): (target: any) => void;
+  function LoggedController(param?: any): (target: any) => void {
+    return (target: any) => {
+      const methods = Object.getOwnPropertyNames(target.prototype);
 
-export function LoggedController(param?: any): (target: any) => void {
-  return (target: any) => {
-    const methods = Object.getOwnPropertyNames(target.prototype);
+      let verbose =
+        typeof param === 'object' && Object.keys(param).includes('verbose')
+          ? param.verbose
+          : false;
 
-    let verbose =
-      typeof param === 'object' && Object.keys(param).includes('verbose')
-        ? param.verbose
-        : false;
-
-    methods.forEach((method) => {
-      if (
-        method !== 'constructor' &&
-        typeof target.prototype[method] === 'function'
-      ) {
-        if (verbose) {
-          const path = Reflect.getMetadata('path', target.prototype[method]);
-          const httpMethod = Reflect.getMetadata(
-            'method',
-            target.prototype[method],
-          );
-          console.log(
-            `LoggedRoute applied to ${target.name}.${method} (${RevRequestMethod[httpMethod]} ${path})`,
-          );
+      methods.forEach((method) => {
+        if (
+          method !== 'constructor' &&
+          typeof target.prototype[method] === 'function'
+        ) {
+          if (verbose) {
+            const path = Reflect.getMetadata('path', target.prototype[method]);
+            const httpMethod = Reflect.getMetadata(
+              'method',
+              target.prototype[method],
+            );
+            console.log(
+              `LoggedRoute applied to ${target.name}.${method} (${RevRequestMethod[httpMethod]} ${path})`,
+            );
+          }
+          LoggedRouteBuild(oB)()(target.prototype, method, {
+            value: target.prototype[method],
+          });
         }
-        LoggedRoute()(target.prototype, method, {
-          value: target.prototype[method],
-        });
-      }
-    });
+      });
 
-    Controller(param)(target);
-  };
+      Controller(param)(target);
+    };
+  }
+
+  return LoggedController;
 }

@@ -54,10 +54,17 @@ export function overrideBuild<F extends Array<any>, R>(
     let injectedLogger: Logger = baseLogger;
     if (typeof metadatas.scopedLoggerInjectableParam !== 'undefined') {
       if (type === 'function') {
-        injectLogger(args, baseLogger, metadatas.scopedLoggerInjectableParam, [name, key]);
+        injectLogger(args, baseLogger, metadatas.scopedLoggerInjectableParam, [
+          name,
+          key,
+        ]);
       } else {
         // special, can access to request object
-        if (type === 'guard' || type === 'interceptor' || type === 'exception') {
+        if (
+          type === 'guard' ||
+          type === 'interceptor' ||
+          type === 'exception'
+        ) {
           // args[0] == ExecutionContext
           const ctx = args[type === 'exception' ? 1 : 0] as ExecutionContext;
           if (ctx.getType() !== 'http') {
@@ -69,21 +76,39 @@ export function overrideBuild<F extends Array<any>, R>(
             if (req[REQUEST_LOG_ID] === undefined) {
               req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
             }
-            injectLogger(args, baseLogger, metadatas.scopedLoggerInjectableParam, [name, key], req[REQUEST_LOG_ID]);
+            injectLogger(
+              args,
+              baseLogger,
+              metadatas.scopedLoggerInjectableParam,
+              [name, key],
+              req[REQUEST_LOG_ID],
+            );
           }
         } else if (type === 'middleware') {
           let req = args[0];
           if (req[REQUEST_LOG_ID] === undefined) {
             req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
           }
-          injectLogger(args, baseLogger, metadatas.scopedLoggerInjectableParam, [name, key], req[REQUEST_LOG_ID]);
+          injectLogger(
+            args,
+            baseLogger,
+            metadatas.scopedLoggerInjectableParam,
+            [name, key],
+            req[REQUEST_LOG_ID],
+          );
         } else if (type === 'route') {
           // args[metadatas.scopedLoggerInjectableParam] is now Request object, thanks to code in @LoggedRoute!!!!
           let req = args[metadatas.scopedLoggerInjectableParam];
           if (req[REQUEST_LOG_ID] === undefined) {
             req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
           }
-          injectLogger(args, baseLogger, metadatas.scopedLoggerInjectableParam, [name, key], req[REQUEST_LOG_ID]);
+          injectLogger(
+            args,
+            baseLogger,
+            metadatas.scopedLoggerInjectableParam,
+            [name, key],
+            req[REQUEST_LOG_ID],
+          );
         }
       }
 
