@@ -5,8 +5,9 @@ import {
   createPipesRouteParamDecorator,
   createRouteParamDecorator,
 } from './internals/nest';
+import { isEach } from './utils';
 
-export type Path = string | string[];
+export type Path = string;
 export type Paths = Path[];
 
 export interface IncludeExcludePath {
@@ -14,24 +15,28 @@ export interface IncludeExcludePath {
   excludePath?: Paths;
 }
 
-export interface LoggedParamReflectData {
-  name: string;
-  index: number;
-  include?: string[];
-  exclude?: string[];
-}
+export type Each = Record<string, Path>;
 
-export interface ScopeKeyReflectData {
-  name: string;
-  index: number;
-  path?: string[];
-  priority?: number;
-}
+export type LoggedParamReflectData = { index: number } & (
+  | {
+      name: string;
+      include?: Paths;
+      exclude?: Paths;
+    }
+  | {
+      name: Each;
+    }
+);
 
-export interface ReturnsReflectData {
-  name: string;
-  path: string;
-}
+export type ReturnsReflectData =
+  | {
+      name: Each;
+    }
+  | {
+      name: string;
+      include?: Paths;
+      exclude?: Paths;
+    };
 
 export const scopedLogger = Symbol('nlogdec-scopedLogger');
 export const loggedParam = Symbol('nlogdec-loggedParam');
@@ -52,7 +57,7 @@ type ParameterDecoratorType = (
 ) => void;
 
 function createLoggedFunctionParam(
-  name: string,
+  name: string | Each,
   options?: IncludeExcludePath,
 ): ParameterDecoratorType {
   return (
@@ -63,19 +68,16 @@ function createLoggedFunctionParam(
     const existingLoggedParams: LoggedParamReflectData[] =
       Reflect.getOwnMetadata(loggedParam, target, propertyKey) || [];
 
-    existingLoggedParams.push({
-      name,
-      index: parameterIndex,
-      // If path is provided in string[] type, convert it to string path because it is used in string type
-      include:
-        options &&
-        options.includePath &&
-        options.includePath.map((v) => (Array.isArray(v) ? v.join('.') : v)),
-      exclude:
-        options &&
-        options.excludePath &&
-        options.excludePath.map((v) => (Array.isArray(v) ? v.join('.') : v)),
-    });
+    existingLoggedParams.push(
+      isEach(name)
+        ? { index: parameterIndex, name }
+        : {
+            index: parameterIndex,
+            name,
+            include: options?.includePath,
+            exclude: options?.excludePath,
+          },
+    );
 
     Reflect.defineMetadata(
       loggedParam,
@@ -86,13 +88,19 @@ function createLoggedFunctionParam(
   };
 }
 
-type LoggedParamReturns = (
+export function Logged(
   name: string,
   options?: IncludeExcludePath,
-) => ParameterDecoratorType;
+): ParameterDecoratorType;
+export function Logged(name: Each): ParameterDecoratorType;
+export function Logged(
+  name: string | Each,
+  options?: IncludeExcludePath,
+): ParameterDecoratorType {
+  return createLoggedFunctionParam(name, options);
+}
 
-export const Logged: LoggedParamReturns = (name, options) =>
-  createLoggedFunctionParam(name, options);
+type LoggedParamReturns = typeof Logged;
 
 type Pipe = Type<PipeTransform> | PipeTransform;
 
@@ -106,7 +114,7 @@ export function LoggedParam(
   property?: string | Pipe,
   ...pipes: Pipe[]
 ): LoggedParamReturns {
-  return (name, options) => {
+  return (name: string | Each, options?: IncludeExcludePath) => {
     return (target, propertyKey, parameterIndex) => {
       createPipesRouteParamDecorator(RouteParamtypes.PARAM)(property, ...pipes)(
         target,
@@ -132,7 +140,7 @@ export function LoggedQuery(
   property?: string | Pipe,
   ...pipes: Pipe[]
 ): LoggedParamReturns {
-  return (name, options) => {
+  return (name: string | Each, options?: IncludeExcludePath) => {
     return (target, propertyKey, parameterIndex) => {
       createPipesRouteParamDecorator(RouteParamtypes.QUERY)(property, ...pipes)(
         target,
@@ -159,7 +167,7 @@ export function LoggedBody(
   property?: string | Pipe,
   ...pipes: Pipe[]
 ): LoggedParamReturns {
-  return (name, options) => {
+  return (name: string | Each, options?: IncludeExcludePath) => {
     return (target, propertyKey, parameterIndex) => {
       createPipesRouteParamDecorator(RouteParamtypes.BODY)(property, ...pipes)(
         target,
@@ -177,7 +185,7 @@ export function LoggedBody(
 }
 
 export function LoggedHeaders(property?: string): LoggedParamReturns {
-  return (name, options) => {
+  return (name: string | Each, options?: IncludeExcludePath) => {
     return (target, propertyKey, parameterIndex) => {
       createRouteParamDecorator(RouteParamtypes.HEADERS)(property)(
         target,
@@ -195,11 +203,13 @@ export function LoggedHeaders(property?: string): LoggedParamReturns {
 }
 
 export function Returns<F extends Array<any>, R>(
-  namePaths?:
-    | {
-        [name: string]: string;
-      }
-    | string,
+  name: string,
+  options?: IncludeExcludePath,
+): MethodDecorator;
+export function Returns<F extends Array<any>, R>(name: Each): MethodDecorator;
+export function Returns<F extends Array<any>, R>(
+  name: string | Each,
+  options?: IncludeExcludePath,
 ) {
   return (
     _target: any,
@@ -208,14 +218,13 @@ export function Returns<F extends Array<any>, R>(
   ) => {
     Reflect.defineMetadata(
       returns,
-      namePaths
-        ? typeof namePaths === 'string'
-          ? namePaths
-          : Object.entries(namePaths).reduce<ReturnsReflectData[]>(
-              (prev, curr) => [...prev, { name: curr[0], path: curr[1] }],
-              [],
-            )
-        : true,
+      isEach(name)
+        ? { name }
+        : {
+            name,
+            include: options?.includePath,
+            exclude: options?.excludePath,
+          },
       descriptor.value,
     );
   };

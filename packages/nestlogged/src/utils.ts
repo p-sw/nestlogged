@@ -1,6 +1,7 @@
 import { Logger, LogLevel } from '@nestjs/common';
 import { ScopedLogger } from './logger';
 import { REQUEST_LOG_ID } from './logged/utils';
+import { Each } from './reflected';
 
 const logger = new Logger();
 
@@ -48,7 +49,6 @@ export const isScope = (obj: any): obj is LogScopeInformation =>
   NestloggedScopeId in obj &&
   NestloggedScope in obj;
 
-
 const LOG_LEVEL_VALUES: Record<LogLevel, number> = {
   verbose: 0,
   debug: 1,
@@ -74,7 +74,7 @@ export function isLogLevelEnabled(
     return true;
   }
   const highestLogLevelValue = logLevels
-    .map(level => LOG_LEVEL_VALUES[level])
+    .map((level) => LOG_LEVEL_VALUES[level])
     .sort((a, b) => b - a)?.[0];
 
   const targetLevelValue = LOG_LEVEL_VALUES[targetLevel];
@@ -100,5 +100,12 @@ export const yellow = colorIfAllowed(
 );
 
 export function formatScope(scopes: (string | string[])[]): string {
-  return scopes.map((v) => typeof v === 'string' ? v : v.join('.')).join(' -> ') + ': ';
+  return (
+    scopes.map((v) => (typeof v === 'string' ? v : v.join('.'))).join(' -> ') +
+    ': '
+  );
+}
+
+export function isEach(name: string | Each): name is Each {
+  return typeof name === 'object' && name !== null;
 }
