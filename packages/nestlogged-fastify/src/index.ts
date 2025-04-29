@@ -1,23 +1,32 @@
+import {
+  LoggedControllerBuild,
+  LoggedInjectableBuild,
+  LoggedExceptionFilterBuild,
+  LoggedFunctionBuild,
+  LoggedGuardBuild,
+  LoggedInterceptorBuild,
+  LoggedMiddlewareBuild,
+  LoggedRouteBuild,
+} from 'nestlogged/lib/builders';
+import { fastifyOverrideBuild } from './override';
+
+const LoggedController = LoggedControllerBuild(fastifyOverrideBuild);
+const LoggedInjectable = LoggedInjectableBuild(fastifyOverrideBuild);
+const LoggedExceptionFilter = LoggedExceptionFilterBuild(fastifyOverrideBuild);
+const LoggedFunction = LoggedFunctionBuild(fastifyOverrideBuild);
+const LoggedGuard = LoggedGuardBuild(fastifyOverrideBuild);
+const LoggedInterceptor = LoggedInterceptorBuild(fastifyOverrideBuild);
+const LoggedMiddleware = LoggedMiddlewareBuild(fastifyOverrideBuild);
+const LoggedRoute = LoggedRouteBuild(fastifyOverrideBuild);
+
+export * from 'nestlogged';
 export {
-  ScopedLogger,
-  InjectLogger,
-  LoggedParam,
-  LoggedHeaders,
-  LoggedBody,
-  LoggedQuery,
-  Logged,
-  Returns,
-  getRequestLogger,
-  Symbol_NestloggedScope,
-  Symbol_NestloggedScopeId
-} from 'nestlogged';
-export {
-  LoggedRoute,
-  LoggedFunction,
   LoggedController,
   LoggedInjectable,
+  LoggedExceptionFilter,
+  LoggedFunction,
   LoggedGuard,
   LoggedInterceptor,
   LoggedMiddleware,
-  LoggedExceptionFilter,
-} from './logged'
+  LoggedRoute,
+};

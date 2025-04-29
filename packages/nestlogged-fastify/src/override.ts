@@ -1,14 +1,20 @@
 import { Logger, ExecutionContext } from '@nestjs/common';
-import { LoggedParamReflectData, ReturnsReflectData } from 'nestlogged/lib/reflected';
+import {
+  LoggedParamReflectData,
+  ReturnsReflectData,
+} from 'nestlogged/lib/reflected';
 import { LoggedMetadata } from 'nestlogged/lib/logged/metadata';
 import {
   BuildType,
   REQUEST_LOG_ID,
   createCallLogIdentifyMessage,
   loggerInit,
-  injectLogger
+  injectLogger,
 } from 'nestlogged/lib/logged/utils';
-import { objectContainedLogSync, getItemByPathSync } from 'nestlogged/lib/internals/utils';
+import {
+  objectContainedLogSync,
+  getItemByPathSync,
+} from 'nestlogged/lib/internals/utils';
 import { ScopedLogger } from 'nestlogged/lib/logger';
 
 interface FunctionMetadata {
@@ -16,7 +22,7 @@ interface FunctionMetadata {
   loggedParams?: LoggedParamReflectData[];
 }
 
-export function overrideBuild<F extends Array<any>, R>(
+function fastifyOverrideBuild<F extends Array<any>, R>(
   type: 'route',
   originalFunction: (...args: F) => R,
   _target: any,
@@ -26,7 +32,7 @@ export function overrideBuild<F extends Array<any>, R>(
   logged: LoggedMetadata,
   route: string,
 ): (...args: F) => R;
-export function overrideBuild<F extends Array<any>, R>(
+function fastifyOverrideBuild<F extends Array<any>, R>(
   type: 'function' | 'guard' | 'interceptor' | 'middleware' | 'exception',
   originalFunction: (...args: F) => R,
   _target: any,
@@ -35,7 +41,7 @@ export function overrideBuild<F extends Array<any>, R>(
   returnsData: ReturnsReflectData[] | string | true,
   logged: LoggedMetadata,
 ): (...args: F) => R;
-export function overrideBuild<F extends Array<any>, R>(
+function fastifyOverrideBuild<F extends Array<any>, R>(
   type: BuildType,
   originalFunction: (...args: F) => R,
   _target: any,
@@ -54,10 +60,17 @@ export function overrideBuild<F extends Array<any>, R>(
     let injectedLogger: Logger = baseLogger;
     if (typeof metadatas.scopedLoggerInjectableParam !== 'undefined') {
       if (type === 'function') {
-        injectLogger(args, baseLogger, metadatas.scopedLoggerInjectableParam, [name, key]);
+        injectLogger(args, baseLogger, metadatas.scopedLoggerInjectableParam, [
+          name,
+          key,
+        ]);
       } else {
         // special, can access to request object
-        if (type === 'guard' || type === 'interceptor' || type === 'exception') {
+        if (
+          type === 'guard' ||
+          type === 'interceptor' ||
+          type === 'exception'
+        ) {
           // args[0] == ExecutionContext
           const ctx = args[type === 'exception' ? 1 : 0] as ExecutionContext;
           if (ctx.getType() !== 'http') {
@@ -69,21 +82,39 @@ export function overrideBuild<F extends Array<any>, R>(
             if (req[REQUEST_LOG_ID] === undefined) {
               req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
             }
-            injectLogger(args, baseLogger, metadatas.scopedLoggerInjectableParam, [name, key], req[REQUEST_LOG_ID]);
+            injectLogger(
+              args,
+              baseLogger,
+              metadatas.scopedLoggerInjectableParam,
+              [name, key],
+              req[REQUEST_LOG_ID],
+            );
           }
         } else if (type === 'middleware') {
           let req = args[0];
           if (req[REQUEST_LOG_ID] === undefined) {
             req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
           }
-          injectLogger(args, baseLogger, metadatas.scopedLoggerInjectableParam, [name, key], req[REQUEST_LOG_ID]);
+          injectLogger(
+            args,
+            baseLogger,
+            metadatas.scopedLoggerInjectableParam,
+            [name, key],
+            req[REQUEST_LOG_ID],
+          );
         } else if (type === 'route') {
           // args[metadatas.scopedLoggerInjectableParam] is now Request object, thanks to code in @LoggedRoute!!!!
           let req = args[metadatas.scopedLoggerInjectableParam]['raw'];
           if (req[REQUEST_LOG_ID] === undefined) {
             req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
           }
-          injectLogger(args, baseLogger, metadatas.scopedLoggerInjectableParam, [name, key], req[REQUEST_LOG_ID]);
+          injectLogger(
+            args,
+            baseLogger,
+            metadatas.scopedLoggerInjectableParam,
+            [name, key],
+            req[REQUEST_LOG_ID],
+          );
         }
       }
 
@@ -210,3 +241,5 @@ export function overrideBuild<F extends Array<any>, R>(
     }
   };
 }
+
+export { fastifyOverrideBuild };
