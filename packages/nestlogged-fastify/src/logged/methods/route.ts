@@ -12,7 +12,6 @@ import { overrideBuild } from '../override';
 import { createRouteParamDecorator } from 'nestlogged/lib/internals/nest';
 
 export function LoggedRoute<F extends Array<any>, R>(
-  route?: string,
   options?: Partial<OverrideBuildOptions>,
 ) {
   return (
@@ -49,7 +48,7 @@ export function LoggedRoute<F extends Array<any>, R>(
     const httpPath: string = Reflect.getMetadata('path', fn);
     const httpMethod: RequestMethod = Reflect.getMetadata('method', fn);
 
-    const fullRoute = `${_target.constructor.name}::${route ?? httpPath}[${
+    const fullRoute = `${_target.constructor.name}::${httpPath}[${
       RevRequestMethod[httpMethod]
     }]`;
 
