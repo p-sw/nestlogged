@@ -36,7 +36,8 @@ export type ReturnsReflectData =
       name: string;
       include?: Paths;
       exclude?: Paths;
-    };
+    }
+  | true;
 
 export const scopedLogger = Symbol('nlogdec-scopedLogger');
 export const loggedParam = Symbol('nlogdec-loggedParam');
@@ -207,8 +208,9 @@ export function Returns<F extends Array<any>, R>(
   options?: IncludeExcludePath,
 ): MethodDecorator;
 export function Returns<F extends Array<any>, R>(name: Each): MethodDecorator;
+export function Returns<F extends Array<any>, R>(): MethodDecorator;
 export function Returns<F extends Array<any>, R>(
-  name: string | Each,
+  name?: string | Each,
   options?: IncludeExcludePath,
 ) {
   return (
@@ -218,13 +220,15 @@ export function Returns<F extends Array<any>, R>(
   ) => {
     Reflect.defineMetadata(
       returns,
-      isEach(name)
-        ? { name }
-        : {
-            name,
-            include: options?.includePath,
-            exclude: options?.excludePath,
-          },
+      typeof name === 'undefined'
+        ? true
+        : isEach(name)
+          ? { name }
+          : {
+              name,
+              include: options?.includePath,
+              exclude: options?.excludePath,
+            },
       descriptor.value,
     );
   };
