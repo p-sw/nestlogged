@@ -12,12 +12,12 @@ import { isEach } from '../utils';
 import { objectContainedLogSync, getItemByPathSync } from '../internals/utils';
 import { ScopedLogger } from '../logger';
 
-interface FunctionMetadata {
+export interface FunctionMetadata {
   scopedLoggerInjectableParam?: number;
   loggedParams?: LoggedParamReflectData[];
 }
 
-function formatLoggedParam(args: any[], data: LoggedParamReflectData) {
+export function formatLoggedParam(args: any[], data: LoggedParamReflectData) {
   if (isEach(data.name)) {
     return Object.entries(data.name)
       .map(
@@ -32,7 +32,7 @@ function formatLoggedParam(args: any[], data: LoggedParamReflectData) {
   return `${data.name}=${objectContainedLogSync(args[data.index])}`;
 }
 
-function formatReturnsData(returned: any, data: ReturnsReflectData) {
+export function formatReturnsData(returned: any, data: ReturnsReflectData) {
   if (typeof data === 'boolean') {
     return 'WITH ' + objectContainedLogSync(returned);
   }
@@ -192,56 +192,14 @@ export function overrideBuild<F extends Array<any>, R>(
           (r && typeof r === 'object' && typeof r['then'] === 'function')
         ) {
           return r['then']((r: any) => {
-            const resultLogged = Array.isArray(returnsData)
-              ? typeof r === 'object' && r !== null
-                ? 'WITH ' +
-                  returnsData
-                    .map(({ name, path }) => {
-                      const value = getItemByPathSync(r, path);
-
-                      return value !== undefined ? `${name}=${value}` : '';
-                    })
-                    .filter((v) => v.length > 0)
-                    .join(', ')
-                : ''
-              : typeof returnsData === 'string'
-                ? 'WITH ' + returnsData + '=' + typeof r === 'object'
-                  ? JSON.stringify(r)
-                  : r
-                : returnsData
-                  ? typeof r === 'object'
-                    ? 'WITH ' + JSON.stringify(r)
-                    : 'WITH ' + r
-                  : '';
-
+            const resultLogged = formatReturnsData(r, returnsData);
             injectedLogger[logged.options.returnLogLevel](
               `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
             );
             return r;
           });
         } else {
-          const resultLogged = Array.isArray(returnsData)
-            ? typeof r === 'object' && r !== null
-              ? 'WITH ' +
-                returnsData
-                  .map(({ name, path }) => {
-                    const value = getItemByPathSync(r, path);
-
-                    return value !== undefined ? `${name}=${value}` : '';
-                  })
-                  .filter((v) => v.length > 0)
-                  .join(', ')
-              : ''
-            : typeof returnsData === 'string'
-              ? 'WITH ' + returnsData + '=' + typeof r === 'object'
-                ? JSON.stringify(r)
-                : r
-              : returnsData
-                ? typeof r === 'object'
-                  ? 'WITH ' + JSON.stringify(r)
-                  : 'WITH ' + r
-                : '';
-
+          const resultLogged = formatReturnsData(r, returnsData);
           injectedLogger[logged.options.returnLogLevel](
             `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
           );
