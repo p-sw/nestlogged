@@ -8,6 +8,7 @@ import {
   injectLogger,
   loggerInit,
 } from './utils';
+import { isEach } from '../utils';
 import { objectContainedLogSync, getItemByPathSync } from '../internals/utils';
 import { ScopedLogger } from '../logger';
 
@@ -16,13 +17,46 @@ interface FunctionMetadata {
   loggedParams?: LoggedParamReflectData[];
 }
 
+function formatLoggedParam(args: any[], data: LoggedParamReflectData) {
+  if (isEach(data.name)) {
+    return Object.entries(data.name)
+      .map(
+        ([name, path]) =>
+          `${name}=${getItemByPathSync(args[data.index], path)}`,
+      )
+      .join(', ');
+  }
+  if ('include' in data || 'exclude' in data) {
+    return `${data.name}=${objectContainedLogSync(args[data.index], { include: data.include, exclude: data.exclude })}`;
+  }
+  return `${data.name}=${objectContainedLogSync(args[data.index])}`;
+}
+
+function formatReturnsData(returned: any, data: ReturnsReflectData) {
+  if (typeof data === 'boolean') {
+    return 'WITH ' + objectContainedLogSync(returned);
+  }
+  if (isEach(data.name)) {
+    return (
+      'WITH ' +
+      Object.entries(data.name)
+        .map(([name, path]) => `${name}=${getItemByPathSync(returned, path)}`)
+        .join(', ')
+    );
+  }
+  if ('include' in data || 'exclude' in data) {
+    return `WITH ${data.name}=${objectContainedLogSync(returned, { include: data.include, exclude: data.exclude })}`;
+  }
+  return `WITH ${data.name}=${objectContainedLogSync(returned)}`;
+}
+
 export function overrideBuild<F extends Array<any>, R>(
   type: 'route',
   originalFunction: (...args: F) => R,
   _target: any,
   metadatas: FunctionMetadata,
   key: string,
-  returnsData: ReturnsReflectData[] | string | true,
+  returnsData: ReturnsReflectData,
   logged: LoggedMetadata,
   route: string,
 ): (...args: F) => R;
@@ -32,7 +66,7 @@ export function overrideBuild<F extends Array<any>, R>(
   _target: any,
   metadatas: FunctionMetadata,
   key: string,
-  returnsData: ReturnsReflectData[] | string | true,
+  returnsData: ReturnsReflectData,
   logged: LoggedMetadata,
 ): (...args: F) => R;
 export function overrideBuild<F extends Array<any>, R>(
@@ -41,7 +75,7 @@ export function overrideBuild<F extends Array<any>, R>(
   _target: any,
   metadatas: FunctionMetadata,
   key: string,
-  returnsData: ReturnsReflectData[] | string | true,
+  returnsData: ReturnsReflectData,
   logged: LoggedMetadata,
   route?: string,
 ): (...args: F) => R {
@@ -141,15 +175,7 @@ export function overrideBuild<F extends Array<any>, R>(
           metadatas.loggedParams && metadatas.loggedParams.length > 0
             ? 'WITH ' +
               metadatas.loggedParams
-                .map(
-                  ({ name, index, include, exclude }) =>
-                    name +
-                    '=' +
-                    objectContainedLogSync(args[index], {
-                      include,
-                      exclude,
-                    }),
-                )
+                .map((data) => formatLoggedParam(args, data))
                 .join(', ')
             : ''
         }`,
