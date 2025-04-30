@@ -17,10 +17,11 @@ import {
 } from 'nestlogged/lib/internals/utils';
 import { ScopedLogger } from 'nestlogged/lib/logger';
 
-interface FunctionMetadata {
-  scopedLoggerInjectableParam?: number;
-  loggedParams?: LoggedParamReflectData[];
-}
+import {
+  FunctionMetadata,
+  formatLoggedParam,
+  formatReturnsData,
+} from 'nestlogged/lib/logged/override';
 
 function fastifyOverrideBuild<F extends Array<any>, R>(
   type: 'route',
@@ -28,7 +29,7 @@ function fastifyOverrideBuild<F extends Array<any>, R>(
   _target: any,
   metadatas: FunctionMetadata,
   key: string,
-  returnsData: ReturnsReflectData[] | string | true,
+  returnsData: ReturnsReflectData,
   logged: LoggedMetadata,
   route: string,
 ): (...args: F) => R;
@@ -38,7 +39,7 @@ function fastifyOverrideBuild<F extends Array<any>, R>(
   _target: any,
   metadatas: FunctionMetadata,
   key: string,
-  returnsData: ReturnsReflectData[] | string | true,
+  returnsData: ReturnsReflectData,
   logged: LoggedMetadata,
 ): (...args: F) => R;
 function fastifyOverrideBuild<F extends Array<any>, R>(
@@ -47,7 +48,7 @@ function fastifyOverrideBuild<F extends Array<any>, R>(
   _target: any,
   metadatas: FunctionMetadata,
   key: string,
-  returnsData: ReturnsReflectData[] | string | true,
+  returnsData: ReturnsReflectData,
   logged: LoggedMetadata,
   route?: string,
 ): (...args: F) => R {
@@ -147,15 +148,7 @@ function fastifyOverrideBuild<F extends Array<any>, R>(
           metadatas.loggedParams && metadatas.loggedParams.length > 0
             ? 'WITH ' +
               metadatas.loggedParams
-                .map(
-                  ({ name, index, include, exclude }) =>
-                    name +
-                    '=' +
-                    objectContainedLogSync(args[index], {
-                      include,
-                      exclude,
-                    }),
-                )
+                .map((data) => formatLoggedParam(args, data))
                 .join(', ')
             : ''
         }`,
@@ -172,56 +165,14 @@ function fastifyOverrideBuild<F extends Array<any>, R>(
           (r && typeof r === 'object' && typeof r['then'] === 'function')
         ) {
           return r['then']((r: any) => {
-            const resultLogged = Array.isArray(returnsData)
-              ? typeof r === 'object' && r !== null
-                ? 'WITH ' +
-                  returnsData
-                    .map(({ name, path }) => {
-                      const value = getItemByPathSync(r, path);
-
-                      return value !== undefined ? `${name}=${value}` : '';
-                    })
-                    .filter((v) => v.length > 0)
-                    .join(', ')
-                : ''
-              : typeof returnsData === 'string'
-                ? 'WITH ' + returnsData + '=' + typeof r === 'object'
-                  ? JSON.stringify(r)
-                  : r
-                : returnsData
-                  ? typeof r === 'object'
-                    ? 'WITH ' + JSON.stringify(r)
-                    : 'WITH ' + r
-                  : '';
-
+            const resultLogged = formatReturnsData(r, returnsData);
             injectedLogger[logged.options.returnLogLevel](
               `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
             );
             return r;
           });
         } else {
-          const resultLogged = Array.isArray(returnsData)
-            ? typeof r === 'object' && r !== null
-              ? 'WITH ' +
-                returnsData
-                  .map(({ name, path }) => {
-                    const value = getItemByPathSync(r, path);
-
-                    return value !== undefined ? `${name}=${value}` : '';
-                  })
-                  .filter((v) => v.length > 0)
-                  .join(', ')
-              : ''
-            : typeof returnsData === 'string'
-              ? 'WITH ' + returnsData + '=' + typeof r === 'object'
-                ? JSON.stringify(r)
-                : r
-              : returnsData
-                ? typeof r === 'object'
-                  ? 'WITH ' + JSON.stringify(r)
-                  : 'WITH ' + r
-                : '';
-
+          const resultLogged = formatReturnsData(r, returnsData);
           injectedLogger[logged.options.returnLogLevel](
             `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
           );
