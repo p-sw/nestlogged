@@ -1,4 +1,4 @@
-import { Logger } from "@nestjs/common";
+import { Logger } from '@nestjs/common';
 
 export const notIncludedSymbol = Symbol('notIncluded');
 
@@ -72,19 +72,29 @@ export function objectContainedLogSync(
     exclude?: string[];
   },
 ): string {
+  const copied =
+    typeof ocv === 'object' && ocv !== null
+      ? Array.isArray(ocv)
+        ? [...ocv]
+        : { ...ocv }
+      : ocv;
   if (options && typeof ocv === 'object' && ocv !== null) {
     if (options.include && options.include.length > 0) {
-      return JSON.stringify(includeObjectSync(ocv, { paths: options.include }));
+      return JSON.stringify(
+        includeObjectSync(copied, { paths: options.include }),
+      );
     }
     if (options.exclude && options.exclude.length > 0) {
-      return JSON.stringify(excludeObjectSync(ocv, { paths: options.exclude }));
+      return JSON.stringify(
+        excludeObjectSync(copied, { paths: options.exclude }),
+      );
     }
   }
 
   if (typeof ocv === 'object' && ocv !== null) {
-    return JSON.stringify(ocv);
+    return JSON.stringify(copied);
   } else {
-    return `${ocv}`;
+    return `${copied}`;
   }
 }
 
