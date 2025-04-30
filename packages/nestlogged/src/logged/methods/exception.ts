@@ -2,6 +2,11 @@ import { OverrideBuildOptions } from '../utils';
 import { LoggedMetadata, nestLoggedMetadata } from '../metadata';
 import { scopedLogger, returns, ReturnsReflectData } from '../../reflected';
 import { overrideBuild } from '../override';
+import {
+  backupMetadata,
+  isFunctionWithWarn,
+  restoreMetadata,
+} from '../method-helpers';
 
 /**
  * @internal
@@ -19,29 +24,12 @@ export function LoggedExceptionFilter(
     ) => {
       const fn = descriptor.value;
 
-      if (!fn || typeof fn !== 'function') {
-        console.warn(
-          `LoggedExceptionFilter decorator applied to non-function property: ${key}`,
-        );
-        return;
-      }
+      if (!isFunctionWithWarn('LoggedExceptionFilter', fn, key)) return;
 
-      const logMetadata: LoggedMetadata | undefined = Reflect.getOwnMetadata(
-        nestLoggedMetadata,
-        _target,
-        key,
-      );
-      if (logMetadata) {
-        // already applied, override instead
-        logMetadata.updateOption(options);
-        return;
-      }
-      const newMetadata = new LoggedMetadata(options);
+      const newMetadata = LoggedMetadata.fromReflect(_target, key, options);
+      if (!newMetadata) return;
 
-      const all = Reflect.getMetadataKeys(fn).map((k) => [
-        k,
-        Reflect.getMetadata(k, fn),
-      ]);
+      const all = backupMetadata(fn);
 
       const scopedLoggerInjectableParam: number = Reflect.getOwnMetadata(
         scopedLogger,
@@ -49,7 +37,7 @@ export function LoggedExceptionFilter(
         key,
       );
 
-      const returnsData: ReturnsReflectData[] | true = Reflect.getOwnMetadata(
+      const returnsData: ReturnsReflectData = Reflect.getOwnMetadata(
         returns,
         fn,
       );
@@ -70,11 +58,8 @@ export function LoggedExceptionFilter(
       _target[key] = overrideFunction;
       descriptor.value = overrideFunction;
 
-      Reflect.defineMetadata(nestLoggedMetadata, newMetadata, _target, key);
-      all.forEach(([k, v]) => {
-        Reflect.defineMetadata(k, v, _target[key]);
-        Reflect.defineMetadata(k, v, descriptor.value);
-      });
+      newMetadata.save(_target, key);
+      restoreMetadata(_target, key, descriptor, all);
     };
   };
 }
