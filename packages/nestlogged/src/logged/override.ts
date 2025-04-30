@@ -1,4 +1,4 @@
-import { Logger, ExecutionContext, ArgumentsHost } from '@nestjs/common';
+import { Logger, ExecutionContext } from '@nestjs/common';
 import { LoggedParamReflectData, ReturnsReflectData } from '../reflected';
 import { LoggedMetadata } from './metadata';
 import {
@@ -33,6 +33,7 @@ export function formatLoggedParam(args: any[], data: LoggedParamReflectData) {
 }
 
 export function formatReturnsData(returned: any, data: ReturnsReflectData) {
+  if (!data) return '';
   if (typeof data === 'boolean') {
     return 'WITH ' + objectContainedLogSync(returned);
   }
