@@ -11,10 +11,6 @@ import {
   loggerInit,
   injectLogger,
 } from 'nestlogged/lib/logged/utils';
-import {
-  objectContainedLogSync,
-  getItemByPathSync,
-} from 'nestlogged/lib/internals/utils';
 import { ScopedLogger } from 'nestlogged/lib/logger';
 
 import {
