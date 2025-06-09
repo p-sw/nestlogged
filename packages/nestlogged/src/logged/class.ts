@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { RevRequestMethod } from './utils';
 import { LoggedRouteBuild, LoggedFunctionBuild } from './methods';
-import { logger } from '../internals/utils';
+import { logger } from '../internals/object-util';
 import { overrideBuild } from './override';
 
 /**

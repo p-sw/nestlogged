@@ -9,7 +9,10 @@ import {
   loggerInit,
 } from './utils';
 import { isEach } from '../utils';
-import { objectContainedLogSync, getItemByPathSync } from '../internals/utils';
+import {
+  objectContainedLogSync,
+  getItemByPathSync,
+} from '../internals/object-util';
 import { ScopedLogger } from '../logger';
 
 export interface FunctionMetadata {
