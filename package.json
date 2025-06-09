@@ -17,11 +17,12 @@
     "typescript": "^5.2.2"
   },
   "scripts": {
-    "build": "rimraf packages/nestlogged/lib && yarn workspace nestlogged tsc",
-    "fastify:build": "rimraf packages/nestlogged-fastify/lib && yarn workspace nestlogged-fastify tsc",
+    "main": "pnpm --filter nestlogged",
+    "fastify": "pnpm --filter nestlogged-fastify",
+    "build:main": "rimraf packages/nestlogged/lib && pnpm run main exec tsc",
+    "build:fastify": "rimraf packages/nestlogged-fastify/lib && pnpm run fastify exec tsc",
     "format": "prettier --write \"./packages/**/*.ts\""
   },
-  "packageManager": "yarn@4.7.0+sha512.5a0afa1d4c1d844b3447ee3319633797bcd6385d9a44be07993ae52ff4facabccafb4af5dcd1c2f9a94ac113e5e9ff56f6130431905884414229e284e37bb7c9",
   "dependencies": {
     "@nestjs/common": "^11.1.0"
   }
