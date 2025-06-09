@@ -1,5 +1,5 @@
 import { OverrideBuildOptions } from '../utils';
-import { LoggedMetadata, nestLoggedMetadata } from '../metadata';
+import { LoggedMetadata } from '../metadata';
 import {
   loggedParam,
   scopedLogger,
