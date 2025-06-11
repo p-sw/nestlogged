@@ -1,0 +1,17 @@
+---
+description: Project Structure and Contents
+globs: 
+alwaysApply: true
+---
+- This project is a **package** providing decorators for easier logging with nestjs.
+
+- This project uses **monorepo** structure.
+- This project contains **two packages** in `packages` folder.
+    - `nestlogged` ([package.json](mdc:packages/nestlogged/package.json))
+    - `nestlogged-fastify` ([package.json](mdc:packages/nestlogged-fastify/package.json))
+- `nestlogged` is a **main package**, and contains all base functionalities.
+- `nestlogged-fastify` is a **patched version** for `nestlogged`.
+    - `nestlogged` is based on express platform, which causes error on nestjs project using fastify platform.
+    - So `nestlogged-fastify` is provided to fix that problem with patched version of some code.
+        - `nestlogged` **builds** all the decorators with *default* overrideBuild parameter (for example, [function.ts](mdc:packages/nestlogged/src/logged/methods/function.ts) and [index.ts](mdc:packages/nestlogged/src/logged/methods/index.ts))
+        - `nestlogged-fastify` **builds** all the decorators *again* with **patched version of overrideBuild** ([override.ts](mdc:packages/nestlogged-fastify/src/override.ts)](mdc:packages/nestlogged/src/logged/override.ts) and [index.ts](mdc:packages/nestlogged-fastify/src/index.ts))
