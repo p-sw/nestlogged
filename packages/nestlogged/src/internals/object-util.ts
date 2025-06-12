@@ -1,43 +1,47 @@
 import { Logger } from '@nestjs/common';
+import type { PathTree } from '../reflected';
 
 export const notIncludedSymbol = Symbol('notIncluded');
 
 export function includeObjectSync(
   ocv: any,
   opt: {
-    paths: string[];
+    pathTree: PathTree;
   },
 ) {
   let current = Array.isArray(ocv) ? [] : typeof ocv === 'object' ? {} : ocv;
-  opt.paths.forEach((dotpath) => {
-    let query = ocv;
-    let objRef = current;
-    const path = dotpath.split('.');
-    for (const [index, key] of Object.entries(path)) {
-      query = query[key];
-      if (query !== undefined && objRef[key] === undefined) {
-        if (typeof query === 'object') {
-          if (Array.isArray(query)) {
-            objRef[key] = [];
-          } else {
-            objRef[key] = {};
+
+  function processPathTree(tree: PathTree, sourceObj: any, targetObj: any) {
+    for (const [key, value] of Object.entries(tree)) {
+      if (sourceObj && typeof sourceObj === 'object' && key in sourceObj) {
+        if (value === null) {
+          targetObj[key] = sourceObj[key];
+        } else {
+          if (targetObj[key] === undefined) {
+            if (typeof sourceObj[key] === 'object') {
+              if (Array.isArray(sourceObj[key])) {
+                targetObj[key] = [];
+              } else {
+                targetObj[key] = {};
+              }
+            }
+          }
+          if (typeof sourceObj[key] === 'object') {
+            processPathTree(value, sourceObj[key], targetObj[key]);
           }
         }
       }
-      if (typeof query !== 'object' || index === (path.length - 1).toString()) {
-        objRef[key] = query;
-        break;
-      }
-      objRef = objRef[key];
     }
-  });
+  }
+
+  processPathTree(opt.pathTree, ocv, current);
   return current;
 }
 
 export function excludeObjectSync(
   ocv: any,
   opt: {
-    paths: string[];
+    pathTree: PathTree;
   },
 ) {
   const copied =
@@ -46,30 +50,30 @@ export function excludeObjectSync(
         ? [...ocv]
         : { ...ocv }
       : ocv;
-  opt.paths.forEach((dotpath) => {
-    let objRef = copied;
-    const path = dotpath.split('.');
-    const lastIndex = (path.length - 1).toString();
-    for (const [index, key] of Object.entries(path)) {
-      if (index === lastIndex) {
-        delete objRef[key];
-        break;
-      }
-      objRef = objRef[key];
-      if (typeof objRef !== 'object') {
-        break;
+
+  function processExcludePathTree(tree: PathTree, targetObj: any) {
+    for (const [key, value] of Object.entries(tree)) {
+      if (targetObj && typeof targetObj === 'object' && key in targetObj) {
+        if (value === null) {
+          delete targetObj[key];
+        } else {
+          if (typeof targetObj[key] === 'object') {
+            processExcludePathTree(value, targetObj[key]);
+          }
+        }
       }
     }
-  });
+  }
 
+  processExcludePathTree(opt.pathTree, copied);
   return copied;
 }
 
 export function objectContainedLogSync(
   ocv: any,
   options?: {
-    include?: string[];
-    exclude?: string[];
+    includePathTree?: PathTree;
+    excludePathTree?: PathTree;
   },
 ): string {
   const copied =
@@ -79,14 +83,14 @@ export function objectContainedLogSync(
         : { ...ocv }
       : ocv;
   if (options && typeof ocv === 'object' && ocv !== null) {
-    if (options.include && options.include.length > 0) {
+    if (options.includePathTree) {
       return JSON.stringify(
-        includeObjectSync(copied, { paths: options.include }),
+        includeObjectSync(copied, { pathTree: options.includePathTree }),
       );
     }
-    if (options.exclude && options.exclude.length > 0) {
+    if (options.excludePathTree) {
       return JSON.stringify(
-        excludeObjectSync(copied, { paths: options.exclude }),
+        excludeObjectSync(copied, { pathTree: options.excludePathTree }),
       );
     }
   }
