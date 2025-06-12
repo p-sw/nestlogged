@@ -1,8 +1,3 @@
----
-description: Project Structure and Contents
-globs: 
-alwaysApply: true
----
 - This project is a **package** providing decorators for easier logging with nestjs.
 
 - This project uses **monorepo** structure.
