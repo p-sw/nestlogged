@@ -9,10 +9,42 @@ import { isEach } from './utils';
 
 export type Path = string;
 export type Paths = Path[];
+export interface PathTree {
+  [key: string]: PathTree | null;
+}
+
+export function pathsToPathTree(paths: string[]): PathTree {
+  const tree: PathTree = {};
+
+  paths.forEach((path) => {
+    const segments = path.split('.');
+    let current = tree;
+
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
+
+      if (i === segments.length - 1) {
+        current[segment] = null;
+      } else {
+        if (!(segment in current)) {
+          current[segment] = {};
+        }
+        current = current[segment] as PathTree;
+      }
+    }
+  });
+
+  return tree;
+}
 
 export interface IncludeExcludePath {
   includePath?: Paths;
   excludePath?: Paths;
+}
+
+export interface IncludeExcludePathTree {
+  includePathTree?: PathTree;
+  excludePathTree?: PathTree;
 }
 
 export type Each = Record<string, Path>;
@@ -20,8 +52,8 @@ export type Each = Record<string, Path>;
 export type LoggedParamReflectData = { index: number } & (
   | {
       name: string;
-      include?: Paths;
-      exclude?: Paths;
+      includePathTree?: PathTree;
+      excludePathTree?: PathTree;
     }
   | {
       name: Each;
@@ -34,8 +66,8 @@ export type ReturnsReflectData =
     }
   | {
       name: string;
-      include?: Paths;
-      exclude?: Paths;
+      includePathTree?: PathTree;
+      excludePathTree?: PathTree;
     }
   | true;
 
@@ -75,8 +107,12 @@ function createLoggedFunctionParam(
         : {
             index: parameterIndex,
             name,
-            include: options?.includePath,
-            exclude: options?.excludePath,
+            includePathTree: options?.includePath
+              ? pathsToPathTree(options.includePath)
+              : undefined,
+            excludePathTree: options?.excludePath
+              ? pathsToPathTree(options.excludePath)
+              : undefined,
           },
     );
 
@@ -226,8 +262,12 @@ export function Returns<F extends Array<any>, R>(
           ? { name }
           : {
               name,
-              include: options?.includePath,
-              exclude: options?.excludePath,
+              includePathTree: options?.includePath
+                ? pathsToPathTree(options.includePath)
+                : undefined,
+              excludePathTree: options?.excludePath
+                ? pathsToPathTree(options.excludePath)
+                : undefined,
             },
       descriptor.value,
     );
