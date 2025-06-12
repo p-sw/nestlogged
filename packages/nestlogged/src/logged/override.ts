@@ -29,8 +29,8 @@ export function formatLoggedParam(args: any[], data: LoggedParamReflectData) {
       )
       .join(', ');
   }
-  if ('include' in data || 'exclude' in data) {
-    return `${data.name}=${objectContainedLogSync(args[data.index], { include: data.include, exclude: data.exclude })}`;
+  if ('includePathTree' in data || 'excludePathTree' in data) {
+    return `${data.name}=${objectContainedLogSync(args[data.index], { includePathTree: data.includePathTree, excludePathTree: data.excludePathTree })}`;
   }
   return `${data.name}=${objectContainedLogSync(args[data.index])}`;
 }
@@ -48,8 +48,8 @@ export function formatReturnsData(returned: any, data: ReturnsReflectData) {
         .join(', ')
     );
   }
-  if ('include' in data || 'exclude' in data) {
-    return `WITH ${data.name}=${objectContainedLogSync(returned, { include: data.include, exclude: data.exclude })}`;
+  if ('includePathTree' in data || 'excludePathTree' in data) {
+    return `WITH ${data.name}=${objectContainedLogSync(returned, { includePathTree: data.includePathTree, excludePathTree: data.excludePathTree })}`;
   }
   return `WITH ${data.name}=${objectContainedLogSync(returned)}`;
 }
