@@ -45,6 +45,10 @@ export class ScopedLogger extends Logger {
     };
   }
 
+  getRequestId() {
+    return this.scopeId;
+  }
+
   debug = this.scopedLog('debug');
   log = this.scopedLog('log');
   warn = this.scopedLog('warn');
