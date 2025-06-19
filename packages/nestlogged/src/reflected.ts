@@ -152,7 +152,11 @@ export function LoggedParam(
   ...pipes: Pipe[]
 ): LoggedParamReturns {
   return (name: string | Each, options?: IncludeExcludePath) => {
-    return (target, propertyKey, parameterIndex) => {
+    return (
+      target: any,
+      propertyKey: string | symbol,
+      parameterIndex: number,
+    ) => {
       createPipesRouteParamDecorator(RouteParamtypes.PARAM)(property, ...pipes)(
         target,
         propertyKey,
@@ -178,7 +182,11 @@ export function LoggedQuery(
   ...pipes: Pipe[]
 ): LoggedParamReturns {
   return (name: string | Each, options?: IncludeExcludePath) => {
-    return (target, propertyKey, parameterIndex) => {
+    return (
+      target: any,
+      propertyKey: string | symbol,
+      parameterIndex: number,
+    ) => {
       createPipesRouteParamDecorator(RouteParamtypes.QUERY)(property, ...pipes)(
         target,
         propertyKey,
@@ -205,7 +213,11 @@ export function LoggedBody(
   ...pipes: Pipe[]
 ): LoggedParamReturns {
   return (name: string | Each, options?: IncludeExcludePath) => {
-    return (target, propertyKey, parameterIndex) => {
+    return (
+      target: any,
+      propertyKey: string | symbol,
+      parameterIndex: number,
+    ) => {
       createPipesRouteParamDecorator(RouteParamtypes.BODY)(property, ...pipes)(
         target,
         propertyKey,
@@ -223,7 +235,11 @@ export function LoggedBody(
 
 export function LoggedHeaders(property?: string): LoggedParamReturns {
   return (name: string | Each, options?: IncludeExcludePath) => {
-    return (target, propertyKey, parameterIndex) => {
+    return (
+      target: any,
+      propertyKey: string | symbol,
+      parameterIndex: number,
+    ) => {
       createRouteParamDecorator(RouteParamtypes.HEADERS)(property)(
         target,
         propertyKey,
