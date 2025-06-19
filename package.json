@@ -1,6 +1,6 @@
 {
   "name": "nestlogged-root",
-  "version": "3.2.3",
+  "version": "3.6.0",
   "description": "A NestJS Logger Decorator Library",
   "main": "./dist/lib/index.js",
   "repository": "https://github.com/p-sw/nestlogged",
