@@ -153,6 +153,16 @@ export function overrideBuild<F extends Array<any>, R>(
       injectedLogger = args[metadatas.scopedLoggerInjectableParam];
     }
 
+    const isCallLogEnabled =
+      logged.options.callLogLevel === 'skip' ||
+      ScopedLogger.isLevelEnabled(logged.options.callLogLevel);
+    const isReturnLogEnabled =
+      logged.options.returnLogLevel === 'skip' ||
+      ScopedLogger.isLevelEnabled(logged.options.returnLogLevel);
+    const isErrorLogEnabled =
+      logged.options.errorLogLevel === 'skip' ||
+      ScopedLogger.isLevelEnabled(logged.options.errorLogLevel);
+
     // If this is ExecutionContext based function (e.g. Guard, Interceptor) get Request from Context
     if (type === 'guard' || type === 'interceptor') {
       const context = args[0] as ExecutionContext;
@@ -166,7 +176,7 @@ export function overrideBuild<F extends Array<any>, R>(
     }
 
     // Start Log
-    if (logged.options.callLogLevel !== 'skip') {
+    if (isCallLogEnabled) {
       const callLogIdentifyMessage =
         type === 'middleware' ||
         type === 'guard' ||
@@ -190,7 +200,7 @@ export function overrideBuild<F extends Array<any>, R>(
       const r: R = originalFunction.call(this, ...args); // Try to call original function
 
       // Return Log
-      if (logged.options.returnLogLevel !== 'skip') {
+      if (isReturnLogEnabled) {
         if (
           originalFunction.constructor.name === 'AsyncFunction' ||
           (r && typeof r === 'object' && typeof r['then'] === 'function')
@@ -214,7 +224,7 @@ export function overrideBuild<F extends Array<any>, R>(
       }
     } catch (e) {
       // Error Log
-      if (logged.options.errorLogLevel !== 'skip') {
+      if (isErrorLogEnabled) {
         injectedLogger[logged.options.errorLogLevel](
           `${createCallLogIdentifyMessage('ERROR', type, `${name}.${key}`, route)} ${e}`,
         );
