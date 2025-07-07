@@ -1,12 +1,15 @@
 {
   "name": "nestlogged",
-  "version": "3.5.0",
+  "version": "3.6.1",
   "description": "A NestJS Logger Decorator Library",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "repository": "https://github.com/p-sw/nestlogged",
   "author": "Shinwoo PARK",
   "license": "MIT",
+  "scripts": {
+    "build": "rimraf lib && tsc"
+  },
   "dependencies": {
     "hyperid": "^3.1.1",
     "reflect-metadata": "^0.1.13",
