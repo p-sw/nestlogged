@@ -103,12 +103,15 @@ export function objectContainedLogSync(
 }
 
 export function getItemByPathSync(obj: object, path: string | string[]) {
+  if (obj === undefined || obj === null) {
+    return undefined;
+  }
+
   const paths = Array.isArray(path) ? path : path.split('.');
+  if (paths.length === 0) return obj;
 
   return Object.keys(obj).includes(paths[0])
-    ? typeof obj[paths[0]] === 'object'
-      ? getItemByPathSync(obj[paths[0]], paths.slice(1))
-      : obj[paths[0]]
+    ? getItemByPathSync(obj[paths[0]], paths.slice(1))
     : undefined;
 }
 
