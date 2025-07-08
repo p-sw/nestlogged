@@ -23,10 +23,9 @@ export interface FunctionMetadata {
 export function formatLoggedParam(args: any[], data: LoggedParamReflectData) {
   if (isEach(data.name)) {
     return Object.entries(data.name)
-      .map(
-        ([name, path]) =>
-          `${name}=${getItemByPathSync(args[data.index], path)}`,
-      )
+      .map(([name, path]) => [name, getItemByPathSync(args[data.index], path)])
+      .filter((item) => item !== undefined)
+      .map(([name, value]) => `${name}=${value}`)
       .join(', ');
   }
   if ('includePathTree' in data || 'excludePathTree' in data) {
@@ -44,7 +43,9 @@ export function formatReturnsData(returned: any, data: ReturnsReflectData) {
     return (
       'WITH ' +
       Object.entries(data.name)
-        .map(([name, path]) => `${name}=${getItemByPathSync(returned, path)}`)
+        .map(([name, path]) => [name, getItemByPathSync(returned, path)])
+        .filter((item) => item !== undefined)
+        .map(([name, value]) => `${name}=${value}`)
         .join(', ')
     );
   }
