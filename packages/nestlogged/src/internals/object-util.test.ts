@@ -2,6 +2,7 @@ import {
   includeObjectSync,
   excludeObjectSync,
   objectContainedLogSync,
+  getItemByPathSync,
 } from './object-util';
 import { PathTree, pathsToPathTree } from '../reflected';
 
@@ -425,5 +426,98 @@ describe('objectContainedLogSync', () => {
     const result = objectContainedLogSync(obj, { includePathTree });
 
     expect(result).toBe('{"user":{"name":"John","email":"john@example.com"}}');
+  });
+});
+
+describe('getItemByPathSync', () => {
+  it('should return the value at the given path', () => {
+    const obj = {
+      user: {
+        name: 'John',
+        email: 'john@example.com',
+        password: 'secret',
+      },
+    };
+
+    expect(getItemByPathSync(obj, 'user.name')).toBe('John');
+    expect(getItemByPathSync(obj, 'user.email')).toBe('john@example.com');
+    expect(getItemByPathSync(obj, 'user.password')).toBe('secret');
+  });
+
+  it('should return undefined if the path is not found', () => {
+    const obj = {
+      user: {
+        name: 'John',
+        email: 'john@example.com',
+        password: 'secret',
+      },
+    };
+
+    expect(getItemByPathSync(obj, 'user.name.first')).toBeUndefined();
+    expect(getItemByPathSync(obj, 'user.email.first')).toBeUndefined();
+    expect(getItemByPathSync(obj, 'user.password.first')).toBeUndefined();
+  });
+
+  it('should handle arrays', () => {
+    const obj = {
+      items: [1, 2, 3],
+    };
+
+    expect(getItemByPathSync(obj, 'items.0')).toBe(1);
+    expect(getItemByPathSync(obj, 'items.1')).toBe(2);
+    expect(getItemByPathSync(obj, 'items.2')).toBe(3);
+    expect(getItemByPathSync(obj, 'items.3')).toBeUndefined();
+    expect(getItemByPathSync(obj, 'items.first')).toBeUndefined();
+    expect(getItemByPathSync(obj, 'items.first.name')).toBeUndefined();
+  });
+
+  it('should handle nested objects', () => {
+    const obj = {
+      user: {
+        name: 'John',
+        email: 'john@example.com',
+        password: 'secret',
+      },
+    };
+
+    expect(getItemByPathSync(obj, 'user.name')).toBe('John');
+    expect(getItemByPathSync(obj, 'user.email')).toBe('john@example.com');
+    expect(getItemByPathSync(obj, 'user.password')).toBe('secret');
+  });
+
+  it('should handle arrays in nested objects', () => {
+    const obj = {
+      user: {
+        items: [1, 2, 3],
+      },
+    };
+
+    expect(getItemByPathSync(obj, 'user.items.0')).toBe(1);
+    expect(getItemByPathSync(obj, 'user.items.1')).toBe(2);
+    expect(getItemByPathSync(obj, 'user.items.2')).toBe(3);
+    expect(getItemByPathSync(obj, 'user.items.3')).toBeUndefined();
+    expect(getItemByPathSync(obj, 'user.items.first')).toBeUndefined();
+    expect(getItemByPathSync(obj, 'user.items.first.name')).toBeUndefined();
+  });
+
+  it('should handle arrays in nested objects with arrays', () => {
+    const obj = {
+      user: {
+        items: [
+          { id: 1, name: 'Item 1' },
+          { id: 2, name: 'Item 2' },
+        ],
+      },
+    };
+
+    expect(getItemByPathSync(obj, 'user.items.0.id')).toBe(1);
+    expect(getItemByPathSync(obj, 'user.items.1.id')).toBe(2);
+    expect(getItemByPathSync(obj, 'user.items.0.name')).toBe('Item 1');
+    expect(getItemByPathSync(obj, 'user.items.1.name')).toBe('Item 2');
+  });
+
+  it('should handle direct undefined and null values', () => {
+    expect(getItemByPathSync(undefined, 'user.name')).toBeUndefined();
+    expect(getItemByPathSync(null, 'user.name')).toBeUndefined();
   });
 });
