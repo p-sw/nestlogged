@@ -90,19 +90,35 @@ export const defaultOverrideBuildOptions: OverrideBuildOptions = {
   skipErrorLog: false,
 };
 
-export function injectLogger<T extends Array<any>>(args: T, baseLogger: Logger, paramIndex: number, scope: string | string[], scopeId?: string) {
-  if (
-    args.length <= paramIndex
-  ) {
-    if (args.length !== paramIndex) for (let i = args.length; i < paramIndex; i++) args.push(undefined);
+interface InjectLoggerOptions<T extends Array<any>> {
+  args: T;
+  baseLogger: Logger;
+  paramIndex: number;
+  scope: string | string[];
+  scopeId?: string;
+  replace?: boolean;
+}
+
+/**
+ * @internal
+ */
+export function injectLogger<T extends Array<any>>({
+  args,
+  baseLogger,
+  paramIndex,
+  scope,
+  scopeId,
+  replace,
+}: InjectLoggerOptions<T>) {
+  if (args.length <= paramIndex) {
+    if (args.length !== paramIndex)
+      for (let i = args.length; i < paramIndex; i++) args.push(undefined);
     args.push(ScopedLogger.fromRoot(baseLogger, scope, scopeId));
-  } else if (
-    !(args[paramIndex] instanceof ScopedLogger)
-  ) {
+  } else if (!(args[paramIndex] instanceof ScopedLogger)) {
     args.splice(
       paramIndex,
-      0,
-      ScopedLogger.fromRoot(baseLogger, scope, scopeId)
+      !!replace ? 1 : 0,
+      ScopedLogger.fromRoot(baseLogger, scope, scopeId),
     );
   } else {
     args[paramIndex] = ScopedLogger.fromSuper(
