@@ -13,7 +13,7 @@
   "dependencies": {
     "fastify": "^5.2.2",
     "hyperid": "^3.1.1",
-    "nestlogged": "^3.6.3",
+    "nestlogged": "^3.6.4",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1"
   },
