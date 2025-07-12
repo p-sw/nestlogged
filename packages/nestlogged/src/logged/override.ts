@@ -202,32 +202,38 @@ export function overrideBuild<F extends Array<any>, R>(
 
     try {
       const r: R = originalFunction.call(this, ...args); // Try to call original function
-
-      // Return Log
-      if (isReturnLogEnabled) {
         if (
           originalFunction.constructor.name === 'AsyncFunction' ||
           (r && typeof r === 'object' && typeof r['then'] === 'function')
         ) {
           return r['then']((r: any) => {
+          // async return logging
             const resultLogged = formatReturnsData(r, returnsData);
             injectedLogger[logged.options.returnLogLevel](
               `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
             );
             return r;
+        })['catch']((e: any) => {
+          // async error logging
+          if (isErrorLogEnabled) {
+            injectedLogger[logged.options.errorLogLevel](
+              `${createCallLogIdentifyMessage('ERROR', type, `${name}.${key}`, route)} ${e}`,
+            );
+          }
+          throw e;
           });
         } else {
+        // return logging
+        if (isReturnLogEnabled) {
           const resultLogged = formatReturnsData(r, returnsData);
           injectedLogger[logged.options.returnLogLevel](
             `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
           );
           return r;
         }
-      } else {
-        return r;
       }
     } catch (e) {
-      // Error Log
+      // error logging
       if (isErrorLogEnabled) {
         injectedLogger[logged.options.errorLogLevel](
           `${createCallLogIdentifyMessage('ERROR', type, `${name}.${key}`, route)} ${e}`,
