@@ -285,6 +285,10 @@ export function Returns(
     _key: string | symbol,
     descriptor: TypedPropertyDescriptor<T>,
   ) => {
+    console.warn(
+      'nestlogged: Returns decorator is deprecated. This will be ignored. Use IfReturns instead.',
+    );
+
     Reflect.defineMetadata(
       returns,
       typeof name === 'undefined'
