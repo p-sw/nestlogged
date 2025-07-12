@@ -128,3 +128,18 @@ export function injectLogger<T extends Array<any>>({
     );
   }
 }
+
+export function copy<T>(data: T): T {
+  if (data === undefined || data === null) return data;
+  if (typeof data === 'object') {
+    if (Array.isArray(data)) {
+      return data.map(copy) as T;
+    }
+    const result = {};
+    for (const [key, value] of Object.entries(data)) {
+      result[key] = copy(value);
+    }
+    return result as T;
+  }
+  return data;
+}
