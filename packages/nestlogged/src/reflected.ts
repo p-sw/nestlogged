@@ -318,6 +318,15 @@ export function IfReturns<T>(
     _key?: string | symbol,
     descriptor?: TypedPropertyDescriptor<T>,
   ) => {
+    function addMetadata() {
+      const existingIfReturnsData: IfReturnsReflectData[] =
+        Reflect.getOwnMetadata(ifReturns, _target, _key) || [];
+
+      existingIfReturnsData.push({ ifReturns, transformer });
+
+      Reflect.defineMetadata(ifReturns, existingIfReturnsData, _target, _key);
+    }
+
     if (!_key || !descriptor) {
       // class decorator
       const methods = Object.getOwnPropertyNames(_target.prototype);
@@ -327,20 +336,12 @@ export function IfReturns<T>(
           method !== 'constructor' &&
           typeof _target.prototype[method] === 'function'
         ) {
-          Reflect.defineMetadata(
-            ifReturns,
-            { ifReturns, transformer },
-            _target.prototype[method],
-          );
+          addMetadata();
         }
       });
     } else {
       // method decorator
-      Reflect.defineMetadata(
-        ifReturns,
-        { ifReturns, transformer },
-        descriptor.value,
-      );
+      addMetadata();
     }
   };
 }
@@ -354,6 +355,15 @@ export function IfThrows<E extends Error>(
     _key?: string | symbol,
     descriptor?: TypedPropertyDescriptor<T>,
   ) => {
+    function addMetadata() {
+      const existingIfThrowsData: IfThrowsReflectData[] =
+        Reflect.getOwnMetadata(ifThrows, _target, _key) || [];
+
+      existingIfThrowsData.push({ error, transformer });
+
+      Reflect.defineMetadata(ifThrows, existingIfThrowsData, _target, _key);
+    }
+
     if (!_key || !descriptor) {
       // class decorator
       const methods = Object.getOwnPropertyNames(_target.prototype);
@@ -363,20 +373,12 @@ export function IfThrows<E extends Error>(
           method !== 'constructor' &&
           typeof _target.prototype[method] === 'function'
         ) {
-          Reflect.defineMetadata(
-            ifThrows,
-            { error, transformer },
-            _target.prototype[method],
-          );
+          addMetadata();
         }
       });
     } else {
       // method decorator
-      Reflect.defineMetadata(
-        ifThrows,
-        { error, transformer },
-        descriptor.value,
-      );
+      addMetadata();
     }
   };
 }
