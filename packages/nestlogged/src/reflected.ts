@@ -71,9 +71,21 @@ export type ReturnsReflectData =
     }
   | true;
 
-export const scopedLogger = Symbol('nlogdec-scopedLogger');
-export const loggedParam = Symbol('nlogdec-loggedParam');
-export const returns = Symbol('nlogdec-returns');
+export const scopedLogger = Symbol('nestlogged-scopedLogger');
+export const loggedParam = Symbol('nestlogged-loggedParam');
+export const returns = Symbol('nestlogged-returns');
+export const ifThrows = Symbol('nestlogged-ifThrows');
+export const ifReturns = Symbol('nestlogged-ifReturns');
+
+export type IfReturnsReflectData = {
+  ifReturns: (returns: unknown) => boolean;
+  transformer: (returns: unknown) => string | object;
+};
+
+export type IfThrowsReflectData = {
+  error: unknown;
+  transformer: (error: unknown) => string | object;
+};
 
 export function InjectLogger(
   target: any,
@@ -255,20 +267,23 @@ export function LoggedHeaders(property?: string): LoggedParamReturns {
   };
 }
 
-export function Returns<F extends Array<any>, R>(
+/**
+ * @deprecated use {@link IfReturns} instead
+ */
+export function Returns(
   name: string,
   options?: IncludeExcludePath,
 ): MethodDecorator;
-export function Returns<F extends Array<any>, R>(name: Each): MethodDecorator;
-export function Returns<F extends Array<any>, R>(): MethodDecorator;
-export function Returns<F extends Array<any>, R>(
+export function Returns(name: Each): MethodDecorator;
+export function Returns(): MethodDecorator;
+export function Returns(
   name?: string | Each,
   options?: IncludeExcludePath,
-) {
-  return (
+): MethodDecorator {
+  return <T>(
     _target: any,
     _key: string | symbol,
-    descriptor: TypedPropertyDescriptor<(...args: F) => Promise<R> | R>,
+    descriptor: TypedPropertyDescriptor<T>,
   ) => {
     Reflect.defineMetadata(
       returns,
@@ -287,5 +302,77 @@ export function Returns<F extends Array<any>, R>(
             },
       descriptor.value,
     );
+  };
+}
+
+export function IfReturns<T>(
+  ifReturns: (returns: unknown) => returns is T,
+  transformer: (returns: T) => string | object,
+): MethodDecorator | ClassDecorator {
+  return <T>(
+    _target: any,
+    _key?: string | symbol,
+    descriptor?: TypedPropertyDescriptor<T>,
+  ) => {
+    if (!_key || !descriptor) {
+      // class decorator
+      const methods = Object.getOwnPropertyNames(_target.prototype);
+
+      methods.forEach((method) => {
+        if (
+          method !== 'constructor' &&
+          typeof _target.prototype[method] === 'function'
+        ) {
+          Reflect.defineMetadata(
+            ifReturns,
+            { ifReturns, transformer },
+            _target.prototype[method],
+          );
+        }
+      });
+    } else {
+      // method decorator
+      Reflect.defineMetadata(
+        ifReturns,
+        { ifReturns, transformer },
+        descriptor.value,
+      );
+    }
+  };
+}
+
+export function IfThrows<E extends Error>(
+  error: E,
+  transformer: (error: E) => string | object,
+): MethodDecorator | ClassDecorator {
+  return <T>(
+    _target: any,
+    _key?: string | symbol,
+    descriptor?: TypedPropertyDescriptor<T>,
+  ) => {
+    if (!_key || !descriptor) {
+      // class decorator
+      const methods = Object.getOwnPropertyNames(_target.prototype);
+
+      methods.forEach((method) => {
+        if (
+          method !== 'constructor' &&
+          typeof _target.prototype[method] === 'function'
+        ) {
+          Reflect.defineMetadata(
+            ifThrows,
+            { error, transformer },
+            _target.prototype[method],
+          );
+        }
+      });
+    } else {
+      // method decorator
+      Reflect.defineMetadata(
+        ifThrows,
+        { error, transformer },
+        descriptor.value,
+      );
+    }
   };
 }
