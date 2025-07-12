@@ -1,5 +1,9 @@
 import { Logger, ExecutionContext } from '@nestjs/common';
-import { LoggedParamReflectData, IfReturnsReflectData } from '../reflected';
+import {
+  LoggedParamReflectData,
+  IfReturnsReflectData,
+  IfThrowsReflectData,
+} from '../reflected';
 import { LoggedMetadata } from './metadata';
 import {
   BuildType,
@@ -55,6 +59,22 @@ export function formatReturnsData(
   return 'WITH ' + objectContainedLogSync(returned);
 }
 
+export function formatThrowsData(e: unknown, data: IfThrowsReflectData[]) {
+  for (const item of data) {
+    if (typeof item.error === 'function' && e instanceof item.error) {
+      const result = item.transformer(e); // each
+      return (
+        'WITH ' +
+        Object.entries(result)
+          .filter(([_, value]) => value !== undefined)
+          .map(([name, value]) => `${name}=${value}`)
+          .join(', ')
+      );
+    }
+  }
+  return '';
+}
+
 export function overrideBuild<F extends Array<any>, R>(
   type: 'route',
   originalFunction: (...args: F) => R,
@@ -62,6 +82,7 @@ export function overrideBuild<F extends Array<any>, R>(
   metadatas: FunctionMetadata,
   key: string,
   returnsData: IfReturnsReflectData[],
+  throwsData: IfThrowsReflectData[],
   logged: LoggedMetadata,
   route: string,
 ): (...args: F) => R;
@@ -72,6 +93,7 @@ export function overrideBuild<F extends Array<any>, R>(
   metadatas: FunctionMetadata,
   key: string,
   returnsData: IfReturnsReflectData[],
+  throwsData: IfThrowsReflectData[],
   logged: LoggedMetadata,
 ): (...args: F) => R;
 export function overrideBuild<F extends Array<any>, R>(
@@ -81,6 +103,7 @@ export function overrideBuild<F extends Array<any>, R>(
   metadatas: FunctionMetadata,
   key: string,
   returnsData: IfReturnsReflectData[],
+  throwsData: IfThrowsReflectData[],
   logged: LoggedMetadata,
   route?: string,
 ): (...args: F) => R {
@@ -202,27 +225,28 @@ export function overrideBuild<F extends Array<any>, R>(
 
     try {
       const r: R = originalFunction.call(this, ...args); // Try to call original function
-        if (
-          originalFunction.constructor.name === 'AsyncFunction' ||
-          (r && typeof r === 'object' && typeof r['then'] === 'function')
-        ) {
-          return r['then']((r: any) => {
+      if (
+        originalFunction.constructor.name === 'AsyncFunction' ||
+        (r && typeof r === 'object' && typeof r['then'] === 'function')
+      ) {
+        return r['then']((r: any) => {
           // async return logging
-            const resultLogged = formatReturnsData(r, returnsData);
-            injectedLogger[logged.options.returnLogLevel](
-              `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
-            );
-            return r;
+          const resultLogged = formatReturnsData(r, returnsData);
+          injectedLogger[logged.options.returnLogLevel](
+            `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
+          );
+          return r;
         })['catch']((e: any) => {
           // async error logging
           if (isErrorLogEnabled) {
+            const throwsLogged = formatThrowsData(e, throwsData);
             injectedLogger[logged.options.errorLogLevel](
-              `${createCallLogIdentifyMessage('ERROR', type, `${name}.${key}`, route)} ${e}`,
+              `${createCallLogIdentifyMessage('ERROR', type, `${name}.${key}`, route)} ${throwsLogged}`,
             );
           }
           throw e;
-          });
-        } else {
+        });
+      } else {
         // return logging
         if (isReturnLogEnabled) {
           const resultLogged = formatReturnsData(r, returnsData);
@@ -235,8 +259,9 @@ export function overrideBuild<F extends Array<any>, R>(
     } catch (e) {
       // error logging
       if (isErrorLogEnabled) {
+        const throwsLogged = formatThrowsData(e, throwsData);
         injectedLogger[logged.options.errorLogLevel](
-          `${createCallLogIdentifyMessage('ERROR', type, `${name}.${key}`, route)} ${e}`,
+          `${createCallLogIdentifyMessage('ERROR', type, `${name}.${key}`, route)} ${throwsLogged}`,
         );
       }
       throw e;
