@@ -1,9 +1,10 @@
 import { Logger, ExecutionContext } from '@nestjs/common';
-import { LoggedParamReflectData, ReturnsReflectData } from '../reflected';
+import { LoggedParamReflectData, IfReturnsReflectData } from '../reflected';
 import { LoggedMetadata } from './metadata';
 import {
   BuildType,
   REQUEST_LOG_ID,
+  copy,
   createCallLogIdentifyMessage,
   injectLogger,
   loggerInit,
@@ -34,25 +35,24 @@ export function formatLoggedParam(args: any[], data: LoggedParamReflectData) {
   return `${data.name}=${objectContainedLogSync(args[data.index])}`;
 }
 
-export function formatReturnsData(returned: any, data: ReturnsReflectData) {
-  if (!data) return '';
-  if (typeof data === 'boolean') {
-    return 'WITH ' + objectContainedLogSync(returned);
+export function formatReturnsData(
+  returned: unknown,
+  data: IfReturnsReflectData[],
+) {
+  if (data.length === 0) return '';
+  for (const item of data) {
+    if (item.ifReturns(returned)) {
+      const result = item.transformer(copy(returned)); // each
+      return (
+        'WITH ' +
+        Object.entries(result)
+          .filter(([_, value]) => value !== undefined)
+          .map(([name, value]) => `${name}=${value}`)
+          .join(', ')
+      );
+    }
   }
-  if (isEach(data.name)) {
-    return (
-      'WITH ' +
-      Object.entries(data.name)
-        .map(([name, path]) => [name, getItemByPathSync(returned, path)])
-        .filter((item) => item !== undefined)
-        .map(([name, value]) => `${name}=${value}`)
-        .join(', ')
-    );
-  }
-  if ('includePathTree' in data || 'excludePathTree' in data) {
-    return `WITH ${data.name}=${objectContainedLogSync(returned, { includePathTree: data.includePathTree, excludePathTree: data.excludePathTree })}`;
-  }
-  return `WITH ${data.name}=${objectContainedLogSync(returned)}`;
+  return 'WITH ' + objectContainedLogSync(returned);
 }
 
 export function overrideBuild<F extends Array<any>, R>(
@@ -61,7 +61,7 @@ export function overrideBuild<F extends Array<any>, R>(
   _target: any,
   metadatas: FunctionMetadata,
   key: string,
-  returnsData: ReturnsReflectData,
+  returnsData: IfReturnsReflectData[],
   logged: LoggedMetadata,
   route: string,
 ): (...args: F) => R;
@@ -71,7 +71,7 @@ export function overrideBuild<F extends Array<any>, R>(
   _target: any,
   metadatas: FunctionMetadata,
   key: string,
-  returnsData: ReturnsReflectData,
+  returnsData: IfReturnsReflectData[],
   logged: LoggedMetadata,
 ): (...args: F) => R;
 export function overrideBuild<F extends Array<any>, R>(
@@ -80,7 +80,7 @@ export function overrideBuild<F extends Array<any>, R>(
   _target: any,
   metadatas: FunctionMetadata,
   key: string,
-  returnsData: ReturnsReflectData,
+  returnsData: IfReturnsReflectData[],
   logged: LoggedMetadata,
   route?: string,
 ): (...args: F) => R {
