@@ -1,12 +1,16 @@
 import { RequestMethod } from '@nestjs/common';
 import { OverrideBuildOptions, RevRequestMethod } from '../utils';
-import { LoggedMetadata, nestLoggedMetadata } from '../metadata';
+import { LoggedMetadata } from '../metadata';
 import {
   loggedParam,
   scopedLogger,
   returns,
   ReturnsReflectData,
   LoggedParamReflectData,
+  IfReturnsReflectData,
+  ifReturns,
+  IfThrowsReflectData,
+  ifThrows,
 } from '../../reflected';
 import { overrideBuild } from '../override';
 import { createRouteParamDecorator } from '../../internals/nest';
@@ -61,10 +65,11 @@ export function LoggedRoute(oB: typeof overrideBuild = overrideBuild) {
         key,
       );
 
-      const returnsData: ReturnsReflectData = Reflect.getOwnMetadata(
-        returns,
-        fn,
-      );
+      const ifReturnsData: IfReturnsReflectData[] =
+        Reflect.getOwnMetadata(ifReturns, fn) ?? [];
+
+      const ifThrowsData: IfThrowsReflectData[] =
+        Reflect.getOwnMetadata(ifThrows, fn) ?? [];
 
       const overrideFunction = oB(
         'route',
@@ -75,7 +80,8 @@ export function LoggedRoute(oB: typeof overrideBuild = overrideBuild) {
           loggedParams,
         },
         key,
-        returnsData,
+        ifReturnsData,
+        ifThrowsData,
         newMetadata,
         fullRoute,
       );

@@ -3,9 +3,11 @@ import { LoggedMetadata } from '../metadata';
 import {
   loggedParam,
   scopedLogger,
-  returns,
-  ReturnsReflectData,
   LoggedParamReflectData,
+  ifReturns,
+  IfReturnsReflectData,
+  IfThrowsReflectData,
+  ifThrows,
 } from '../../reflected';
 import { overrideBuild } from '../override';
 import {
@@ -47,10 +49,11 @@ export function LoggedFunction(oB: typeof overrideBuild = overrideBuild) {
         key,
       );
 
-      const returnsData: ReturnsReflectData = Reflect.getOwnMetadata(
-        returns,
-        fn,
-      );
+      const ifReturnsData: IfReturnsReflectData[] =
+        Reflect.getOwnMetadata(ifReturns, fn) ?? [];
+
+      const ifThrowsData: IfThrowsReflectData[] =
+        Reflect.getOwnMetadata(ifThrows, fn) ?? [];
 
       const overrideFunction = oB(
         'function',
@@ -61,7 +64,8 @@ export function LoggedFunction(oB: typeof overrideBuild = overrideBuild) {
           loggedParams,
         },
         key,
-        returnsData,
+        ifReturnsData,
+        ifThrowsData,
         newMetadata,
       );
 

@@ -1,6 +1,12 @@
 import { OverrideBuildOptions } from '../utils';
-import { LoggedMetadata, nestLoggedMetadata } from '../metadata';
-import { scopedLogger, returns, ReturnsReflectData } from '../../reflected';
+import { LoggedMetadata } from '../metadata';
+import {
+  scopedLogger,
+  IfReturnsReflectData,
+  ifReturns,
+  IfThrowsReflectData,
+  ifThrows,
+} from '../../reflected';
 import { overrideBuild } from '../override';
 import { backupMetadata, restoreMetadata } from '../method-helpers';
 import { isFunctionWithWarn } from '../method-helpers';
@@ -32,10 +38,11 @@ export function LoggedMiddleware(oB: typeof overrideBuild = overrideBuild) {
         key,
       );
 
-      const returnsData: ReturnsReflectData = Reflect.getOwnMetadata(
-        returns,
-        fn,
-      );
+      const ifReturnsData: IfReturnsReflectData[] =
+        Reflect.getOwnMetadata(ifReturns, fn) ?? [];
+
+      const ifThrowsData: IfThrowsReflectData[] =
+        Reflect.getOwnMetadata(ifThrows, fn) ?? [];
 
       const overrideFunction = oB(
         'middleware',
@@ -46,7 +53,8 @@ export function LoggedMiddleware(oB: typeof overrideBuild = overrideBuild) {
           loggedParams: [],
         },
         _target.constructor.name,
-        returnsData,
+        ifReturnsData,
+        ifThrowsData,
         newMetadata,
       );
 

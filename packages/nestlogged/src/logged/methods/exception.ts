@@ -1,6 +1,12 @@
 import { OverrideBuildOptions } from '../utils';
-import { LoggedMetadata, nestLoggedMetadata } from '../metadata';
-import { scopedLogger, returns, ReturnsReflectData } from '../../reflected';
+import { LoggedMetadata } from '../metadata';
+import {
+  scopedLogger,
+  IfReturnsReflectData,
+  ifReturns,
+  ifThrows,
+  IfThrowsReflectData,
+} from '../../reflected';
 import { overrideBuild } from '../override';
 import {
   backupMetadata,
@@ -37,10 +43,11 @@ export function LoggedExceptionFilter(
         key,
       );
 
-      const returnsData: ReturnsReflectData = Reflect.getOwnMetadata(
-        returns,
-        fn,
-      );
+      const ifReturnsData: IfReturnsReflectData[] =
+        Reflect.getOwnMetadata(ifReturns, fn) ?? [];
+
+      const ifThrowsData: IfThrowsReflectData[] =
+        Reflect.getOwnMetadata(ifThrows, fn) ?? [];
 
       const overrideFunction = oB(
         'exception',
@@ -51,7 +58,8 @@ export function LoggedExceptionFilter(
           loggedParams: [],
         },
         _target.constructor.name,
-        returnsData,
+        ifReturnsData,
+        ifThrowsData,
         newMetadata,
       );
 
