@@ -79,7 +79,7 @@ export const ifReturns = Symbol('nestlogged-ifReturns');
 
 export type IfReturnsReflectData = {
   ifReturns: (returns: unknown) => boolean;
-  transformer: (returns: unknown) => string | object;
+  transformer: (returns: unknown) => object;
 };
 
 export type IfThrowsReflectData = {
@@ -311,7 +311,7 @@ export function Returns(
 
 export function IfReturns<T>(
   ifReturns: (returns: unknown) => returns is T,
-  transformer: (returns: T) => string | object,
+  transformer: (returns: T) => object,
 ): MethodDecorator | ClassDecorator {
   return <T>(
     _target: any,
