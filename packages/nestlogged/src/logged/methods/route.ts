@@ -2,15 +2,15 @@ import { RequestMethod } from '@nestjs/common';
 import { OverrideBuildOptions, RevRequestMethod } from '../utils';
 import { LoggedMetadata } from '../metadata';
 import {
-  loggedParam,
-  scopedLogger,
-  returns,
+  loggedParamKey,
+  scopedLoggerKey,
+  returnsKey,
   ReturnsReflectData,
   LoggedParamReflectData,
   IfReturnsReflectData,
-  ifReturns,
+  ifReturnsKey,
   IfThrowsReflectData,
-  ifThrows,
+  ifThrowsKey,
 } from '../../reflected';
 import { overrideBuild } from '../override';
 import { createRouteParamDecorator } from '../../internals/nest';
@@ -46,7 +46,7 @@ export function LoggedRoute(oB: typeof overrideBuild = overrideBuild) {
       }]`;
 
       const scopedLoggerInjectableParam: number = Reflect.getOwnMetadata(
-        scopedLogger,
+        scopedLoggerKey,
         _target,
         key,
       );
@@ -60,16 +60,16 @@ export function LoggedRoute(oB: typeof overrideBuild = overrideBuild) {
       }
 
       const loggedParams: LoggedParamReflectData[] = Reflect.getOwnMetadata(
-        loggedParam,
+        loggedParamKey,
         _target,
         key,
       );
 
       const ifReturnsData: IfReturnsReflectData[] =
-        Reflect.getOwnMetadata(ifReturns, fn) ?? [];
+        Reflect.getOwnMetadata(ifReturnsKey, fn) ?? [];
 
       const ifThrowsData: IfThrowsReflectData[] =
-        Reflect.getOwnMetadata(ifThrows, fn) ?? [];
+        Reflect.getOwnMetadata(ifThrowsKey, fn) ?? [];
 
       const overrideFunction = oB(
         'route',

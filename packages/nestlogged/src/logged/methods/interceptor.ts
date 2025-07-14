@@ -2,11 +2,11 @@ import { OverrideBuildOptions } from '../utils';
 import { ExecutionContext } from '@nestjs/common';
 import { LoggedMetadata } from '../metadata';
 import {
-  scopedLogger,
+  scopedLoggerKey,
   IfReturnsReflectData,
-  ifReturns,
+  ifReturnsKey,
   IfThrowsReflectData,
-  ifThrows,
+  ifThrowsKey,
 } from '../../reflected';
 import { overrideBuild } from '../override';
 import {
@@ -39,16 +39,16 @@ export function LoggedInterceptor(oB: typeof overrideBuild = overrideBuild) {
       const all = backupMetadata(fn);
 
       const scopedLoggerInjectableParam: number = Reflect.getOwnMetadata(
-        scopedLogger,
+        scopedLoggerKey,
         _target,
         key,
       );
 
       const ifReturnsData: IfReturnsReflectData[] =
-        Reflect.getOwnMetadata(ifReturns, fn) ?? [];
+        Reflect.getOwnMetadata(ifReturnsKey, fn) ?? [];
 
       const ifThrowsData: IfThrowsReflectData[] =
-        Reflect.getOwnMetadata(ifThrows, fn) ?? [];
+        Reflect.getOwnMetadata(ifThrowsKey, fn) ?? [];
 
       const overrideFunction = oB(
         'interceptor',

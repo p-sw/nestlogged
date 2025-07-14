@@ -71,11 +71,11 @@ export type ReturnsReflectData =
     }
   | true;
 
-export const scopedLogger = Symbol('nestlogged-scopedLogger');
-export const loggedParam = Symbol('nestlogged-loggedParam');
-export const returns = Symbol('nestlogged-returns');
-export const ifThrows = Symbol('nestlogged-ifThrows');
-export const ifReturns = Symbol('nestlogged-ifReturns');
+export const scopedLoggerKey = Symbol('nestlogged-scopedLogger');
+export const loggedParamKey = Symbol('nestlogged-loggedParam');
+export const returnsKey = Symbol('nestlogged-returns');
+export const ifThrowsKey = Symbol('nestlogged-ifThrows');
+export const ifReturnsKey = Symbol('nestlogged-ifReturns');
 
 export type IfReturnsReflectData = {
   ifReturns: (returns: unknown) => boolean;
@@ -92,7 +92,7 @@ export function InjectLogger(
   propertyKey: string | symbol,
   parameterIndex: number,
 ) {
-  Reflect.defineMetadata(scopedLogger, parameterIndex, target, propertyKey);
+  Reflect.defineMetadata(scopedLoggerKey, parameterIndex, target, propertyKey);
 }
 
 type ParameterDecoratorType = (
@@ -111,7 +111,7 @@ function createLoggedFunctionParam(
     parameterIndex: number,
   ) => {
     const existingLoggedParams: LoggedParamReflectData[] =
-      Reflect.getOwnMetadata(loggedParam, target, propertyKey) || [];
+      Reflect.getOwnMetadata(loggedParamKey, target, propertyKey) || [];
 
     existingLoggedParams.push(
       isEach(name)
@@ -129,7 +129,7 @@ function createLoggedFunctionParam(
     );
 
     Reflect.defineMetadata(
-      loggedParam,
+      loggedParamKey,
       existingLoggedParams,
       target,
       propertyKey,
@@ -290,7 +290,7 @@ export function Returns(
     );
 
     Reflect.defineMetadata(
-      returns,
+      returnsKey,
       typeof name === 'undefined'
         ? true
         : isEach(name)
@@ -320,12 +320,12 @@ export function IfReturns<T>(
   ) => {
     function addMetadata(key?: string | symbol) {
       const existingIfReturnsData: IfReturnsReflectData[] =
-        Reflect.getOwnMetadata(ifReturns, _target, key ?? _key) || [];
+        Reflect.getOwnMetadata(ifReturnsKey, _target, key ?? _key) || [];
 
       existingIfReturnsData.push({ ifReturns, transformer });
 
       Reflect.defineMetadata(
-        ifReturns,
+        ifReturnsKey,
         existingIfReturnsData,
         _target,
         key ?? _key,
@@ -362,12 +362,12 @@ export function IfThrows<E extends Error>(
   ) => {
     function addMetadata(key?: string | symbol) {
       const existingIfThrowsData: IfThrowsReflectData[] =
-        Reflect.getOwnMetadata(ifThrows, _target, key ?? _key) || [];
+        Reflect.getOwnMetadata(ifThrowsKey, _target, key ?? _key) || [];
 
       existingIfThrowsData.push({ error, transformer });
 
       Reflect.defineMetadata(
-        ifThrows,
+        ifThrowsKey,
         existingIfThrowsData,
         _target,
         key ?? _key,
