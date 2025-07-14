@@ -8,10 +8,8 @@
     "declaration": true,
     "declarationMap": false,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false
   },
-  "exclude": [
-    "node_modules",
-    "lib",
-  ],
+  "exclude": ["node_modules", "lib"]
 }
