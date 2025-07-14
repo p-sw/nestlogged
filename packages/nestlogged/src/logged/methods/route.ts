@@ -66,10 +66,10 @@ export function LoggedRoute(oB: typeof overrideBuild = overrideBuild) {
       );
 
       const ifReturnsData: IfReturnsReflectData[] =
-        Reflect.getOwnMetadata(ifReturnsKey, fn) ?? [];
+        Reflect.getOwnMetadata(ifReturnsKey, _target, key) ?? [];
 
       const ifThrowsData: IfThrowsReflectData[] =
-        Reflect.getOwnMetadata(ifThrowsKey, fn) ?? [];
+        Reflect.getOwnMetadata(ifThrowsKey, _target, key) ?? [];
 
       const overrideFunction = oB(
         'route',
