@@ -25,6 +25,20 @@ import * as hyperid from 'hyperid';
 
 const createId = hyperid({ fixedLength: true });
 
+export function isLevelEnabled(logger: Logger, level: LogLevel) {
+  const localInstance = logger.localInstance;
+  if (!localInstance) return false;
+  if (!('isLevelEnabled' in localInstance)) {
+    console.warn(
+      'isLevelEnabled is not available on the logger, will return false',
+    );
+    return false;
+  }
+  return (
+    localInstance as { isLevelEnabled: (level: LogLevel) => boolean }
+  ).isLevelEnabled(level);
+}
+
 export class ScopedLogger extends Logger {
   constructor(
     private logger: Logger,
@@ -32,20 +46,6 @@ export class ScopedLogger extends Logger {
     private scopeId: string = createId(),
   ) {
     super();
-  }
-
-  isLevelEnabled(level: LogLevel) {
-    const localInstance = this.logger.localInstance;
-    if (!localInstance) return false;
-    if (!('isLevelEnabled' in localInstance)) {
-      console.warn(
-        'isLevelEnabled is not available on the logger, will return false',
-      );
-      return false;
-    }
-    return (
-      localInstance as { isLevelEnabled: (level: LogLevel) => boolean }
-    ).isLevelEnabled(level);
   }
 
   private scopedLog(method: LogLevel) {
