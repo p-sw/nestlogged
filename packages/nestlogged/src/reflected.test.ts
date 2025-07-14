@@ -13,6 +13,8 @@ import {
   ifThrowsKey,
   pathsToPathTree,
   PathTree,
+  Returns,
+  returnsKey,
 } from './reflected';
 import 'reflect-metadata';
 
@@ -336,6 +338,78 @@ describe('Metadata Decorators', () => {
       expect(metadata).toHaveLength(2);
       expect(metadata[0].ifReturns).toBe(ifReturnsFn); // method decorator first
       expect(metadata[1].ifReturns).toBe(ifReturnsFn2);
+    });
+  });
+
+  describe('@Returns', () => {
+    it('should apply metadata to a method', () => {
+      class TestClass {
+        @Returns()
+        testMethod() {
+          return 'hello';
+        }
+      }
+      const metadata = Reflect.getOwnMetadata(
+        returnsKey,
+        TestClass.prototype,
+        'testMethod',
+      );
+      expect(metadata).toBe(true);
+    });
+
+    it('should apply metadata to all methods in a class', () => {
+      @Returns()
+      class TestClass {
+        method1() {}
+        method2() {}
+      }
+
+      const metadata1 = Reflect.getOwnMetadata(
+        returnsKey,
+        TestClass.prototype,
+        'method1',
+      );
+      const metadata2 = Reflect.getOwnMetadata(
+        returnsKey,
+        TestClass.prototype,
+        'method2',
+      );
+
+      expect(metadata1).toBe(true);
+      expect(metadata2).toBe(true);
+    });
+
+    it('should be true if enableFallback is true', () => {
+      @Returns(true)
+      class TestClass {
+        testMethod() {
+          return 'hello';
+        }
+      }
+
+      const metadata = Reflect.getOwnMetadata(
+        returnsKey,
+        TestClass.prototype,
+        'testMethod',
+      );
+      expect(metadata).toBe(true);
+    });
+
+    it('should be false if enableFallback is false', () => {
+      @Returns()
+      class TestClass {
+        @Returns(false)
+        testMethod() {
+          return 'hello';
+        }
+      }
+
+      const metadata = Reflect.getOwnMetadata(
+        returnsKey,
+        TestClass.prototype,
+        'testMethod',
+      );
+      expect(metadata).toBe(false);
     });
   });
 
