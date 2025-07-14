@@ -18,7 +18,7 @@ import {
   objectContainedLogSync,
   getItemByPathSync,
 } from '../internals/object-util';
-import { ScopedLogger } from '../logger';
+import { isLevelEnabled, ScopedLogger } from '../logger';
 
 export interface FunctionMetadata {
   scopedLoggerInjectableParam?: number;
@@ -182,13 +182,13 @@ export function overrideBuild<F extends Array<any>, R>(
 
     const isCallLogEnabled =
       logged.options.callLogLevel !== 'skip' &&
-      ScopedLogger.isLevelEnabled(logged.options.callLogLevel);
+      isLevelEnabled(injectedLogger, logged.options.callLogLevel);
     const isReturnLogEnabled =
       logged.options.returnLogLevel !== 'skip' &&
-      ScopedLogger.isLevelEnabled(logged.options.returnLogLevel);
+      isLevelEnabled(injectedLogger, logged.options.returnLogLevel);
     const isErrorLogEnabled =
       logged.options.errorLogLevel !== 'skip' &&
-      ScopedLogger.isLevelEnabled(logged.options.errorLogLevel);
+      isLevelEnabled(injectedLogger, logged.options.errorLogLevel);
 
     // If this is ExecutionContext based function (e.g. Guard, Interceptor) get Request from Context
     if (type === 'guard' || type === 'interceptor') {
