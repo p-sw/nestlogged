@@ -18,6 +18,8 @@ export {
   LoggedQuery,
   Logged,
   Returns,
+  IfThrows,
+  IfReturns,
 } from './reflected';
 export {
   getRequestLogger,
