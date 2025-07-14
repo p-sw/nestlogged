@@ -27,7 +27,7 @@ export function LoggedFunction(oB: typeof overrideBuild = overrideBuild) {
     return (
       _target: any,
       key: string,
-      descriptor: TypedPropertyDescriptor<(...args: F) => R | Promise<R>>,
+      descriptor: TypedPropertyDescriptor<(...args: F) => R>,
     ) => {
       const fn = descriptor.value;
 
