@@ -5,6 +5,7 @@ import {
   Optional,
   ConsoleLoggerOptions,
   ConsoleLogger as NestConsoleLogger,
+  LoggerService,
 } from '@nestjs/common';
 import { inspect, InspectOptions } from 'util';
 import {
@@ -31,6 +32,10 @@ export class ScopedLogger extends Logger {
     private scopeId: string = createId(),
   ) {
     super();
+  }
+
+  isLevelEnabled(level: LogLevel) {
+    return Logger.isLevelEnabled(level);
   }
 
   private scopedLog(method: LogLevel) {
