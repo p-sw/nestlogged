@@ -1,5 +1,8 @@
 import { Logger, ExecutionContext } from '@nestjs/common';
-import { ReturnsReflectData } from 'nestlogged/lib/reflected';
+import {
+  IfReturnsReflectData,
+  IfThrowsReflectData,
+} from 'nestlogged/lib/reflected';
 import { LoggedMetadata } from 'nestlogged/lib/logged/metadata';
 import {
   BuildType,
@@ -8,12 +11,13 @@ import {
   loggerInit,
   injectLogger,
 } from 'nestlogged/lib/logged/utils';
-import { ScopedLogger } from 'nestlogged/lib/logger';
+import { isLevelEnabled, ScopedLogger } from 'nestlogged/lib/logger';
 
 import {
   FunctionMetadata,
   formatLoggedParam,
   formatReturnsData,
+  formatThrowsData,
 } from 'nestlogged/lib/logged/override';
 
 function fastifyOverrideBuild<F extends Array<any>, R>(
@@ -22,7 +26,9 @@ function fastifyOverrideBuild<F extends Array<any>, R>(
   _target: any,
   metadatas: FunctionMetadata,
   key: string,
-  returnsData: ReturnsReflectData,
+  returnsData: IfReturnsReflectData[],
+  returnsFallback: boolean,
+  throwsData: IfThrowsReflectData[],
   logged: LoggedMetadata,
   route: string,
 ): (...args: F) => R;
@@ -32,7 +38,9 @@ function fastifyOverrideBuild<F extends Array<any>, R>(
   _target: any,
   metadatas: FunctionMetadata,
   key: string,
-  returnsData: ReturnsReflectData,
+  returnsData: IfReturnsReflectData[],
+  returnsFallback: boolean,
+  throwsData: IfThrowsReflectData[],
   logged: LoggedMetadata,
 ): (...args: F) => R;
 function fastifyOverrideBuild<F extends Array<any>, R>(
@@ -41,7 +49,9 @@ function fastifyOverrideBuild<F extends Array<any>, R>(
   _target: any,
   metadatas: FunctionMetadata,
   key: string,
-  returnsData: ReturnsReflectData,
+  returnsData: IfReturnsReflectData[],
+  returnsFallback: boolean,
+  throwsData: IfThrowsReflectData[],
   logged: LoggedMetadata,
   route?: string,
 ): (...args: F) => R {
@@ -118,6 +128,16 @@ function fastifyOverrideBuild<F extends Array<any>, R>(
       injectedLogger = args[metadatas.scopedLoggerInjectableParam];
     }
 
+    const isCallLogEnabled =
+      logged.options.callLogLevel !== 'skip' &&
+      isLevelEnabled(injectedLogger, logged.options.callLogLevel);
+    const isReturnLogEnabled =
+      logged.options.returnLogLevel !== 'skip' &&
+      isLevelEnabled(injectedLogger, logged.options.returnLogLevel);
+    const isErrorLogEnabled =
+      logged.options.errorLogLevel !== 'skip' &&
+      isLevelEnabled(injectedLogger, logged.options.errorLogLevel);
+
     // If this is ExecutionContext based function (e.g. Guard, Interceptor) get Request from Context
     if (type === 'guard' || type === 'interceptor') {
       const context = args[0] as ExecutionContext;
@@ -131,7 +151,7 @@ function fastifyOverrideBuild<F extends Array<any>, R>(
     }
 
     // Start Log
-    if (logged.options.callLogLevel !== 'skip') {
+    if (isCallLogEnabled) {
       const callLogIdentifyMessage =
         type === 'middleware' ||
         type === 'guard' ||
@@ -153,35 +173,51 @@ function fastifyOverrideBuild<F extends Array<any>, R>(
 
     try {
       const r: R = originalFunction.call(this, ...args); // Try to call original function
-
-      // Return Log
-      if (logged.options.returnLogLevel !== 'skip') {
-        if (
-          originalFunction.constructor.name === 'AsyncFunction' ||
-          (r && typeof r === 'object' && typeof r['then'] === 'function')
-        ) {
-          return r['then']((r: any) => {
-            const resultLogged = formatReturnsData(r, returnsData);
-            injectedLogger[logged.options.returnLogLevel](
-              `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
+      if (
+        originalFunction.constructor.name === 'AsyncFunction' ||
+        (r && typeof r === 'object' && typeof r['then'] === 'function')
+      ) {
+        return r['then']((r: any) => {
+          // async return logging
+          const resultLogged = formatReturnsData(
+            r,
+            returnsData,
+            returnsFallback,
+          );
+          injectedLogger[logged.options.returnLogLevel](
+            `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
+          );
+          return r;
+        })['catch']((e: any) => {
+          // async error logging
+          if (isErrorLogEnabled) {
+            const throwsLogged = formatThrowsData(e, throwsData);
+            injectedLogger[logged.options.errorLogLevel](
+              `${createCallLogIdentifyMessage('ERROR', type, `${name}.${key}`, route)} ${throwsLogged}`,
             );
-            return r;
-          });
-        } else {
-          const resultLogged = formatReturnsData(r, returnsData);
+          }
+          throw e;
+        });
+      } else {
+        // return logging
+        if (isReturnLogEnabled) {
+          const resultLogged = formatReturnsData(
+            r,
+            returnsData,
+            returnsFallback,
+          );
           injectedLogger[logged.options.returnLogLevel](
             `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
           );
           return r;
         }
-      } else {
-        return r;
       }
     } catch (e) {
-      // Error Log
-      if (logged.options.errorLogLevel !== 'skip') {
+      // error logging
+      if (isErrorLogEnabled) {
+        const throwsLogged = formatThrowsData(e, throwsData);
         injectedLogger[logged.options.errorLogLevel](
-          `${createCallLogIdentifyMessage('ERROR', type, `${name}.${key}`, route)} ${e}`,
+          `${createCallLogIdentifyMessage('ERROR', type, `${name}.${key}`, route)} ${throwsLogged}`,
         );
       }
       throw e;
