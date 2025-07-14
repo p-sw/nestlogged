@@ -3,34 +3,6 @@ Index: packages\nestlogged-fastify\src\index.ts
 --- packages\nestlogged-fastify\src\index.ts
 +++ packages\nestlogged-fastify\src\index.ts
 @@ -1,28 +1,32 @@
--export {
--  LoggedRoute,
--  LoggedFunction,
--  LoggedController,
--  LoggedInjectable,
--  LoggedGuard,
--  LoggedInterceptor,
--  LoggedMiddleware,
--  LoggedExceptionFilter,
--} from './logged';
--export { ScopedLogger, ConsoleLogger } from './logger';
--export { ConsoleLoggerOptions } from '@nestjs/common';
--export {
--  InjectLogger,
--  LoggedParam,
--  LoggedHeaders,
--  LoggedBody,
--  LoggedQuery,
--  Logged,
--  Returns,
--  IfThrows,
--  IfReturns,
--} from './reflected';
--export {
--  getRequestLogger,
--  NestloggedScope as Symbol_NestloggedScope,
--  NestloggedScopeId as Symbol_NestloggedScopeId,
--} from './utils';
 +import {
 +  LoggedControllerBuild,
 +  LoggedInjectableBuild,
@@ -53,13 +25,35 @@ Index: packages\nestlogged-fastify\src\index.ts
 +const LoggedRoute = LoggedRouteBuild(fastifyOverrideBuild);
 +
 +export * from 'nestlogged';
-+export {
-+  LoggedController,
-+  LoggedInjectable,
+ export {
+-  LoggedRoute,
+-  LoggedFunction,
+   LoggedController,
+   LoggedInjectable,
 +  LoggedExceptionFilter,
 +  LoggedFunction,
-+  LoggedGuard,
-+  LoggedInterceptor,
-+  LoggedMiddleware,
+   LoggedGuard,
+   LoggedInterceptor,
+   LoggedMiddleware,
+-  LoggedExceptionFilter,
+-} from './logged';
+-export { ScopedLogger, ConsoleLogger } from './logger';
+-export { ConsoleLoggerOptions } from '@nestjs/common';
+-export {
+-  InjectLogger,
+-  LoggedParam,
+-  LoggedHeaders,
+-  LoggedBody,
+-  LoggedQuery,
+-  Logged,
+-  Returns,
+-  IfThrows,
+-  IfReturns,
+-} from './reflected';
+-export {
+-  getRequestLogger,
+-  NestloggedScope as Symbol_NestloggedScope,
+-  NestloggedScopeId as Symbol_NestloggedScopeId,
+-} from './utils';
 +  LoggedRoute,
 +};

@@ -50,8 +50,12 @@ for (const targetFile of targetFiles) {
 
   console.log(`Creating patch for ${relativePath}...`);
 
-  const sourceContent = fs.readFileSync(sourceFile, 'utf-8');
-  const targetContent = fs.readFileSync(targetFile, 'utf-8');
+  const sourceContent = fs
+    .readFileSync(sourceFile, 'utf-8')
+    .replace(/\r\n/g, '\n');
+  const targetContent = fs
+    .readFileSync(targetFile, 'utf-8')
+    .replace(/\r\n/g, '\n');
 
   if (sourceContent === targetContent) {
     console.log(

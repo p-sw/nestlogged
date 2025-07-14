@@ -65,7 +65,9 @@ for (const patchFile of patchFiles) {
   console.log(`  - Copied source to ${path.relative(root, targetFile)}`);
 
   // 2. Apply patch
-  const sourceContent = fs.readFileSync(sourceFile, 'utf-8');
+  const sourceContent = fs
+    .readFileSync(sourceFile, 'utf-8')
+    .replace(/\r\n/g, '\n');
   const patchContent = fs.readFileSync(patchFile, 'utf-8');
 
   const patchedContent = diff.applyPatch(sourceContent, patchContent);
