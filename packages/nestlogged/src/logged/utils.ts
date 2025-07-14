@@ -52,7 +52,7 @@ export function createCallLogIdentifyMessage(
   route?: string,
 ) {
   if (message === 'ERROR')
-    return `ERROR WHILE ${callLogIdentifyMessageDictionary[type]} ${key} (${route}): `;
+    return `ERROR WHILE ${callLogIdentifyMessageDictionary[type]} ${key}${route ? ` (${route})` : ''}: `;
 
   if (
     type === 'guard' ||
