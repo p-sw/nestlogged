@@ -281,14 +281,18 @@ export function Returns(name: Each): MethodDecorator;
 /**
  * Enables fallback of {@link IfReturns}.
  */
-export function Returns();
-export function Returns(name?: string | Each, options?: IncludeExcludePath) {
+export function Returns(enableFallback?: boolean);
+export function Returns(
+  name?: string | Each | boolean,
+  options?: IncludeExcludePath,
+) {
   return <T>(
     _target: any,
     _key?: string | symbol,
     descriptor?: TypedPropertyDescriptor<T>,
   ) => {
-    if (typeof name === 'undefined') {
+    if (typeof name === 'undefined' || typeof name === 'boolean') {
+      const fallback = typeof name === 'boolean' ? name : true;
       if (!_key || !descriptor) {
         // class decorator
         const methods = Object.getOwnPropertyNames(_target.prototype);
@@ -297,12 +301,17 @@ export function Returns(name?: string | Each, options?: IncludeExcludePath) {
             method !== 'constructor' &&
             typeof _target.prototype[method] === 'function'
           ) {
-            Reflect.defineMetadata(returnsKey, true, _target.prototype, method);
+            Reflect.defineMetadata(
+              returnsKey,
+              fallback,
+              _target.prototype,
+              method,
+            );
           }
         });
       } else {
         // method decorator
-        Reflect.defineMetadata(returnsKey, true, _target, _key);
+        Reflect.defineMetadata(returnsKey, fallback, _target, _key);
       }
     } else {
       console.warn(
