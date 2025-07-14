@@ -42,6 +42,7 @@ export function formatLoggedParam(args: any[], data: LoggedParamReflectData) {
 export function formatReturnsData(
   returned: unknown,
   data: IfReturnsReflectData[],
+  fallback: boolean,
 ) {
   if (data.length === 0) return '';
   for (const item of data) {
@@ -56,7 +57,10 @@ export function formatReturnsData(
       );
     }
   }
-  return 'WITH ' + objectContainedLogSync(returned);
+  if (fallback) {
+    return 'WITH ' + objectContainedLogSync(returned);
+  }
+  return '';
 }
 
 export function formatThrowsData(e: unknown, data: IfThrowsReflectData[]) {
@@ -82,6 +86,7 @@ export function overrideBuild<F extends Array<any>, R>(
   metadatas: FunctionMetadata,
   key: string,
   returnsData: IfReturnsReflectData[],
+  returnsFallback: boolean,
   throwsData: IfThrowsReflectData[],
   logged: LoggedMetadata,
   route: string,
@@ -93,6 +98,7 @@ export function overrideBuild<F extends Array<any>, R>(
   metadatas: FunctionMetadata,
   key: string,
   returnsData: IfReturnsReflectData[],
+  returnsFallback: boolean,
   throwsData: IfThrowsReflectData[],
   logged: LoggedMetadata,
 ): (...args: F) => R;
@@ -103,6 +109,7 @@ export function overrideBuild<F extends Array<any>, R>(
   metadatas: FunctionMetadata,
   key: string,
   returnsData: IfReturnsReflectData[],
+  returnsFallback: boolean,
   throwsData: IfThrowsReflectData[],
   logged: LoggedMetadata,
   route?: string,
@@ -231,7 +238,11 @@ export function overrideBuild<F extends Array<any>, R>(
       ) {
         return r['then']((r: any) => {
           // async return logging
-          const resultLogged = formatReturnsData(r, returnsData);
+          const resultLogged = formatReturnsData(
+            r,
+            returnsData,
+            returnsFallback,
+          );
           injectedLogger[logged.options.returnLogLevel](
             `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
           );
@@ -249,7 +260,11 @@ export function overrideBuild<F extends Array<any>, R>(
       } else {
         // return logging
         if (isReturnLogEnabled) {
-          const resultLogged = formatReturnsData(r, returnsData);
+          const resultLogged = formatReturnsData(
+            r,
+            returnsData,
+            returnsFallback,
+          );
           injectedLogger[logged.options.returnLogLevel](
             `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
           );

@@ -8,6 +8,7 @@ import {
   IfReturnsReflectData,
   IfThrowsReflectData,
   ifThrowsKey,
+  returnsKey,
 } from '../../reflected';
 import { overrideBuild } from '../override';
 import {
@@ -52,6 +53,9 @@ export function LoggedFunction(oB: typeof overrideBuild = overrideBuild) {
       const ifReturnsData: IfReturnsReflectData[] =
         Reflect.getOwnMetadata(ifReturnsKey, _target, key) ?? [];
 
+      const returnsFallback: boolean =
+        Reflect.getOwnMetadata(returnsKey, fn) ?? false;
+
       const ifThrowsData: IfThrowsReflectData[] =
         Reflect.getOwnMetadata(ifThrowsKey, _target, key) ?? [];
 
@@ -65,6 +69,7 @@ export function LoggedFunction(oB: typeof overrideBuild = overrideBuild) {
         },
         key,
         ifReturnsData,
+        returnsFallback,
         ifThrowsData,
         newMetadata,
       );
