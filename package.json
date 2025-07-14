@@ -23,8 +23,8 @@
     "build:fastify": "pnpm run fastify run build",
     "publish:main": "pnpm run main run build && pnpm publish --filter nestlogged --access public",
     "publish:fastify": "pnpm run fastify run build && pnpm publish --filter nestlogged-fastify --access public",
-    "pack:main": "pnpm run main run build && pnpm pack --filter nestlogged",
-    "pack:fastify": "pnpm run fastify run build && pnpm pack --filter nestlogged-fastify",
+    "pack:main": "pnpm run main run build && pnpm pack --filter nestlogged --out %s.tgz",
+    "pack:fastify": "pnpm run fastify run build && pnpm pack --filter nestlogged-fastify --out %s.tgz",
     "format": "prettier --write \"./packages/**/*.ts\"",
     "test:main": "pnpm run main exec jest"
   },
