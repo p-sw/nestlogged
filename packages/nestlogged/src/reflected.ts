@@ -281,18 +281,29 @@ export function Returns(name: Each): MethodDecorator;
 /**
  * Enables fallback of {@link IfReturns}.
  */
-export function Returns(): MethodDecorator;
-export function Returns(
-  name?: string | Each,
-  options?: IncludeExcludePath,
-): MethodDecorator {
+export function Returns();
+export function Returns(name?: string | Each, options?: IncludeExcludePath) {
   return <T>(
     _target: any,
-    _key: string | symbol,
-    descriptor: TypedPropertyDescriptor<T>,
+    _key?: string | symbol,
+    descriptor?: TypedPropertyDescriptor<T>,
   ) => {
     if (typeof name === 'undefined') {
-      Reflect.defineMetadata(returnsKey, true, descriptor.value);
+      if (!_key || !descriptor) {
+        // class decorator
+        const methods = Object.getOwnPropertyNames(_target.prototype);
+        methods.forEach((method) => {
+          if (
+            method !== 'constructor' &&
+            typeof _target.prototype[method] === 'function'
+          ) {
+            Reflect.defineMetadata(returnsKey, true, _target.prototype, method);
+          }
+        });
+      } else {
+        // method decorator
+        Reflect.defineMetadata(returnsKey, true, _target, _key);
+      }
     } else {
       console.warn(
         'nestlogged: Returns decorator for logging returned values is deprecated. This will be ignored. Use IfReturns instead.',
