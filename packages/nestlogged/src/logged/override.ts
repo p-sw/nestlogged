@@ -196,8 +196,8 @@ export function overrideBuild<F extends Array<any>, R>(
           injectedLogger[logged.options.returnLogLevel](
             `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
           );
-          return r;
         }
+        return r;
       }
     } catch (e) {
       // error logging
