@@ -171,9 +171,11 @@ export function overrideBuild<F extends Array<any>, R>(
             returnsData,
             returnsFallback,
           );
-          injectedLogger[logged.options.returnLogLevel](
-            `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
-          );
+          if (isReturnLogEnabled) {
+            injectedLogger[logged.options.returnLogLevel](
+              `${createCallLogIdentifyMessage('RETURNED', type, `${name}.${key}`, route)} ${resultLogged}`,
+            );
+          }
           return r;
         })['catch']((e: any) => {
           // async error logging
