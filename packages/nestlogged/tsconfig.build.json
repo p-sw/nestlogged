@@ -1,12 +1,4 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": [
-    "node_modules",
-    "lib",
-    "src/test",
-  ],
-  "compilerOptions": {
-    "experimentalDecorators": false,
-    "emitDecoratorMetadata": false,
-  }
+  "exclude": ["node_modules", "lib", "src/**/*.test.ts"]
 }
