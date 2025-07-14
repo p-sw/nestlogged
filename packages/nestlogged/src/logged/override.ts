@@ -75,6 +75,10 @@ export function formatThrowsData(e: unknown, data: IfThrowsReflectData[]) {
             .join(', ');
     }
   }
+  // if doesn't match, try with default Error message
+  if (e instanceof Error) {
+    return 'WITH ' + e.message;
+  }
   return '';
 }
 
