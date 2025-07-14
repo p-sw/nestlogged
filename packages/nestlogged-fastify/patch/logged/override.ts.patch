@@ -1,0 +1,112 @@
+Index: packages\nestlogged-fastify\src\logged\override.ts
+===================================================================
+--- packages\nestlogged-fastify\src\logged\override.ts
++++ packages\nestlogged-fastify\src\logged\override.ts
+@@ -1,31 +1,27 @@
+ import { Logger, ExecutionContext } from '@nestjs/common';
+ import {
+-  LoggedParamReflectData,
+   IfReturnsReflectData,
+   IfThrowsReflectData,
+-} from '../reflected';
+-import { LoggedMetadata } from './metadata';
++} from 'nestlogged/lib/reflected';
++import { LoggedMetadata } from 'nestlogged/lib/logged/metadata';
+ import {
+   BuildType,
+   REQUEST_LOG_ID,
+   createCallLogIdentifyMessage,
+-  injectLogger,
+   loggerInit,
+-} from './utils';
+-import { isLevelEnabled, ScopedLogger } from '../logger';
++  injectLogger,
++} from 'nestlogged/lib/logged/utils';
++import { isLevelEnabled, ScopedLogger } from 'nestlogged/lib/logger';
++
+ import {
++  FunctionMetadata,
+   formatLoggedParam,
+   formatReturnsData,
+   formatThrowsData,
+-} from './formatter';
++} from 'nestlogged/lib/logged/override';
+ 
+-export interface FunctionMetadata {
+-  scopedLoggerInjectableParam?: number;
+-  loggedParams?: LoggedParamReflectData[];
+-}
+-
+-export function overrideBuild<F extends Array<any>, R>(
++function fastifyOverrideBuild<F extends Array<any>, R>(
+   type: 'route',
+   originalFunction: (...args: F) => R,
+   _target: any,
+   metadatas: FunctionMetadata,
+@@ -35,9 +31,9 @@
+   throwsData: IfThrowsReflectData[],
+   logged: LoggedMetadata,
+   route: string,
+ ): (...args: F) => R;
+-export function overrideBuild<F extends Array<any>, R>(
++function fastifyOverrideBuild<F extends Array<any>, R>(
+   type: 'function' | 'guard' | 'interceptor' | 'middleware' | 'exception',
+   originalFunction: (...args: F) => R,
+   _target: any,
+   metadatas: FunctionMetadata,
+@@ -46,9 +42,9 @@
+   returnsFallback: boolean,
+   throwsData: IfThrowsReflectData[],
+   logged: LoggedMetadata,
+ ): (...args: F) => R;
+-export function overrideBuild<F extends Array<any>, R>(
++function fastifyOverrideBuild<F extends Array<any>, R>(
+   type: BuildType,
+   originalFunction: (...args: F) => R,
+   _target: any,
+   metadatas: FunctionMetadata,
+@@ -87,9 +83,9 @@
+             injectedLogger.error(
+               'Cannot inject logger: Request type is not http',
+             );
+           } else {
+-            let req = ctx.switchToHttp().getRequest();
++            let req = ctx.switchToHttp().getRequest()['raw'];
+             if (req[REQUEST_LOG_ID] === undefined) {
+               req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
+             }
+             injectLogger({
+@@ -113,9 +109,9 @@
+             scopeId: req[REQUEST_LOG_ID],
+           });
+         } else if (type === 'route') {
+           // args[metadatas.scopedLoggerInjectableParam] is now Request object, thanks to code in @LoggedRoute!!!!
+-          let req = args[metadatas.scopedLoggerInjectableParam];
++          let req = args[metadatas.scopedLoggerInjectableParam]['raw'];
+           if (req[REQUEST_LOG_ID] === undefined) {
+             req[REQUEST_LOG_ID] = ScopedLogger.createScopeId();
+           }
+           injectLogger({
+@@ -146,13 +142,13 @@
+     if (type === 'guard' || type === 'interceptor') {
+       const context = args[0] as ExecutionContext;
+       if (context.getType() === 'http') {
+         const req = context.switchToHttp().getRequest();
+-        route = req.url;
++        route = req.raw.url;
+       }
+     } else if (type === 'middleware') {
+       const req = args[0];
+-      route = req.url;
++      route = req.originalUrl;
+     }
+ 
+     // Start Log
+     if (isCallLogEnabled) {
+@@ -227,4 +223,6 @@
+       throw e;
+     }
+   };
+ }
++
++export { fastifyOverrideBuild };

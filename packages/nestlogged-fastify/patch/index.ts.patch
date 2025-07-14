@@ -1,0 +1,65 @@
+Index: packages\nestlogged-fastify\src\index.ts
+===================================================================
+--- packages\nestlogged-fastify\src\index.ts
++++ packages\nestlogged-fastify\src\index.ts
+@@ -1,28 +1,32 @@
+-export {
+-  LoggedRoute,
+-  LoggedFunction,
+-  LoggedController,
+-  LoggedInjectable,
+-  LoggedGuard,
+-  LoggedInterceptor,
+-  LoggedMiddleware,
+-  LoggedExceptionFilter,
+-} from './logged';
+-export { ScopedLogger, ConsoleLogger } from './logger';
+-export { ConsoleLoggerOptions } from '@nestjs/common';
+-export {
+-  InjectLogger,
+-  LoggedParam,
+-  LoggedHeaders,
+-  LoggedBody,
+-  LoggedQuery,
+-  Logged,
+-  Returns,
+-  IfThrows,
+-  IfReturns,
+-} from './reflected';
+-export {
+-  getRequestLogger,
+-  NestloggedScope as Symbol_NestloggedScope,
+-  NestloggedScopeId as Symbol_NestloggedScopeId,
+-} from './utils';
++import {
++  LoggedControllerBuild,
++  LoggedInjectableBuild,
++  LoggedExceptionFilterBuild,
++  LoggedFunctionBuild,
++  LoggedGuardBuild,
++  LoggedInterceptorBuild,
++  LoggedMiddlewareBuild,
++  LoggedRouteBuild,
++} from 'nestlogged/lib/builders';
++import { fastifyOverrideBuild } from './logged/override';
++
++const LoggedController = LoggedControllerBuild(fastifyOverrideBuild);
++const LoggedInjectable = LoggedInjectableBuild(fastifyOverrideBuild);
++const LoggedExceptionFilter = LoggedExceptionFilterBuild(fastifyOverrideBuild);
++const LoggedFunction = LoggedFunctionBuild(fastifyOverrideBuild);
++const LoggedGuard = LoggedGuardBuild(fastifyOverrideBuild);
++const LoggedInterceptor = LoggedInterceptorBuild(fastifyOverrideBuild);
++const LoggedMiddleware = LoggedMiddlewareBuild(fastifyOverrideBuild);
++const LoggedRoute = LoggedRouteBuild(fastifyOverrideBuild);
++
++export * from 'nestlogged';
++export {
++  LoggedController,
++  LoggedInjectable,
++  LoggedExceptionFilter,
++  LoggedFunction,
++  LoggedGuard,
++  LoggedInterceptor,
++  LoggedMiddleware,
++  LoggedRoute,
++};

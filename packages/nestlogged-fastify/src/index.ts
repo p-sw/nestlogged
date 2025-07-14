@@ -8,7 +8,7 @@ import {
   LoggedMiddlewareBuild,
   LoggedRouteBuild,
 } from 'nestlogged/lib/builders';
-import { fastifyOverrideBuild } from './override';
+import { fastifyOverrideBuild } from './logged/override';
 
 const LoggedController = LoggedControllerBuild(fastifyOverrideBuild);
 const LoggedInjectable = LoggedInjectableBuild(fastifyOverrideBuild);

@@ -11,6 +11,7 @@
     "packages/*"
   ],
   "devDependencies": {
+    "diff": "^8.0.2",
     "prettier": "^3.5.3",
     "rimraf": "^5.0.5",
     "ts-node": "^10.9.1",
@@ -20,13 +21,15 @@
     "main": "pnpm --filter nestlogged",
     "fastify": "pnpm --filter nestlogged-fastify",
     "build:main": "pnpm run main run build",
-    "build:fastify": "pnpm run fastify run build",
+    "build:fastify": "pnpm run patch:import && pnpm run fastify run build",
     "publish:main": "pnpm run main run build && pnpm publish --filter nestlogged --access public",
-    "publish:fastify": "pnpm run fastify run build && pnpm publish --filter nestlogged-fastify --access public",
+    "publish:fastify": "pnpm run build:fastify && pnpm publish --filter nestlogged-fastify --access public",
     "pack:main": "pnpm run main run build && pnpm pack --filter nestlogged --out %s.tgz",
-    "pack:fastify": "pnpm run fastify run build && pnpm pack --filter nestlogged-fastify --out %s.tgz",
+    "pack:fastify": "pnpm run build:fastify && pnpm pack --filter nestlogged-fastify --out %s.tgz",
     "format": "prettier --write \"./packages/**/*.ts\"",
-    "test:main": "pnpm run main exec jest --verbose=true"
+    "test:main": "pnpm run main exec jest --verbose=true",
+    "patch:import": "node scripts/patching/import.mjs",
+    "patch:export": "node scripts/patching/export.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.0"

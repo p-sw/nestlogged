@@ -13,12 +13,12 @@ import {
 } from 'nestlogged/lib/logged/utils';
 import { isLevelEnabled, ScopedLogger } from 'nestlogged/lib/logger';
 
+import { FunctionMetadata } from 'nestlogged/lib/logged/override';
 import {
-  FunctionMetadata,
   formatLoggedParam,
   formatReturnsData,
   formatThrowsData,
-} from 'nestlogged/lib/logged/override';
+} from 'nestlogged/lib/logged/formatter';
 
 function fastifyOverrideBuild<F extends Array<any>, R>(
   type: 'route',
