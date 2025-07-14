@@ -67,12 +67,15 @@ export function formatThrowsData(e: unknown, data: IfThrowsReflectData[]) {
   for (const item of data) {
     if (typeof item.error === 'function' && e instanceof item.error) {
       const result = item.transformer(e); // string | each
-      return 'WITH ' + typeof result === 'string'
-        ? result
-        : Object.entries(result)
-            .filter(([_, value]) => value !== undefined)
-            .map(([name, value]) => `${name}=${value}`)
-            .join(', ');
+      return (
+        'WITH ' +
+        (typeof result === 'string'
+          ? result
+          : Object.entries(result)
+              .filter(([_, value]) => value !== undefined)
+              .map(([name, value]) => `${name}=${value}`)
+              .join(', '))
+      );
     }
   }
   // if doesn't match, try with default Error message
