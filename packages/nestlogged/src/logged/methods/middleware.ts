@@ -43,7 +43,7 @@ export function LoggedMiddleware(oB: typeof overrideBuild = overrideBuild) {
         Reflect.getOwnMetadata(ifReturnsKey, _target, key) ?? [];
 
       const returnsFallback: boolean =
-        Reflect.getOwnMetadata(returnsKey, fn) ?? false;
+        Reflect.getOwnMetadata(returnsKey, _target, key) ?? false;
 
       const ifThrowsData: IfThrowsReflectData[] =
         Reflect.getOwnMetadata(ifThrowsKey, _target, key) ?? [];
