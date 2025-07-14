@@ -301,6 +301,15 @@ export function Returns(
             method !== 'constructor' &&
             typeof _target.prototype[method] === 'function'
           ) {
+            // check if metadata already set to false
+            // if false, ignore
+            const existingMetadata = Reflect.getOwnMetadata(
+              returnsKey,
+              _target.prototype,
+              method,
+            );
+            if (existingMetadata === false) return;
+
             Reflect.defineMetadata(
               returnsKey,
               fallback,
