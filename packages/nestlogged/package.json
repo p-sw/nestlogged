@@ -1,6 +1,6 @@
 {
   "name": "nestlogged",
-  "version": "3.7.0",
+  "version": "3.7.1",
   "description": "A NestJS Logger Decorator Library",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
