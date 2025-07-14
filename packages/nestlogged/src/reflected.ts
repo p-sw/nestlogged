@@ -312,19 +312,24 @@ export function Returns(
 export function IfReturns<T>(
   ifReturns: (returns: unknown) => returns is T,
   transformer: (returns: T) => object,
-): MethodDecorator | ClassDecorator {
+) {
   return <T>(
     _target: any,
     _key?: string | symbol,
     descriptor?: TypedPropertyDescriptor<T>,
   ) => {
-    function addMetadata() {
+    function addMetadata(key?: string | symbol) {
       const existingIfReturnsData: IfReturnsReflectData[] =
-        Reflect.getOwnMetadata(ifReturns, _target, _key) || [];
+        Reflect.getOwnMetadata(ifReturns, _target, key ?? _key) || [];
 
       existingIfReturnsData.push({ ifReturns, transformer });
 
-      Reflect.defineMetadata(ifReturns, existingIfReturnsData, _target, _key);
+      Reflect.defineMetadata(
+        ifReturns,
+        existingIfReturnsData,
+        _target,
+        key ?? _key,
+      );
     }
 
     if (!_key || !descriptor) {
@@ -336,7 +341,7 @@ export function IfReturns<T>(
           method !== 'constructor' &&
           typeof _target.prototype[method] === 'function'
         ) {
-          addMetadata();
+          addMetadata(method);
         }
       });
     } else {
@@ -355,13 +360,18 @@ export function IfThrows<E extends Error>(
     _key?: string | symbol,
     descriptor?: TypedPropertyDescriptor<T>,
   ) => {
-    function addMetadata() {
+    function addMetadata(key?: string | symbol) {
       const existingIfThrowsData: IfThrowsReflectData[] =
-        Reflect.getOwnMetadata(ifThrows, _target, _key) || [];
+        Reflect.getOwnMetadata(ifThrows, _target, key ?? _key) || [];
 
       existingIfThrowsData.push({ error, transformer });
 
-      Reflect.defineMetadata(ifThrows, existingIfThrowsData, _target, _key);
+      Reflect.defineMetadata(
+        ifThrows,
+        existingIfThrowsData,
+        _target,
+        key ?? _key,
+      );
     }
 
     if (!_key || !descriptor) {
@@ -373,7 +383,7 @@ export function IfThrows<E extends Error>(
           method !== 'constructor' &&
           typeof _target.prototype[method] === 'function'
         ) {
-          addMetadata();
+          addMetadata(method);
         }
       });
     } else {
