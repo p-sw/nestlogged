@@ -274,7 +274,13 @@ export function Returns(
   name: string,
   options?: IncludeExcludePath,
 ): MethodDecorator;
+/**
+ * @deprecated use {@link IfReturns} instead
+ */
 export function Returns(name: Each): MethodDecorator;
+/**
+ * Enables fallback of {@link IfReturns}.
+ */
 export function Returns(): MethodDecorator;
 export function Returns(
   name?: string | Each,
@@ -285,27 +291,13 @@ export function Returns(
     _key: string | symbol,
     descriptor: TypedPropertyDescriptor<T>,
   ) => {
-    console.warn(
-      'nestlogged: Returns decorator is deprecated. This will be ignored. Use IfReturns instead.',
-    );
-
-    Reflect.defineMetadata(
-      returnsKey,
-      typeof name === 'undefined'
-        ? true
-        : isEach(name)
-          ? { name }
-          : {
-              name,
-              includePathTree: options?.includePath
-                ? pathsToPathTree(options.includePath)
-                : undefined,
-              excludePathTree: options?.excludePath
-                ? pathsToPathTree(options.excludePath)
-                : undefined,
-            },
-      descriptor.value,
-    );
+    if (typeof name === 'undefined') {
+      Reflect.defineMetadata(returnsKey, true, descriptor.value);
+    } else {
+      console.warn(
+        'nestlogged: Returns decorator for logging returned values is deprecated. This will be ignored. Use IfReturns instead.',
+      );
+    }
   };
 }
 
