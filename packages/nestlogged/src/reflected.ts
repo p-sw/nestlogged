@@ -347,9 +347,9 @@ export function IfReturns<T>(
 }
 
 export function IfThrows<E extends Error>(
-  error: E,
+  error: new (...args: any[]) => E,
   transformer: (error: E) => string | object,
-): MethodDecorator | ClassDecorator {
+) {
   return <T>(
     _target: any,
     _key?: string | symbol,
