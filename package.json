@@ -29,7 +29,8 @@
     "format": "prettier --write \"./packages/**/*.ts\"",
     "test:main": "pnpm run main exec jest --verbose=true",
     "patch:import": "node scripts/patching/import.mjs",
-    "patch:export": "node scripts/patching/export.mjs"
+    "patch:export": "node scripts/patching/export.mjs",
+    "patch:sync": "node scripts/patching/sync.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.0"

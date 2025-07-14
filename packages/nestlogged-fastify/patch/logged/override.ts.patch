@@ -1,7 +1,7 @@
-Index: packages\nestlogged-fastify\src\logged\override.ts
+Index: packages/nestlogged-fastify/src/logged/override.ts
 ===================================================================
---- packages\nestlogged-fastify\src\logged\override.ts
-+++ packages\nestlogged-fastify\src\logged\override.ts
+--- packages/nestlogged-fastify/src/logged/override.ts
++++ packages/nestlogged-fastify/src/logged/override.ts
 @@ -1,31 +1,27 @@
  import { Logger, ExecutionContext } from '@nestjs/common';
  import {
