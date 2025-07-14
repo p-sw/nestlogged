@@ -35,7 +35,17 @@ export class ScopedLogger extends Logger {
   }
 
   isLevelEnabled(level: LogLevel) {
-    return Logger.isLevelEnabled(level);
+    const localInstance = this.localInstance;
+    if (!localInstance) return false;
+    if (!('isLevelEnabled' in localInstance)) {
+      console.warn(
+        'isLevelEnabled is not available on the logger, will return false',
+      );
+      return false;
+    }
+    return (
+      localInstance as { isLevelEnabled: (level: LogLevel) => boolean }
+    ).isLevelEnabled(level);
   }
 
   private scopedLog(method: LogLevel) {
