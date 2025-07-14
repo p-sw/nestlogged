@@ -318,18 +318,13 @@ export function IfReturns<T>(
     _key?: string | symbol,
     descriptor?: TypedPropertyDescriptor<T>,
   ) => {
-    function addMetadata(key?: string | symbol) {
+    function addMetadata(target: any, key: string | symbol) {
       const existingIfReturnsData: IfReturnsReflectData[] =
-        Reflect.getOwnMetadata(ifReturnsKey, _target, key ?? _key) || [];
+        Reflect.getOwnMetadata(ifReturnsKey, target, key) || [];
 
       existingIfReturnsData.push({ ifReturns, transformer });
 
-      Reflect.defineMetadata(
-        ifReturnsKey,
-        existingIfReturnsData,
-        _target,
-        key ?? _key,
-      );
+      Reflect.defineMetadata(ifReturnsKey, existingIfReturnsData, target, key);
     }
 
     if (!_key || !descriptor) {
@@ -341,12 +336,12 @@ export function IfReturns<T>(
           method !== 'constructor' &&
           typeof _target.prototype[method] === 'function'
         ) {
-          addMetadata(method);
+          addMetadata(_target.prototype, method);
         }
       });
     } else {
       // method decorator
-      addMetadata();
+      addMetadata(_target, _key);
     }
   };
 }
@@ -360,18 +355,13 @@ export function IfThrows<E extends Error>(
     _key?: string | symbol,
     descriptor?: TypedPropertyDescriptor<T>,
   ) => {
-    function addMetadata(key?: string | symbol) {
+    function addMetadata(target: any, key: string | symbol) {
       const existingIfThrowsData: IfThrowsReflectData[] =
-        Reflect.getOwnMetadata(ifThrowsKey, _target, key ?? _key) || [];
+        Reflect.getOwnMetadata(ifThrowsKey, target, key) || [];
 
       existingIfThrowsData.push({ error, transformer });
 
-      Reflect.defineMetadata(
-        ifThrowsKey,
-        existingIfThrowsData,
-        _target,
-        key ?? _key,
-      );
+      Reflect.defineMetadata(ifThrowsKey, existingIfThrowsData, target, key);
     }
 
     if (!_key || !descriptor) {
@@ -383,12 +373,12 @@ export function IfThrows<E extends Error>(
           method !== 'constructor' &&
           typeof _target.prototype[method] === 'function'
         ) {
-          addMetadata(method);
+          addMetadata(_target.prototype, method);
         }
       });
     } else {
       // method decorator
-      addMetadata();
+      addMetadata(_target, _key);
     }
   };
 }
