@@ -29,10 +29,7 @@ export function isLevelEnabled(logger: Logger, level: LogLevel) {
   const localInstance = logger.localInstance;
   if (!localInstance) return false;
   if (!('isLevelEnabled' in localInstance)) {
-    console.warn(
-      'isLevelEnabled is not available on the logger, will return false',
-    );
-    return false;
+    return true;
   }
   return (
     localInstance as { isLevelEnabled: (level: LogLevel) => boolean }
