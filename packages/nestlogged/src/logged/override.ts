@@ -181,13 +181,13 @@ export function overrideBuild<F extends Array<any>, R>(
     }
 
     const isCallLogEnabled =
-      logged.options.callLogLevel === 'skip' ||
+      logged.options.callLogLevel !== 'skip' &&
       ScopedLogger.isLevelEnabled(logged.options.callLogLevel);
     const isReturnLogEnabled =
-      logged.options.returnLogLevel === 'skip' ||
+      logged.options.returnLogLevel !== 'skip' &&
       ScopedLogger.isLevelEnabled(logged.options.returnLogLevel);
     const isErrorLogEnabled =
-      logged.options.errorLogLevel === 'skip' ||
+      logged.options.errorLogLevel !== 'skip' &&
       ScopedLogger.isLevelEnabled(logged.options.errorLogLevel);
 
     // If this is ExecutionContext based function (e.g. Guard, Interceptor) get Request from Context
