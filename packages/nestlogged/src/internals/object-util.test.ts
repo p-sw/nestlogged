@@ -133,6 +133,20 @@ describe('includeObjectSync', () => {
     expect(result2).toBe(123);
     expect(result3).toBe(true);
   });
+
+  it('should handle empty pathTree', () => {
+    const obj = { a: 1, b: 2 };
+    const pathTree = {};
+    const result = includeObjectSync(obj, { pathTree });
+    expect(result).toEqual({});
+  });
+
+  it('should handle deeply nested paths', () => {
+    const obj = { a: { b: { c: { d: 4 } } } };
+    const pathTree = pathsToPathTree(['a.b.c.d']);
+    const result = includeObjectSync(obj, { pathTree });
+    expect(result).toEqual({ a: { b: { c: { d: 4 } } } });
+  });
 });
 
 describe('excludeObjectSync', () => {
