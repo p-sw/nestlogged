@@ -153,8 +153,17 @@ type LoggedParamReturns = typeof Logged;
 
 type Pipe = Type<PipeTransform> | PipeTransform;
 
+/**
+ * @deprecated LoggedParam integrates with NestJS parameter decorators and may cause conflicts. Use @Logged decorator instead for parameter logging.
+ */
 export function LoggedParam(): LoggedParamReturns;
+/**
+ * @deprecated LoggedParam integrates with NestJS parameter decorators and may cause conflicts. Use @Logged decorator instead for parameter logging.
+ */
 export function LoggedParam(...pipes: Pipe[]): LoggedParamReturns;
+/**
+ * @deprecated LoggedParam integrates with NestJS parameter decorators and may cause conflicts. Use @Logged decorator instead for parameter logging.
+ */
 export function LoggedParam(
   property: string,
   ...pipes: Pipe[]
@@ -183,8 +192,17 @@ export function LoggedParam(
   };
 }
 
+/**
+ * @deprecated LoggedQuery integrates with NestJS parameter decorators and may cause conflicts. Use @Logged decorator instead for parameter logging.
+ */
 export function LoggedQuery(): LoggedParamReturns;
+/**
+ * @deprecated LoggedQuery integrates with NestJS parameter decorators and may cause conflicts. Use @Logged decorator instead for parameter logging.
+ */
 export function LoggedQuery(...pipes: Pipe[]): LoggedParamReturns;
+/**
+ * @deprecated LoggedQuery integrates with NestJS parameter decorators and may cause conflicts. Use @Logged decorator instead for parameter logging.
+ */
 export function LoggedQuery(
   property: string,
   ...pipes: Pipe[]
@@ -214,8 +232,17 @@ export function LoggedQuery(
   };
 }
 
+/**
+ * @deprecated LoggedBody integrates with NestJS parameter decorators and may cause conflicts. Use @Logged decorator instead for parameter logging.
+ */
 export function LoggedBody(): LoggedParamReturns;
+/**
+ * @deprecated LoggedBody integrates with NestJS parameter decorators and may cause conflicts. Use @Logged decorator instead for parameter logging.
+ */
 export function LoggedBody(...pipes: Pipe[]): LoggedParamReturns;
+/**
+ * @deprecated LoggedBody integrates with NestJS parameter decorators and may cause conflicts. Use @Logged decorator instead for parameter logging.
+ */
 export function LoggedBody(
   property: string,
   ...pipes: Pipe[]
@@ -245,6 +272,9 @@ export function LoggedBody(
   };
 }
 
+/**
+ * @deprecated LoggedHeaders integrates with NestJS parameter decorators and may cause conflicts. Use @Logged decorator instead for parameter logging.
+ */
 export function LoggedHeaders(property?: string): LoggedParamReturns {
   return (name: string | Each, options?: IncludeExcludePath) => {
     return (
