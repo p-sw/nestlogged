@@ -68,8 +68,8 @@ importers:
         specifier: ^3.1.1
         version: 3.3.0
       nestlogged:
-        specifier: ^3.7.2
-        version: 3.7.2(@nestjs/common@11.1.3(reflect-metadata@0.1.14)(rxjs@7.8.2))
+        specifier: ^3.7.3
+        version: 3.7.3(@nestjs/common@11.1.3(reflect-metadata@0.1.14)(rxjs@7.8.2))
       reflect-metadata:
         specifier: ^0.1.13
         version: 0.1.14
@@ -1257,8 +1257,8 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  nestlogged@3.7.2:
-    resolution: {integrity: sha512-uLAfRBmLNDz+IYr1xXRoVtcXv+6wlUL+TK/jV/AMWFpQIvLZItLLnuBfCdldUb7Bcc2u1p8MUvISNBoyEmngQg==}
+  nestlogged@3.7.3:
+    resolution: {integrity: sha512-CRMp0yLlkJuTrRGwl1vnaQdL0VlirBXyyIRQc/SKnRJSdeAudnRcgOrcnPFDoMtDcYCbtEVBMGsIjUnPONfQUQ==}
     peerDependencies:
       '@nestjs/common': '>=9 <=11'
 
@@ -3223,7 +3223,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  nestlogged@3.7.2(@nestjs/common@11.1.3(reflect-metadata@0.1.14)(rxjs@7.8.2)):
+  nestlogged@3.7.3(@nestjs/common@11.1.3(reflect-metadata@0.1.14)(rxjs@7.8.2)):
     dependencies:
       '@nestjs/common': 11.1.3(reflect-metadata@0.1.14)(rxjs@7.8.2)
       hyperid: 3.3.0
