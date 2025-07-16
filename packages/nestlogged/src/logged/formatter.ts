@@ -29,7 +29,7 @@ export function formatReturnsData(
   data: IfReturnsReflectData[],
   fallback: boolean,
 ) {
-  if (data.length === 0) return '';
+  if (data.length === 0 && !fallback) return '';
   for (const item of data) {
     if (item.ifReturns(returned)) {
       const result = item.transformer(copy(returned)); // each
@@ -42,10 +42,8 @@ export function formatReturnsData(
       );
     }
   }
-  if (fallback) {
-    return 'WITH ' + objectContainedLogSync(returned);
-  }
-  return '';
+  // fallback
+  return 'WITH ' + objectContainedLogSync(returned);
 }
 
 export function formatThrowsData(e: unknown, data: IfThrowsReflectData[]) {
